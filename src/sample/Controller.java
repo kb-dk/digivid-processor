@@ -11,6 +11,21 @@ import javafx.scene.input.MouseEvent;
 
 import java.util.ArrayList;
 
+/**
+ *
+ * In outline this sample is based on
+ * https://docs.oracle.com/javafx/2/fxml_get_started/fxml_tutorial_intermediate.htm
+ *
+ * Some other things we need to do/understand:
+ *
+ * i) Loading a new scene (form) on the stage
+ * http://www.coderanch.com/t/620836/JavaFX/java/switch-scenes-stage-javafx
+ *
+ *
+ * ii) Submitting data from one screen to the next:
+ * http://www.coderanch.com/t/621496/JavaFX/java/Submitting-form-data-screen-javafx
+ * http://stackoverflow.com/questions/14187963/passing-parameters-javafx-fxml/14190310#14190310
+ */
 public class Controller {
     public TableView tableView;
 
