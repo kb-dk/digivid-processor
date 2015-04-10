@@ -37,9 +37,6 @@ import java.util.ArrayList;
  */
 public class Controller {
 
-
-    public AnchorPane content;
-
     public TableView tableView;
     public Label filelabel;
 
