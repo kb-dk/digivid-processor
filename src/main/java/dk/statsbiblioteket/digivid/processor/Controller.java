@@ -87,7 +87,7 @@ public class Controller {
     }
 
     public void loadFilenames(ActionEvent actionEvent) {
-        loadFilenames(actionEvent);
+        loadFilenames();
     }
 
     public void loadFilenames() {
