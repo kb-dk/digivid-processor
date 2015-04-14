@@ -48,13 +48,18 @@ public class FileObjectImpl implements FileObject {
             try {
                 bytes = Files.readAllBytes(metadataFilePath);
                 FileObjectMetadata fileObjectMetadata = FileObjectMetadata.fromJson(new String(bytes, "UTF-8"));
-                endDate =  toDate(fileObjectMetadata.getEndDate());
-                startDate = toDate(fileObjectMetadata.getStartDate());
-                channel= fileObjectMetadata.getChannelLabel();
-                checksum = fileObjectMetadata.getChecksum();
-                vhsLabel = fileObjectMetadata.getComments();
+                if (fileObjectMetadata != null) {
+                    endDate = toDate(fileObjectMetadata.getEndDate());
+                    startDate = toDate(fileObjectMetadata.getStartDate());
+                    channel = fileObjectMetadata.getChannelLabel();
+                    checksum = fileObjectMetadata.getChecksum();
+                    vhsLabel = fileObjectMetadata.getComments();
+                }
             } catch (IOException e) {
                 //??
+            }
+            catch (NullPointerException nEx) {
+                nEx.printStackTrace();
             }
         }
     }
