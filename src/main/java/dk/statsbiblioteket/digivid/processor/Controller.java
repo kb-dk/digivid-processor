@@ -55,13 +55,12 @@ public class Controller {
     private Path dataPath;
     private Stage myStage;
 
+    public DirectoryChooser directoryChooser = new DirectoryChooser();
+
     public void setStage(Stage stage) {
         myStage = stage;
     }
-    //public TableView tableView;
-    //public Label filelabel;
-    public DirectoryChooser directoryChooser = new DirectoryChooser();
-    //public TableColumn<FileObject, Date> lastmodifiedColumn;
+
     public Path getDataPath() {
         return dataPath;
     }
@@ -80,42 +79,51 @@ public class Controller {
                 }
             });
         }
-        if (tableView != null) {
-            //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
-            loadFilenames();
-        }
     }
 
     public void loadFilenames(ActionEvent actionEvent) {
-        loadFilenames(actionEvent);
+        loadFilenames();
     }
 
     public void loadFilenames() {
-        ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
-        File fileDir = directoryChooser.showDialog(myStage);
-        try {
-            Files.walk(Paths.get(fileDir.getCanonicalPath())).forEach(filePath -> {
-                if (Files.isRegularFile(filePath)) {
-                    fileObjects.add(new FileObjectImpl(filePath)); //, 1234L);
-                }
-            });
-        }
-        catch (IOException iex) {
-            iex.printStackTrace();
-        }
-        tableView.setItems(fileObjects);
-        //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
-        if (dataPath != null) {
-            DirectoryStream<Path> tsFiles = null;
+        if (tableView != null) {
+            ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
+            /*File fileDir = directoryChooser.showDialog(myStage);
             try {
-                tsFiles = Files.newDirectoryStream(dataPath, "*.ts");
-            } catch (IOException e) {
-                throw new RuntimeException("" + dataPath.toAbsolutePath());
+                Files.walk(Paths.get(fileDir.getCanonicalPath())).forEach(filePath -> {
+                    if (Files.isRegularFile(filePath)) {
+                        fileObjects.add(new FileObjectImpl(filePath)); //, 1234L);
+                    }
+                });
             }
-            for (Path tsFile : tsFiles) {
-                fileObjects.add(new FileObjectImpl(tsFile));
+            catch (IOException iex) {
+                iex.printStackTrace();
             }
             tableView.setItems(fileObjects);
+            */
+
+            //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
+            if (getDataPath() != null) {
+                DirectoryStream<Path> tsFiles = null;
+                try {
+                    tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts");
+                } catch (IOException e) {
+                    throw new RuntimeException("" + getDataPath().toAbsolutePath());
+                }
+                for (Path tsFile : tsFiles) {
+                    fileObjects.add(new FileObjectImpl(tsFile));
+                }
+                tableView.setItems(fileObjects);
+            }
+            else
+            {
+                try {
+                    Files.createDirectories(getDataPath());
+                }
+                catch (IOException iex) {
+                    throw new RuntimeException("" + getDataPath().toAbsolutePath());
+                }
+            }
         }
     }
 

@@ -17,8 +17,8 @@ public class Main extends Application {
         final Controller controller = rootLoader.getController();
         controller.setStage(primaryStage);
         controller.setDataPath(Paths.get("src/test/data/emptyData"));
-        //controller.loadFilenames();
-        primaryStage.setTitle("Hello World");
+        controller.loadFilenames();
+        primaryStage.setTitle("Video processing");
         final Scene scene = new Scene(root, 900, 675);
         primaryStage.setScene(scene);
         primaryStage.show();
