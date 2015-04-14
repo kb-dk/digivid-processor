@@ -15,8 +15,9 @@ public class Main extends Application {
         FXMLLoader rootLoader = new FXMLLoader(getClass().getClassLoader().getResource("filelist.fxml"));
         Parent root = rootLoader.load();
         final Controller controller = rootLoader.getController();
+        controller.setStage(primaryStage);
         controller.setDataPath(Paths.get("src/test/data/emptyData"));
-        controller.loadFilenames();
+        //controller.loadFilenames();
         primaryStage.setTitle("Hello World");
         final Scene scene = new Scene(root, 900, 675);
         primaryStage.setScene(scene);
