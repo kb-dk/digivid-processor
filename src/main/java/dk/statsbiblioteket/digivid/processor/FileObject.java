@@ -1,5 +1,7 @@
 package dk.statsbiblioteket.digivid.processor;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.Date;
 
 /**
