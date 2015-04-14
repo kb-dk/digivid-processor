@@ -1,23 +1,18 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.stage.Stage;
+import javafx.stage.DirectoryChooser;
 
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
@@ -42,18 +37,26 @@ public class Controller {
 
     public TableView tableView;
     public Label filelabel;
+    public DirectoryChooser directoryChooser = new DirectoryChooser();
 
     public void loadFilenames(ActionEvent actionEvent) {
         ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
-        FileObject file1 = new FileObject("file1", 1234L);
-        FileObject file2 = new FileObject("file2", 3456L);
-        fileObjects.add(file1);
-        fileObjects.add(file2);
+        File fileDir = directoryChooser.showDialog(((Node)actionEvent.getTarget()).getScene().getWindow());
+        try {
+            Files.walk(Paths.get(fileDir.getCanonicalPath())).forEach(filePath -> {
+                if (Files.isRegularFile(filePath)) {
+                    fileObjects.add(new FileObject(filePath.getFileName().toString(), 1234L)); // System.out.println(filePath);
+                }
+            });
+        }
+        catch (IOException iex) {
+            iex.printStackTrace();
+        }
         tableView.setItems(fileObjects);
-        tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
+        //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
     }
 
-    public static class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
+    /*public static class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
 
         @Override
         public void handle(MouseEvent mouseEvent) {
@@ -75,6 +78,6 @@ public class Controller {
                 mainWindow.show();
             }
         }
-    }
+    }*/
 
 }
