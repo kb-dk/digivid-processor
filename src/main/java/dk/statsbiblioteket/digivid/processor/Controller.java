@@ -16,6 +16,10 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -41,6 +45,16 @@ public class Controller {
     public Label filelabel;
     public TableColumn<FileObject, Date> lastmodifiedColumn;
 
+    private Path dataPath;
+
+    public Path getDataPath() {
+        return dataPath;
+    }
+
+    public void setDataPath(Path dataPath) {
+        this.dataPath = dataPath;
+    }
+
     @FXML
     void initialize() {
         if (lastmodifiedColumn != null) {
@@ -58,11 +72,18 @@ public class Controller {
 
     public void loadFilenames(ActionEvent actionEvent) {
         ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
-        FileObject file1 = new FileObjectImpl("file1", 1234L);
-        FileObject file2 = new FileObjectImpl("file2", 3456L);
-        fileObjects.add(file1);
-        fileObjects.add(file2);
-        tableView.setItems(fileObjects);
+        if (dataPath != null) {
+            DirectoryStream<Path> tsFiles = null;
+            try {
+                tsFiles = Files.newDirectoryStream(dataPath, "*.ts");
+            } catch (IOException e) {
+                throw new RuntimeException("" + dataPath.toAbsolutePath());
+            }
+            for (Path tsFile : tsFiles) {
+                fileObjects.add(new FileObjectImpl(tsFile));
+            }
+            tableView.setItems(fileObjects);
+        }
     }
 
     public static class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
@@ -70,7 +91,6 @@ public class Controller {
         @Override
         public void handle(MouseEvent mouseEvent) {
             if (mouseEvent.getClickCount() == 2) {
-                System.out.println(mouseEvent);
                 Parent newParent;
                 FXMLLoader loader;
                 try {

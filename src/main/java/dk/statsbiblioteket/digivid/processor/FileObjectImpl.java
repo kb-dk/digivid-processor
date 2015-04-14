@@ -5,6 +5,11 @@ import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.util.Date;
 
 /**
@@ -12,34 +17,35 @@ import java.util.Date;
  */
 public class FileObjectImpl implements FileObject {
 
-    private final StringProperty filename = new SimpleStringProperty("");
-    private final LongProperty lastmodified = new SimpleLongProperty(0L);
+    private Path videoFilePath;
+    private Path metadataFilePath;
 
-    public FileObjectImpl() {
-        this("", 0L);
+    public FileObjectImpl(Path path) {
+        videoFilePath = path;
+        metadataFilePath = path.getParent().resolve(path.getFileName().toString() + ".comments");
     }
-
-    public FileObjectImpl(String filename, Long lastmodified) {
-        this.filename.setValue(filename);
-        this.lastmodified.setValue(lastmodified);
-    }
-
 
     @Override
     public String getFilename() {
-        return filename.get();
+        return videoFilePath.getFileName().toString();
     }
 
     @Override
     public Date getLastmodified() {
+        FileTime lastModifiedTime;
+        try {
+            lastModifiedTime = Files.getLastModifiedTime(videoFilePath);
+        } catch (IOException e) {
+            lastModifiedTime = FileTime.fromMillis(0L);
+        }
         Date date = new Date();
-        date.setTime(lastmodified.get());
+        date.setTime(lastModifiedTime.toMillis());
         return date;
     }
 
     @Override
     public Boolean isProcessed() {
-        return null;
+        return Files.exists(metadataFilePath);
     }
 
     @Override
@@ -72,8 +78,5 @@ public class FileObjectImpl implements FileObject {
         return null;
     }
 
-    @Override
-    public Boolean isProfileCorrect() {
-        return null;
-    }
+
 }
