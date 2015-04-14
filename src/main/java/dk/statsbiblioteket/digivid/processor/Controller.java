@@ -67,10 +67,15 @@ public class Controller {
         }
         if (tableView != null) {
             tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
+            loadFilenames();
         }
     }
 
     public void loadFilenames(ActionEvent actionEvent) {
+        loadFilenames();
+    }
+
+    public void loadFilenames() {
         ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
         if (dataPath != null) {
             DirectoryStream<Path> tsFiles = null;

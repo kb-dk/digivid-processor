@@ -14,7 +14,9 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
         FXMLLoader rootLoader = new FXMLLoader(getClass().getClassLoader().getResource("filelist.fxml"));
         Parent root = rootLoader.load();
-        ((Controller) rootLoader.getController()).setDataPath(Paths.get("src/test/data/emptyData"));
+        final Controller controller = rootLoader.getController();
+        controller.setDataPath(Paths.get("src/test/data/emptyData"));
+        controller.loadFilenames();
         primaryStage.setTitle("Hello World");
         final Scene scene = new Scene(root, 900, 675);
         primaryStage.setScene(scene);
