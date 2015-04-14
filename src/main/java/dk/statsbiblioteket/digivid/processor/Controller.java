@@ -1,10 +1,8 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -12,13 +10,15 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
 
 /**
  *
@@ -37,17 +37,32 @@ import java.util.ArrayList;
  */
 public class Controller {
 
-    public TableView tableView;
+    public TableView<FileObject> tableView;
     public Label filelabel;
+    public TableColumn<FileObject, Date> lastmodifiedColumn;
+
+    @FXML
+    void initialize() {
+        if (lastmodifiedColumn != null) {
+            lastmodifiedColumn.setComparator(new Comparator<Date>() {
+                @Override
+                public int compare(Date o1, Date o2) {
+                    return o1.compareTo(o2);
+                }
+            });
+        }
+        if (tableView != null) {
+            tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
+        }
+    }
 
     public void loadFilenames(ActionEvent actionEvent) {
         ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
-        FileObject file1 = new FileObject("file1", 1234L);
-        FileObject file2 = new FileObject("file2", 3456L);
+        FileObject file1 = new FileObjectImpl("file1", 1234L);
+        FileObject file2 = new FileObjectImpl("file2", 3456L);
         fileObjects.add(file1);
         fileObjects.add(file2);
         tableView.setItems(fileObjects);
-        tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
     }
 
     public static class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
@@ -62,7 +77,7 @@ public class Controller {
                     loader = new FXMLLoader(getClass().getClassLoader().getResource("process.fxml"));
                     newParent = loader.load();
                     Controller controller = loader.<Controller>getController();
-                    FileObject thisRow = (FileObject) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
+                    FileObjectImpl thisRow = (FileObjectImpl) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
                     controller.filelabel.setText(thisRow.getFilename());
                 } catch (IOException e) {
                     throw new RuntimeException(e);

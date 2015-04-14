@@ -16,9 +16,9 @@
                     <PropertyValueFactory property="filename" />
                 </cellValueFactory>
             </TableColumn>
-            <TableColumn text="Last Modified">
+            <TableColumn text="Last Modified" fx:id="lastmodifiedColumn" >
                 <cellValueFactory>
-                    <PropertyValueFactory property="lastmodified" />
+                    <PropertyValueFactory property="lastmodified"  />
                 </cellValueFactory>
             </TableColumn>
         </columns>

@@ -1,46 +1,28 @@
 package dk.statsbiblioteket.digivid.processor;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleStringProperty;
+
+import java.util.Date;
 
 /**
- * Object representing a digitised file
+ *
  */
-public class FileObject {
+public interface FileObject {
 
-    private final SimpleStringProperty filename = new SimpleStringProperty("");
-    private final LongProperty lastmodified = new SimpleLongProperty(0L);
+    String getFilename();
 
-    public FileObject() {
-        this("", 0L);
-    }
+    Date getLastmodified();
 
-    public FileObject(String filename, Long lastmodified) {
-        this.filename.setValue(filename);
-        this.lastmodified.setValue(lastmodified);
-    }
+    Boolean isProcessed();
 
-    public String getFilename() {
-        return filename.get();
-    }
+    String getVhsLabel();
 
-    public SimpleStringProperty filenameProperty() {
-        return filename;
-    }
+    String getQuality();
 
-    public void setFilename(String filename) {
-        this.filename.set(filename);
-    }
+    String getChannel();
 
-    public long getLastmodified() {
-        return lastmodified.get();
-    }
+    Date getStartDate();
 
-    public LongProperty lastmodifiedProperty() {
-        return lastmodified;
-    }
+    Date getEndDate();
 
-    public void setLastmodified(long lastmodified) {
-        this.lastmodified.set(lastmodified);
-    }
+    String getChecksum();
+
 }
