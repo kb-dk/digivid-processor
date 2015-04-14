@@ -1,6 +1,7 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -52,10 +53,15 @@ public class Controller {
     public TableColumn<FileObject, Date> lastmodifiedColumn;
 
     private Path dataPath;
+    private Stage myStage;
 
-    public TableView tableView;
-    public Label filelabel;
+    public void setStage(Stage stage) {
+        myStage = stage;
+    }
+    //public TableView tableView;
+    //public Label filelabel;
     public DirectoryChooser directoryChooser = new DirectoryChooser();
+    //public TableColumn<FileObject, Date> lastmodifiedColumn;
     public Path getDataPath() {
         return dataPath;
     }
@@ -75,22 +81,22 @@ public class Controller {
             });
         }
         if (tableView != null) {
-            tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
+            //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
             loadFilenames();
         }
     }
 
     public void loadFilenames(ActionEvent actionEvent) {
-        loadFilenames();
+        loadFilenames(actionEvent);
     }
 
     public void loadFilenames() {
         ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
-        File fileDir = directoryChooser.showDialog(((Node)actionEvent.getTarget()).getScene().getWindow());
+        File fileDir = directoryChooser.showDialog(myStage);
         try {
             Files.walk(Paths.get(fileDir.getCanonicalPath())).forEach(filePath -> {
                 if (Files.isRegularFile(filePath)) {
-                    fileObjects.add(new FileObject(filePath.getFileName().toString(), 1234L)); // System.out.println(filePath);
+                    fileObjects.add(new FileObjectImpl(filePath)); //, 1234L);
                 }
             });
         }
