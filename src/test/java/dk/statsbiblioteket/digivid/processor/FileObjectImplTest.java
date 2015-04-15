@@ -63,6 +63,8 @@ public class FileObjectImplTest {
         FileObjectImpl fileObject1 = new FileObjectImpl(tsPath);
         assertEquals(fileObject.getStartDate(), fileObject1.getStartDate(), "Expect to persist startDate.");
         fileObject1.setChannel("tv2");
+        fileObject1.setVhsLabel("What a fine tape you are.");
+        fileObject1.setQuality("9: amazing!");
         fileObject1.commit();
         Path newPath = tsPath.getParent().resolve(tsPath.getFileName().toString().replace("dr5", "tv2"));
         assertTrue(Files.exists(newPath));

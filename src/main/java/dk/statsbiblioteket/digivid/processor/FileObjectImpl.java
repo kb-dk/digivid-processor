@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.digivid.processor;
 import dk.statsbiblioteket.digivid.processor.json.FileObjectMetadata;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -94,6 +95,11 @@ public class FileObjectImpl implements FileObject {
         setFilename(buildFilename());
         Path newPath = videoFilePath.getParent().resolve(Paths.get(filename));
         try {
+            checksum = DigestUtils.sha1Hex(Files.newInputStream(videoFilePath));
+        } catch (IOException e) {
+            //?
+        }
+        try {
             if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
                 Files.move(videoFilePath, newPath);
             }
@@ -168,7 +174,7 @@ public class FileObjectImpl implements FileObject {
 
     @Override
     public String getChecksum() {
-        return null;
+        return checksum;
     }
 
     public void setStartDate(Date startDate) {
