@@ -68,10 +68,13 @@ public class FileObjectImplTest {
         fileObject1.commit();
         Path newPath = tsPath.getParent().resolve(tsPath.getFileName().toString().replace("dr5", "tv2"));
         assertTrue(Files.exists(newPath));
-        assertTrue(Files.exists(newPath.getParent().resolve(newPath.getFileName().toString() + ".comments")));
+        Path newComments = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
+        assertTrue(Files.exists(newComments));
         assertFalse(Files.exists(tsPath));
         assertFalse(Files.exists(commentsPath));
         FileObjectMetadata metadata = new FileObjectMetadata(fileObject1);
+        System.out.println(metadata.toJson());
+        metadata = FileObjectMetadata.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
         System.out.println(metadata.toJson());
     }
 }
