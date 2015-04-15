@@ -5,6 +5,7 @@ import dk.statsbiblioteket.digivid.processor.FileObject;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 
 /**
  * Class representing a JSON-serializable set of metadata corresponding to a FileObject
@@ -31,6 +32,7 @@ public class FileObjectMetadata {
         }
         this.channelLabel = fileObject.getChannel();
         this.checksum = fileObject.getChecksum();
+        this.quality = fileObject.getQuality();
     }
 
     private String filename;
@@ -46,6 +48,16 @@ public class FileObjectMetadata {
     private String channelLabel;
 
     private String checksum;
+
+    private String quality;
+
+    public String getQuality() {
+        return quality;
+    }
+
+    public void setQuality(String quality) {
+        this.quality = quality;
+    }
 
     public String getFilename() {
         return filename;
