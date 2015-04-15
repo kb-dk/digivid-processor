@@ -1,6 +1,8 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import com.google.gson.Gson;
+import dk.statsbiblioteket.digivid.processor.json.FileObjectMetadata;
+import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -11,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import static org.testng.Assert.*;
 
@@ -24,14 +27,16 @@ public class FileObjectImplTest {
 
     @BeforeMethod
     @AfterMethod
-    private void cleanup() throws IOException {
-        if (Files.isDirectory(dir)) {
-            DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir);
-            for (Path file : directoryStream) {
-                Files.delete(file);
+    private void cleanup(ITestResult result) throws IOException {
+        if (result.isSuccess()) {
+            if (Files.isDirectory(dir)) {
+                DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir);
+                for (Path file : directoryStream) {
+                    Files.delete(file);
+                }
             }
+            Files.deleteIfExists(dir);
         }
-        Files.deleteIfExists(dir);
     }
 
     /**
@@ -44,21 +49,27 @@ public class FileObjectImplTest {
     @Test
     public void testCommit() throws IOException {
         Path path = dir.resolve("f1.ts");
-        Files.createDirectory(dir);
+        Files.createDirectories(dir);
         Files.createFile(path);
         FileObjectImpl fileObject = new FileObjectImpl(path);
-        fileObject.setFilename("foobar.ts");
-        final Date startDate = new Date(10, 9, 8);
-        fileObject.setStartDate(startDate);
+        fileObject.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime());
+        fileObject.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime());
+        fileObject.setChannel("dr5");
         fileObject.commit();
-        assertTrue(Files.exists(dir.resolve("foobar.ts.comments")));
-        FileObjectImpl fileObject1 = new FileObjectImpl(dir.resolve("foobar.ts"));
+        DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir, "dr5_*.ts");
+        Path tsPath = directoryStream.iterator().next();
+        Path commentsPath = tsPath.getParent().resolve(tsPath.getFileName().toString() + ".comments");
+        assertTrue(Files.exists(commentsPath));
+        FileObjectImpl fileObject1 = new FileObjectImpl(tsPath);
         assertEquals(fileObject.getStartDate(), fileObject1.getStartDate(), "Expect to persist startDate.");
-        fileObject1.setFilename("barfoo.ts");
+        fileObject1.setChannel("tv2");
         fileObject1.commit();
-        assertTrue(Files.exists(dir.resolve("barfoo.ts.comments")));
-        assertTrue(Files.exists(dir.resolve("barfoo.ts")));
-        assertFalse(Files.exists(dir.resolve("foobar.ts.comments")));
-        assertFalse(Files.exists(dir.resolve("foobar.ts")));
+        Path newPath = tsPath.getParent().resolve(tsPath.getFileName().toString().replace("dr5", "tv2"));
+        assertTrue(Files.exists(newPath));
+        assertTrue(Files.exists(newPath.getParent().resolve(newPath.getFileName().toString() + ".comments")));
+        assertFalse(Files.exists(tsPath));
+        assertFalse(Files.exists(commentsPath));
+        FileObjectMetadata metadata = new FileObjectMetadata(fileObject1);
+        System.out.println(metadata.toJson());
     }
 }

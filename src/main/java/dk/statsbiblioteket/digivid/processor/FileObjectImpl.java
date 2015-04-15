@@ -6,10 +6,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Object representing a digitised file
+ * Object representing a digitised file. An instance of the class is created by loading a video file via the constructor.
+ * If a metadata (.comments) file is found then this is also loaded.
+ *
+ * The commit() method saves any changes - renaming the file according to the metadata information and either creating
+ * a corresponding metadata file.
  */
 public class FileObjectImpl implements FileObject {
 
@@ -65,10 +71,27 @@ public class FileObjectImpl implements FileObject {
     }
 
     /**
-     * This is the heart of the processing functionality. It renames the file to the set filename and either creates or
-     * overwrites the corresponding metadata file.
+     * Filenames look like:
+     * dr1_digivid.1425196800-2015-03-01-09.00.00_1425200400-2015-03-01-10.00.00.ts
+     * @return
+     */
+    private String buildFilename() {
+        DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd-HH.mm.ss");
+        String e1 = "" + channel;
+        String e2 = "" + startDate.getTime()/1000L;
+        String e3 = dateFormat.format(startDate);
+        String e4 = "" + endDate.getTime()/1000L;
+        String e5 = dateFormat.format(endDate);
+        return e1 + "_digivid_" + e2 + "-" +e3 + "_" + e4 + "-" + e5 + ".ts";
+
+    }
+
+    /**
+     * This is the heart of the processing functionality. It renames the file to correspond to the specified metadata.
+     *
      */
     public void commit() {
+        setFilename(buildFilename());
         Path newPath = videoFilePath.getParent().resolve(Paths.get(filename));
         try {
             if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
@@ -96,7 +119,7 @@ public class FileObjectImpl implements FileObject {
         return filename;
     }
 
-    public void setFilename(String filename) {
+    private void setFilename(String filename) {
         this.filename = filename;
     }
 
