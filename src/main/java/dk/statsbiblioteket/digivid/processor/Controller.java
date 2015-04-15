@@ -3,10 +3,13 @@ package dk.statsbiblioteket.digivid.processor;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
@@ -38,6 +41,7 @@ public class Controller {
     public TableView<FileObject> tableView;
     public Label filelabel;
     public TableColumn<FileObject, Date> lastmodifiedColumn;
+    public Label currentFilename;
 
     private Path dataPath;
     private Stage myStage;
@@ -75,7 +79,7 @@ public class Controller {
     public void loadFilenames() {
         if (tableView != null) {
             ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
-            //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
+            tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
             if (getDataPath() != null) {
                 DirectoryStream<Path> tsFiles = null;
                 try {
@@ -100,11 +104,19 @@ public class Controller {
         }
     }
 
-    /*public static class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
+    public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
 
         @Override
         public void handle(MouseEvent mouseEvent) {
-            if (mouseEvent.getClickCount() == 2) {
+            if (mouseEvent.getButton() == MouseButton.PRIMARY) {
+                FileObjectImpl thisRow = (FileObjectImpl) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
+                Controller.this.currentFilename.setText(thisRow.getFilename());
+
+
+
+                System.out.println(mouseEvent);
+            }
+            /*if (mouseEvent.getClickCount() == 2) {
                 Parent newParent;
                 FXMLLoader loader;
                 try {
@@ -119,8 +131,8 @@ public class Controller {
                 Stage mainWindow = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
                 mainWindow.setScene(new Scene(newParent));
                 mainWindow.show();
-            }
+            }*/
         }
-    }*/
+    }
 
 }

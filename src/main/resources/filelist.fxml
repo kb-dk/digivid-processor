@@ -53,7 +53,7 @@
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
-                        <Label text="Label" />
+                        <Label text="Label" fx:id="currentFilename" />
                         <Label text="Label" GridPane.rowIndex="1" />
                         <Label text="Label" GridPane.rowIndex="2" />
                         <Label text="Label" GridPane.columnIndex="1" />
