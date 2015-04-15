@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.digivid.processor;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -17,9 +18,14 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -58,6 +64,38 @@ public class Controller {
 
     public void setDataPath(Path dataPath) {
         this.dataPath = dataPath;
+        try {
+            WatchService service = getDataPath().getFileSystem().newWatchService();
+            getDataPath().register(service,
+                    StandardWatchEventKinds.ENTRY_CREATE,
+                    StandardWatchEventKinds.ENTRY_DELETE,
+                    StandardWatchEventKinds.ENTRY_MODIFY);
+            new Thread(){
+                @Override
+                public void run() {
+                    while(true) {
+                        try {
+                            WatchKey key = service.take();
+                            if (!key.pollEvents().isEmpty()) {
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        loadFilenames();
+                                    }
+                                });
+                            }
+                            key.reset();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }
+            }.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
     }
 
     @FXML
@@ -79,18 +117,23 @@ public class Controller {
     public void loadFilenames() {
         if (tableView != null) {
             ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
-            tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
             if (getDataPath() != null) {
                 DirectoryStream<Path> tsFiles = null;
                 try {
                     tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts");
+                    for (Path tsFile : tsFiles) {
+                        fileObjects.add(new FileObjectImpl(tsFile));
+                    }
+                    tableView.setItems(fileObjects);
                 } catch (IOException e) {
                     throw new RuntimeException("" + getDataPath().toAbsolutePath());
+                } finally {
+                    try {
+                        tsFiles.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-                for (Path tsFile : tsFiles) {
-                    fileObjects.add(new FileObjectImpl(tsFile));
-                }
-                tableView.setItems(fileObjects);
             }
             else
             {
@@ -114,7 +157,6 @@ public class Controller {
 
 
 
-                System.out.println(mouseEvent);
             }
             /*if (mouseEvent.getClickCount() == 2) {
                 Parent newParent;
