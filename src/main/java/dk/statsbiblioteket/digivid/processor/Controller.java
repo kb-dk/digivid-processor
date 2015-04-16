@@ -6,14 +6,16 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.*;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
+import java.awt.*;
+import java.awt.TextArea;
+import java.awt.TextField;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -44,13 +46,36 @@ import java.util.concurrent.TimeUnit;
  */
 public class Controller {
 
-    public TableView<FileObject> tableView;
+    /*public TableView<FileObject> tableView;
     public Label filelabel;
-    public TableColumn<FileObject, Date> lastmodifiedColumn;
     public Label currentFilename;
+    */
 
     private Path dataPath;
     private Stage myStage;
+    @FXML
+    public Label currentFilename;
+    @FXML
+    public TableColumn<FileObject, Date> lastmodifiedColumn;
+    @FXML
+    public javafx.scene.control.TextField txtFilename;
+    @FXML
+    public javafx.scene.control.TextArea txtComments;
+    @FXML
+    public TableView<FileObject> tableView;
+    @FXML
+    public javafx.scene.control.ComboBox cmbQuality;
+    @FXML
+    public javafx.scene.control.DatePicker dpStart;
+    @FXML
+    public javafx.scene.control.DatePicker dpEnd;
+
+    @FXML
+    private void handleTableviewClicked(ActionEvent event) {
+        System.out.println("You clicked me!");
+        txtFilename.setText("Hello  ");
+    }
+
 
     public DirectoryChooser directoryChooser = new DirectoryChooser();
 
@@ -95,8 +120,9 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
+        //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
     }
+
 
     @FXML
     void initialize() {
@@ -108,15 +134,33 @@ public class Controller {
                 }
             });
         }
+
+        tableView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() > 1) {
+                    @SuppressWarnings("rawtypes")
+                    ObservableList<TablePosition> cells = tableView.getSelectionModel().getSelectedCells();
+                    for (TablePosition<FileObjectImpl, ?> cell : cells) {
+                        FileObjectImpl thisRow = (FileObjectImpl) ((TableView) event.getSource()).getSelectionModel().getSelectedItem();
+                        txtFilename.setText(thisRow.getFilename());
+                    }// for
+
+                }
+                ;
+            }
+        });
     }
 
+
     public void loadFilenames(ActionEvent actionEvent) {
-        loadFilenames();
-    }
+                loadFilenames();
+            }
 
     public void loadFilenames() {
         if (tableView != null) {
             ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
+            //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
             if (getDataPath() != null) {
                 DirectoryStream<Path> tsFiles = null;
                 try {
@@ -147,7 +191,7 @@ public class Controller {
         }
     }
 
-    public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
+    /*public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
 
         @Override
         public void handle(MouseEvent mouseEvent) {
@@ -158,23 +202,7 @@ public class Controller {
 
 
             }
-            /*if (mouseEvent.getClickCount() == 2) {
-                Parent newParent;
-                FXMLLoader loader;
-                try {
-                    loader = new FXMLLoader(getClass().getClassLoader().getResource("process.fxml"));
-                    newParent = loader.load();
-                    Controller controller = loader.<Controller>getController();
-                    FileObjectImpl thisRow = (FileObjectImpl) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
-                    controller.filelabel.setText(thisRow.getFilename());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                Stage mainWindow = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
-                mainWindow.setScene(new Scene(newParent));
-                mainWindow.show();
-            }*/
         }
-    }
+    }*/
 
 }
