@@ -12,6 +12,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import jfxtras.scene.control.CalendarPicker;
+import jfxtras.scene.control.CalendarTimePicker;
 
 import java.awt.*;
 import java.awt.TextArea;
@@ -27,6 +29,7 @@ import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -58,13 +61,17 @@ public class Controller {
     @FXML
     public TableColumn<FileObject, Date> lastmodifiedColumn;
     @FXML
-    public javafx.scene.control.TextField txtFilename;
+    public javafx.scene.control.Label txtFilename;
     @FXML
     public javafx.scene.control.TextArea txtComments;
     @FXML
     public TableView<FileObject> tableView;
     @FXML
     public javafx.scene.control.ComboBox cmbQuality;
+    @FXML
+    public CalendarTimePicker startTimePicker;
+    @FXML
+    public CalendarPicker startDatePicker;
     @FXML
     public javafx.scene.control.DatePicker dpStart;
     @FXML
@@ -93,8 +100,7 @@ public class Controller {
             WatchService service = getDataPath().getFileSystem().newWatchService();
             getDataPath().register(service,
                     StandardWatchEventKinds.ENTRY_CREATE,
-                    StandardWatchEventKinds.ENTRY_DELETE,
-                    StandardWatchEventKinds.ENTRY_MODIFY);
+                    StandardWatchEventKinds.ENTRY_DELETE);
             new Thread(){
                 @Override
                 public void run() {
@@ -120,9 +126,13 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
+        tableView.setOnMouseClicked(new FileclickMouseEventHandler());
     }
 
+    private void nullifyRightPane() {
+        txtFilename.setText(null);
+        //etc.
+    }
 
     @FXML
     void initialize() {
@@ -134,22 +144,6 @@ public class Controller {
                 }
             });
         }
-
-        tableView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.getClickCount() > 1) {
-                    @SuppressWarnings("rawtypes")
-                    ObservableList<TablePosition> cells = tableView.getSelectionModel().getSelectedCells();
-                    for (TablePosition<FileObjectImpl, ?> cell : cells) {
-                        FileObjectImpl thisRow = (FileObjectImpl) ((TableView) event.getSource()).getSelectionModel().getSelectedItem();
-                        txtFilename.setText(thisRow.getFilename());
-                    }// for
-
-                }
-                ;
-            }
-        });
     }
 
 
@@ -191,18 +185,34 @@ public class Controller {
         }
     }
 
-    /*public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
+    public void commit(ActionEvent actionEvent) {
+        FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
+        final Date startDate = startDatePicker.getCalendar().getTime();
+        final Date startTime = startTimePicker.getCalendar().getTime();
+        startDate.setHours(startTime.getHours());
+        startDate.setMinutes(startTime.getMinutes());
+        thisRow.setStartDate(startDate);
+        thisRow.commit();
+        nullifyRightPane();
+    }
+
+    public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
 
         @Override
         public void handle(MouseEvent mouseEvent) {
             if (mouseEvent.getButton() == MouseButton.PRIMARY) {
                 FileObjectImpl thisRow = (FileObjectImpl) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
-                Controller.this.currentFilename.setText(thisRow.getFilename());
-
-
-
+                if (thisRow != null) {
+                    Controller.this.txtFilename.setText(thisRow.getFilename());
+                    GregorianCalendar startCalendar = new GregorianCalendar();
+                    if (thisRow.getStartDate() != null) {
+                        startCalendar.setTime(thisRow.getStartDate());
+                        Controller.this.startDatePicker.setCalendar(startCalendar);
+                        Controller.this.startTimePicker.setCalendar(startCalendar);
+                    }
+                }
             }
         }
-    }*/
+    }
 
 }

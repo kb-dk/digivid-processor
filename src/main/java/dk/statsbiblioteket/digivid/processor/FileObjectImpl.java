@@ -78,6 +78,13 @@ public class FileObjectImpl implements FileObject {
      */
     private String buildFilename() {
         DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd-HH.mm.ss");
+        //TODO replace this with proper error handling, input validation
+        if (startDate == null) {
+            startDate = new Date();
+        }
+        if (endDate == null) {
+            endDate = new Date();
+        }
         String e1 = "" + channel;
         String e2 = "" + startDate.getTime()/1000L;
         String e3 = dateFormat.format(startDate);
