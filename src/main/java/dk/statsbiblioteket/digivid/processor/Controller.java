@@ -15,22 +15,17 @@ import javafx.stage.Stage;
 import jfxtras.scene.control.CalendarPicker;
 import jfxtras.scene.control.CalendarTimePicker;
 
-import java.awt.*;
-import java.awt.TextArea;
-import java.awt.TextField;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -72,6 +67,10 @@ public class Controller {
     public CalendarTimePicker startTimePicker;
     @FXML
     public CalendarPicker startDatePicker;
+    @FXML
+    public CalendarTimePicker endTimePicker;
+    @FXML
+    public CalendarPicker endDatePicker;
     @FXML
     public javafx.scene.control.DatePicker dpStart;
     @FXML
@@ -129,7 +128,7 @@ public class Controller {
         tableView.setOnMouseClicked(new FileclickMouseEventHandler());
     }
 
-    private void nullifyRightPane() {
+    private void nullifyLowerPane() {
         txtFilename.setText(null);
         //etc.
     }
@@ -185,6 +184,11 @@ public class Controller {
         }
     }
 
+    /**
+     * Reads all the values set by the user and sets them on the current FileObject before calling the commit()
+     * method on that object.
+     * @param actionEvent
+     */
     public void commit(ActionEvent actionEvent) {
         FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
         final Date startDate = startDatePicker.getCalendar().getTime();
@@ -192,8 +196,13 @@ public class Controller {
         startDate.setHours(startTime.getHours());
         startDate.setMinutes(startTime.getMinutes());
         thisRow.setStartDate(startDate);
+        final Date endDate = endDatePicker.getCalendar().getTime();
+        final Date endTime = endTimePicker.getCalendar().getTime();
+        endDate.setHours(endTime.getHours());
+        endDate.setMinutes(endTime.getMinutes());
+        thisRow.setEndDate(endDate);
         thisRow.commit();
-        nullifyRightPane();
+        nullifyLowerPane();
     }
 
     public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {

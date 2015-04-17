@@ -12,6 +12,7 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
+<?scenebuilder-classpath-element ../../../libraries/JFXtras2/jfxtras-labs-0.1.jar?>
 
 <?import jfxtras.scene.control.CalendarPicker?>
 <?import jfxtras.scene.control.CalendarTimePicker?>
@@ -93,6 +94,7 @@
                                 <!--<Label text="End" GridPane.rowIndex="4" />-->
                                 <Label text="Channel" GridPane.rowIndex="4" />
                                 <RadioButton mnemonicParsing="false" text="RadioButton" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                <TextField fx:id="altChannel" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                             </children>
                         </GridPane>
                         <Button layoutY="2.0" onAction="#commit" text="Process" />
