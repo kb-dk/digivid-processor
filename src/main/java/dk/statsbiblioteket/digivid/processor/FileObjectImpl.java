@@ -61,6 +61,7 @@ public class FileObjectImpl implements FileObject {
                     channel = fileObjectMetadata.getChannelLabel();
                     checksum = fileObjectMetadata.getChecksum();
                     vhsLabel = fileObjectMetadata.getComments();
+                    quality = fileObjectMetadata.getQuality();
                 }
             } catch (IOException e) {
                 //??

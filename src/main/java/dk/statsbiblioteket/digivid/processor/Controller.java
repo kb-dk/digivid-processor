@@ -72,6 +72,12 @@ public class Controller {
     @FXML
     public CalendarPicker endDatePicker;
     @FXML
+    public ToggleGroup channelGroup;
+    @FXML
+    public TextField altChannel;
+
+
+    @FXML
     public javafx.scene.control.DatePicker dpStart;
     @FXML
     public javafx.scene.control.DatePicker dpEnd;
@@ -130,7 +136,9 @@ public class Controller {
 
     private void nullifyLowerPane() {
         txtFilename.setText(null);
-        //etc.
+        txtComments.setText(null);
+        altChannel.setText(null);
+        cmbQuality.setValue(null);
     }
 
     @FXML
@@ -201,6 +209,19 @@ public class Controller {
         endDate.setHours(endTime.getHours());
         endDate.setMinutes(endTime.getMinutes());
         thisRow.setEndDate(endDate);
+        final Toggle selectedToggle = channelGroup.getSelectedToggle();
+        String altChannel = this.altChannel.getText();
+        if (altChannel != null && altChannel.length() > 0 ) {
+            thisRow.setChannel(altChannel);
+        } else {
+            String channel = null;
+            if ( selectedToggle  != null ) {
+                channel = ((RadioButton) selectedToggle).idProperty().getValue();
+            }
+            thisRow.setChannel(channel);
+        }
+        thisRow.setQuality(cmbQuality.getValue().toString());
+        thisRow.setVhsLabel(txtComments.getText());
         thisRow.commit();
         nullifyLowerPane();
     }
@@ -219,6 +240,15 @@ public class Controller {
                         Controller.this.startDatePicker.setCalendar(startCalendar);
                         Controller.this.startTimePicker.setCalendar(startCalendar);
                     }
+                    GregorianCalendar endCalendar = new GregorianCalendar();
+                    if (thisRow.getEndDate() != null) {
+                        endCalendar.setTime(thisRow.getEndDate());
+                        Controller.this.endDatePicker.setCalendar(endCalendar);
+                        Controller.this.endTimePicker.setCalendar(endCalendar);
+                    }
+                    Controller.this.altChannel.setText(thisRow.getChannel());
+                    Controller.this.cmbQuality.getSelectionModel().select(thisRow.getQuality());
+                    Controller.this.txtComments.setText(thisRow.getVhsLabel());
                 }
             }
         }
