@@ -12,17 +12,25 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
-<?scenebuilder-classpath-element ../../../libraries/JFXtras2/jfxtras-labs-0.1.jar?>
 
+<?scenebuilder-classpath-element  /home/csr/.m2/repository/org/jfxtras/jfxtras-all/8.0-r3/jfxtras-all-8.0-r3.jar?>
+<?scenebuilder-classpath-element  /home/csr/.m2/repository/org/jfxtras/jfxtras-common/8.0-r3/jfxtras-common-8.0-r3.jar?>
+<?scenebuilder-classpath-element  /home/csr/.m2/repository/org/jfxtras/jfxtras-agenda/8.0-r3/jfxtras-agenda-8.0-r3.jar?>
+<?scenebuilder-classpath-element  /home/csr/.m2/repository/org/jfxtras/jfxtras-controls/8.0-r3/jfxtras-controls-8.0-r3.jar?>
+<?scenebuilder-classpath-element  /home/csr/.m2/repository/org/jfxtras/jfxtras-labs/8.0-r3/jfxtras-labs-8.0-r3.jar?>
+
+<!--
 <?import jfxtras.scene.control.CalendarPicker?>
 <?import jfxtras.scene.control.CalendarTimePicker?>
+-->
+
+
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dk.statsbiblioteket.digivid.processor.Controller">
     <children>
         <SplitPane orientation="VERTICAL" dividerPositions="0.30203442879499215" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                     <children>
-                        <!--<Button layoutY="2.0" onAction="#loadFilenames" text="Reload" />-->
                         <TableView id="tableView" fx:id="tableView" layoutY="29.0" onMouseClicked="#handleTableviewClicked" prefHeight="368.0" prefWidth="377.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
                             <columns>
                                 <TableColumn prefWidth="200.0" text="Filename">
@@ -57,7 +65,7 @@
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
                                 <RowConstraints minHeight="10.0" prefHeight="60.0" vgrow="ALWAYS" />
-                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+                                <RowConstraints minHeight="250.0" prefHeight="270.0" vgrow="ALWAYS" />
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
                                 <!--<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" /> -->
                             </rowConstraints>
@@ -69,32 +77,45 @@
                                 <TextArea id="txtComments" fx:id="txtComments" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                 <ComboBox id="cmbQuality" fx:id="cmbQuality" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                 <!--<DatePicker GridPane.columnIndex="1" GridPane.rowIndex="3" /> -->
-                                <GridPane gridLinesVisible="true" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                                    <rowConstraints>
-                                        <RowConstraints minHeight="10.0" prefHeight="60.0" vgrow="ALWAYS" />
-                                    </rowConstraints>
-                                    <GridPane gridLinesVisible="true" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                                        <rowConstraints>
-                                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-                                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-                                        </rowConstraints>
-                                        <CalendarTimePicker GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="startTimePicker" />
-                                        <CalendarPicker GridPane.columnIndex="1" GridPane.rowIndex="2" fx:id="startDatePicker" />
-                                    </GridPane>
-                                    <GridPane gridLinesVisible="true" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                                        <rowConstraints>
-                                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-                                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-                                        </rowConstraints>
-                                        <CalendarTimePicker GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="endTimePicker" />
-                                        <CalendarPicker GridPane.columnIndex="1" GridPane.rowIndex="2" fx:id="endDatePicker" />
-                                    </GridPane>
-                                </GridPane>
+                                <HBox GridPane.columnIndex="1" GridPane.rowIndex="3" minHeight="50">
+                                    <children>
+                                        <GridPane gridLinesVisible="true" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+                                                <RowConstraints minHeight="40.0" prefHeight="40.0" vgrow="ALWAYS" />
+                                            </rowConstraints>
+                                            <children>
+                                                <CalendarTimePicker GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="startTimePicker" />
+                                                <CalendarPicker GridPane.columnIndex="1" GridPane.rowIndex="2" fx:id="startDatePicker" />
+                                            </children>
+                                        </GridPane>
+                                        <GridPane gridLinesVisible="true" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+                                                <RowConstraints minHeight="40.0" prefHeight="40.0" vgrow="ALWAYS" />
+                                            </rowConstraints>
+                                            <children>
+                                                <CalendarTimePicker GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="endTimePicker" />
+                                                <CalendarPicker GridPane.columnIndex="1" GridPane.rowIndex="2" fx:id="endDatePicker" />
+                                            </children>
+                                        </GridPane>
+                                    </children>
+                                </HBox>
                                 <Label text="Start/End" GridPane.rowIndex="3" />
                                 <!--<Label text="End" GridPane.rowIndex="4" />-->
                                 <Label text="Channel" GridPane.rowIndex="4" />
-                                <RadioButton mnemonicParsing="false" text="RadioButton" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                                <TextField fx:id="altChannel" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                <TilePane prefColumns="5" prefRows="5" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                    <children>
+                                        <fx:define>
+                                            <ToggleGroup fx:id="channelGroup"/>
+                                        </fx:define>
+                                        <RadioButton mnemonicParsing="false" text="DR 1"  toggleGroup="$channelGroup"  />
+                                        <RadioButton mnemonicParsing="false" text="TV 2"  toggleGroup="$channelGroup"  />
+                                        <TextField fx:id="altChannel"  />
+                                    </children>
+                                </TilePane>
+
+
                             </children>
                         </GridPane>
                         <Button layoutY="2.0" onAction="#commit" text="Process" />
