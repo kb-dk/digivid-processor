@@ -10,10 +10,14 @@ import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.TilePane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import jfxtras.scene.control.CalendarPicker;
+import jfxtras.scene.control.CalendarTextField;
 import jfxtras.scene.control.CalendarTimePicker;
+import jfxtras.scene.control.CalendarTimeTextField;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -64,18 +68,20 @@ public class Controller {
     @FXML
     public javafx.scene.control.ComboBox cmbQuality;
     @FXML
-    public CalendarTimePicker startTimePicker;
+    public CalendarTimeTextField startTimePicker;
     @FXML
-    public CalendarPicker startDatePicker;
+    public CalendarTextField startDatePicker;
     @FXML
-    public CalendarTimePicker endTimePicker;
+    public CalendarTimeTextField endTimePicker;
     @FXML
-    public CalendarPicker endDatePicker;
+    public CalendarTextField endDatePicker;
     @FXML
     public ToggleGroup channelGroup;
-    @FXML
-    public TextField altChannel;
 
+
+    public TextField altChannel;
+    @FXML
+    public GridPane channelGridPane;
 
     @FXML
     public javafx.scene.control.DatePicker dpStart;
@@ -151,6 +157,41 @@ public class Controller {
                 }
             });
         }
+        addChannelButton("dr1", "DR 1", "white", 0, 0);
+        addChannelButton("dr2", "DR 2", "lightgray", 0, 1);
+        addChannelButton("tv2d", "TV2 Danmark", "white", 0, 2);
+        addChannelButton("tv2l", "TV2 Lorry", "lightgray", 0, 3);
+        addChannelButton("tv2s", "TV Syd", "white", 0, 4);
+        addChannelButton("tv2n", "TV2 Nord", "lightgray",1,0);
+        addChannelButton("tvfyn", "TV Fyn", "darkgray",1,1);
+        addChannelButton("tv2mv", "TV2 Midt/Vest", "lightgray", 1, 2);
+        addChannelButton("tv2born", "TV2 Bornholm", "darkgray", 1, 3);
+        addChannelButton("tv2oj", "TV2 Østjylland", "lightgray", 1, 4);
+        addChannelButton("tv3", "TV3", "white", 2, 0);
+        addChannelButton("tv3p", "TV3+", "lightgray", 2, 1);
+        addChannelButton("tvdk", "TV Danmark", "white", 2, 2);
+        addChannelButton("kanal5", "Kanal 5", "lightgray", 2, 3);
+        addChannelButton("dk4", "DK4", "white", 2, 4);
+        addChannelButton("tvsport", "TV Sport", "lightgray", 3, 0);
+        altChannel = new TextField();
+        altChannel.setId("altChannel");
+        altChannel.setPrefWidth(150.0);
+        channelGridPane.getChildren().add(altChannel);
+        GridPane.setRowIndex(altChannel, 4);
+        GridPane.setColumnIndex(altChannel, 0);
+    }
+
+    private void addChannelButton(String channelName, String displayName, String color, int row, int column) {
+        Channel ch1 = new Channel(channelName, displayName, color);
+        RadioButton rb1 = new RadioButton();
+        rb1.setText(ch1.displayName);
+        rb1.setUserData(ch1);
+        rb1.setStyle("-fx-background-color:" + ch1.colour);
+        rb1.setToggleGroup(channelGroup);
+        rb1.setPrefWidth(150.0);
+        channelGridPane.getChildren().add(rb1);
+        GridPane.setColumnIndex(rb1, column);
+        GridPane.setRowIndex(rb1, row);
     }
 
 
@@ -216,7 +257,7 @@ public class Controller {
         } else {
             String channel = null;
             if ( selectedToggle  != null ) {
-                channel = ((RadioButton) selectedToggle).idProperty().getValue();
+                channel = ((Channel) ((RadioButton) selectedToggle).getUserData()).getChannelName();
             }
             thisRow.setChannel(channel);
         }
