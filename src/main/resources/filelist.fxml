@@ -115,6 +115,7 @@
                                 </GridPane>
                             </children>
                         </GridPane>
+                        <Label fx:id="error" style="-fx-background-color:red" />
                         <Button layoutY="2.0" onAction="#commit" text="Process" />
                     </children>
                 </AnchorPane>

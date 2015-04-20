@@ -1,11 +1,14 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
@@ -19,6 +22,7 @@ import jfxtras.scene.control.CalendarTextField;
 import jfxtras.scene.control.CalendarTimePicker;
 import jfxtras.scene.control.CalendarTimeTextField;
 
+import java.awt.event.TextEvent;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -27,6 +31,7 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -77,7 +82,8 @@ public class Controller {
     public CalendarTextField endDatePicker;
     @FXML
     public ToggleGroup channelGroup;
-
+    @FXML
+    public Label error;
 
     public TextField altChannel;
     @FXML
@@ -179,6 +185,22 @@ public class Controller {
         channelGridPane.getChildren().add(altChannel);
         GridPane.setRowIndex(altChannel, 4);
         GridPane.setColumnIndex(altChannel, 0);
+
+        altChannel.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observableValue, String oldValue, String newValue) {
+                 if (newValue == null || newValue.length() == 0) {
+                    for (Toggle tg: Controller.this.channelGroup.getToggles()) {
+                        ((RadioButton) tg).setDisable(false); ;
+                    }
+                 } else {
+                     for (Toggle tg: Controller.this.channelGroup.getToggles()) {
+                         ((RadioButton) tg).setDisable(true);
+                         tg.setSelected(false);
+                     }
+                 }
+            }
+        });
     }
 
     private void addChannelButton(String channelName, String displayName, String color, int row, int column) {
@@ -240,7 +262,12 @@ public class Controller {
      */
     public void commit(ActionEvent actionEvent) {
         FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
-        final Date startDate = startDatePicker.getCalendar().getTime();
+        final Calendar startDateCalendar = startDatePicker.getCalendar();
+        if (startDateCalendar == null) {
+            error.setText("No Start Date Set.");
+            return;
+        }
+        final Date startDate = startDateCalendar.getTime();
         final Date startTime = startTimePicker.getCalendar().getTime();
         startDate.setHours(startTime.getHours());
         startDate.setMinutes(startTime.getMinutes());
@@ -263,6 +290,7 @@ public class Controller {
         }
         thisRow.setQuality(cmbQuality.getValue().toString());
         thisRow.setVhsLabel(txtComments.getText());
+        error.setText(null);
         thisRow.commit();
         nullifyLowerPane();
     }
@@ -272,6 +300,7 @@ public class Controller {
         @Override
         public void handle(MouseEvent mouseEvent) {
             if (mouseEvent.getButton() == MouseButton.PRIMARY) {
+                error.setText(null);
                 FileObjectImpl thisRow = (FileObjectImpl) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
                 if (thisRow != null) {
                     Controller.this.txtFilename.setText(thisRow.getFilename());
@@ -287,9 +316,29 @@ public class Controller {
                         Controller.this.endDatePicker.setCalendar(endCalendar);
                         Controller.this.endTimePicker.setCalendar(endCalendar);
                     }
-                    Controller.this.altChannel.setText(thisRow.getChannel());
-                    Controller.this.cmbQuality.getSelectionModel().select(thisRow.getQuality());
+                    final String quality = thisRow.getQuality();
+                    if (quality != null) {
+                        Controller.this.cmbQuality.getSelectionModel().select(quality);
+                    }
                     Controller.this.txtComments.setText(thisRow.getVhsLabel());
+                    String currentChannel = thisRow.getChannel();
+                    boolean inGrid = false;
+                    for (Node channelNode: Controller.this.channelGridPane.getChildren()) {
+                        if (channelNode instanceof RadioButton) {
+                            Channel buttonChannel = (Channel) channelNode.getUserData();
+                            if (buttonChannel.getChannelName().equals(currentChannel)) {
+                                ((RadioButton) channelNode).setSelected(true);
+                                inGrid = true;
+                            } else {
+                                ((RadioButton) channelNode).setSelected(false);
+                            }
+                        }
+                    }
+                    if (inGrid) {
+                        Controller.this.altChannel.setText(null);
+                    } else {
+                        Controller.this.altChannel.setText(thisRow.getChannel());
+                    }
                 }
             }
         }
