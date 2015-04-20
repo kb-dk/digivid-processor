@@ -11,7 +11,7 @@ public interface FileObject {
 
     String getFilename();
 
-    String getLastmodified();
+    Date getLastmodified();
 
     Boolean isProcessed();
 

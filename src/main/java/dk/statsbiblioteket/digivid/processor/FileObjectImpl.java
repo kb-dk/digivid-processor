@@ -138,7 +138,7 @@ public class FileObjectImpl implements FileObject {
     }
 
     @Override
-    public String getLastmodified() {
+    public Date getLastmodified() {
         FileTime lastModifiedTime;
         try {
             lastModifiedTime = Files.getLastModifiedTime(videoFilePath);
@@ -147,8 +147,7 @@ public class FileObjectImpl implements FileObject {
         }
         Date date = new Date();
         date.setTime(lastModifiedTime.toMillis());
-        SimpleDateFormat simpleDate = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-        return simpleDate.format(date);
+        return  date;
     }
 
     @Override
