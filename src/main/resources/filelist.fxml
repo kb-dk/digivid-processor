@@ -27,7 +27,7 @@
                     <children>
                         <TableView id="tableView" fx:id="tableView" layoutY="29.0" onMouseClicked="#handleTableviewClicked" prefHeight="368.0" prefWidth="377.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
                             <columns>
-                                <TableColumn prefWidth="30.0" text="Done" fx:id="doneColumn">
+                                <TableColumn prefWidth="30.0" text="Processed" maxWidth="980.0" fx:id="processedColumn">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="processed" />
                                     </cellValueFactory>

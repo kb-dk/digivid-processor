@@ -65,7 +65,7 @@ public class Controller {
     @FXML
     public TableColumn<FileObject, Date> lastmodifiedColumn;
     @FXML
-    public TableColumn<FileObject, Boolean> doneColumn;
+    public TableColumn<FileObject, Boolean> processedColumn;
     @FXML
     public javafx.scene.control.Label txtFilename;
     @FXML
@@ -245,7 +245,7 @@ public class Controller {
                 }
                 ObservableList<TableColumn<FileObject,?>> sortOrder = tableView.getSortOrder();
                 sortOrder.removeAll();
-                sortOrder.addAll(doneColumn, lastmodifiedColumn);
+                sortOrder.addAll(processedColumn, lastmodifiedColumn);
                 tableView.sort();
                 tableView.getSelectionModel().select(0);
             }
