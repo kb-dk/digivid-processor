@@ -17,6 +17,8 @@ public interface FileObject {
 
     String getVhsLabel();
 
+    String getComment();
+
     String getQuality();
 
     String getChannel();

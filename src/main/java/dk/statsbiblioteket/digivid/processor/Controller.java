@@ -69,7 +69,9 @@ public class Controller {
     @FXML
     public javafx.scene.control.Label txtFilename;
     @FXML
-    public javafx.scene.control.TextArea txtComments;
+    public javafx.scene.control.TextField txtVhsLabel;
+    @FXML
+    public javafx.scene.control.TextArea txtComment;
     @FXML
     public TableView<FileObject> tableView;
     @FXML
@@ -150,7 +152,8 @@ public class Controller {
 
     private void nullifyLowerPane() {
         txtFilename.setText(null);
-        txtComments.setText(null);
+        txtVhsLabel.setText(null);
+        txtComment.setText(null);
         altChannel.setText(null);
         cmbQuality.setValue(null);
     }
@@ -314,7 +317,8 @@ public class Controller {
             return;
         }
         thisRow.setQuality(cmbQuality.getValue().toString());
-        thisRow.setVhsLabel(txtComments.getText());
+        thisRow.setVhsLabel(txtVhsLabel.getText());
+        thisRow.setComment(txtComment.getText());
         error.setText(null);
         thisRow.commit();
         //loadFile(thisRow);
@@ -358,7 +362,8 @@ public class Controller {
             if (quality != null) {
                 Controller.this.cmbQuality.getSelectionModel().select(quality);
             }
-            Controller.this.txtComments.setText(thisRow.getVhsLabel());
+            Controller.this.txtVhsLabel.setText(thisRow.getVhsLabel());
+            Controller.this.txtComment.setText(thisRow.getComment());
             String currentChannel = thisRow.getChannel();
             boolean inGrid = false;
             for (Node channelNode: Controller.this.channelGridPane.getChildren()) {

@@ -18,7 +18,8 @@ public class FileObjectMetadata {
 
     public FileObjectMetadata(FileObject fileObject) {
         this.filename = fileObject.getFilename();
-        this.comments = fileObject.getVhsLabel();
+        this.vhsLabel = fileObject.getVhsLabel();
+        this.comments = fileObject.getComment();
         try {
             this.encoderName = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
@@ -38,6 +39,8 @@ public class FileObjectMetadata {
     private String filename;
 
     private String comments;
+
+    private String vhsLabel;
 
     private String encoderName;
 
@@ -73,6 +76,14 @@ public class FileObjectMetadata {
 
     public void setComments(String comments) {
         this.comments = comments;
+    }
+
+    public String getVhsLabel() {
+        return vhsLabel;
+    }
+
+    public void setVhsLabel(String vhsLabel) {
+        this.vhsLabel = vhsLabel;
     }
 
     public String getEncoderName() {

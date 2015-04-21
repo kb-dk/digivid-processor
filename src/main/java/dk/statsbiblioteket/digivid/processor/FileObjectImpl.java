@@ -29,6 +29,8 @@ public class FileObjectImpl implements FileObject {
 
     private String vhsLabel;
 
+    private String comment;
+
     private String quality;
 
     private String channel;
@@ -161,6 +163,11 @@ public class FileObjectImpl implements FileObject {
     }
 
     @Override
+    public String getComment() {
+        return comment;
+    }
+
+    @Override
     public String getQuality() {
         return quality;
     }
@@ -201,6 +208,9 @@ public class FileObjectImpl implements FileObject {
         this.vhsLabel = vhsLabel;
     }
 
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
     public void setQuality(String quality) {
         this.quality = quality;
     }
