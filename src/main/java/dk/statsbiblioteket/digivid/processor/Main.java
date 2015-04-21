@@ -77,7 +77,7 @@ public class Main extends Application {
             throw new RuntimeException("Could not read properties file " + propertiesPath, e);
         }
         recordsDir = properties.getProperty("digivid.processor.recordsdir");
-
+        System.out.println("Reading files from " + recordsDir);
         launch(args);
     }
 
