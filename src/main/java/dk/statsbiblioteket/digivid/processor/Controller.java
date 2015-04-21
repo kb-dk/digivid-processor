@@ -65,9 +65,13 @@ public class Controller {
     @FXML
     public TableColumn<FileObject, Date> lastmodifiedColumn;
     @FXML
+    public TableColumn<FileObject, Boolean> processedColumn;
+    @FXML
     public javafx.scene.control.Label txtFilename;
     @FXML
-    public javafx.scene.control.TextArea txtComments;
+    public javafx.scene.control.TextField txtVhsLabel;
+    @FXML
+    public javafx.scene.control.TextArea txtComment;
     @FXML
     public TableView<FileObject> tableView;
     @FXML
@@ -148,7 +152,8 @@ public class Controller {
 
     private void nullifyLowerPane() {
         txtFilename.setText(null);
-        txtComments.setText(null);
+        txtVhsLabel.setText(null);
+        txtComment.setText(null);
         altChannel.setText(null);
         cmbQuality.setValue(null);
     }
@@ -224,7 +229,6 @@ public class Controller {
     public void loadFilenames() {
         if (tableView != null) {
             ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
-            //tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileclickMouseEventHandler());
             if (getDataPath() != null) {
                 DirectoryStream<Path> tsFiles = null;
                 try {
@@ -242,6 +246,11 @@ public class Controller {
                         e.printStackTrace();
                     }
                 }
+                ObservableList<TableColumn<FileObject,?>> sortOrder = tableView.getSortOrder();
+                sortOrder.removeAll();
+                sortOrder.addAll(processedColumn, lastmodifiedColumn);
+                tableView.sort();
+                tableView.getSelectionModel().select(0);
             }
             else
             {
@@ -268,12 +277,27 @@ public class Controller {
             return;
         }
         final Date startDate = startDateCalendar.getTime();
-        final Date startTime = startTimePicker.getCalendar().getTime();
+        final Calendar startTimeCalendar = startTimePicker.getCalendar();
+        if (startTimeCalendar == null) {
+            error.setText("No Start Time Set.");
+            return;
+        }
+        final Date startTime = startTimeCalendar.getTime();
         startDate.setHours(startTime.getHours());
         startDate.setMinutes(startTime.getMinutes());
         thisRow.setStartDate(startDate);
-        final Date endDate = endDatePicker.getCalendar().getTime();
-        final Date endTime = endTimePicker.getCalendar().getTime();
+        final Calendar endDateCalendar = endDatePicker.getCalendar();
+        if (endDateCalendar == null) {
+            error.setText("No End Date Set.");
+            return;
+        }
+        final Date endDate = endDateCalendar.getTime();
+        final Calendar endTimeCalendar = endTimePicker.getCalendar();
+        if (endTimeCalendar == null) {
+            error.setText("No End Time Set.");
+            return;
+        }
+        final Date endTime = endTimeCalendar.getTime();
         endDate.setHours(endTime.getHours());
         endDate.setMinutes(endTime.getMinutes());
         thisRow.setEndDate(endDate);
@@ -288,11 +312,17 @@ public class Controller {
             }
             thisRow.setChannel(channel);
         }
+        if (thisRow.getChannel() == null) {
+            error.setText("No channel specified.");
+            return;
+        }
         thisRow.setQuality(cmbQuality.getValue().toString());
-        thisRow.setVhsLabel(txtComments.getText());
+        thisRow.setVhsLabel(txtVhsLabel.getText());
+        thisRow.setComment(txtComment.getText());
         error.setText(null);
         thisRow.commit();
-        nullifyLowerPane();
+        //loadFile(thisRow);
+        //tableView.getSelectionModel().select(thisRow);
     }
 
     public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
@@ -300,46 +330,57 @@ public class Controller {
         @Override
         public void handle(MouseEvent mouseEvent) {
             if (mouseEvent.getButton() == MouseButton.PRIMARY) {
-                error.setText(null);
                 FileObjectImpl thisRow = (FileObjectImpl) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
-                if (thisRow != null) {
-                    Controller.this.txtFilename.setText(thisRow.getFilename());
-                    GregorianCalendar startCalendar = new GregorianCalendar();
-                    if (thisRow.getStartDate() != null) {
-                        startCalendar.setTime(thisRow.getStartDate());
-                        Controller.this.startDatePicker.setCalendar(startCalendar);
-                        Controller.this.startTimePicker.setCalendar(startCalendar);
-                    }
-                    GregorianCalendar endCalendar = new GregorianCalendar();
-                    if (thisRow.getEndDate() != null) {
-                        endCalendar.setTime(thisRow.getEndDate());
-                        Controller.this.endDatePicker.setCalendar(endCalendar);
-                        Controller.this.endTimePicker.setCalendar(endCalendar);
-                    }
-                    final String quality = thisRow.getQuality();
-                    if (quality != null) {
-                        Controller.this.cmbQuality.getSelectionModel().select(quality);
-                    }
-                    Controller.this.txtComments.setText(thisRow.getVhsLabel());
-                    String currentChannel = thisRow.getChannel();
-                    boolean inGrid = false;
-                    for (Node channelNode: Controller.this.channelGridPane.getChildren()) {
-                        if (channelNode instanceof RadioButton) {
-                            Channel buttonChannel = (Channel) channelNode.getUserData();
-                            if (buttonChannel.getChannelName().equals(currentChannel)) {
-                                ((RadioButton) channelNode).setSelected(true);
-                                inGrid = true;
-                            } else {
-                                ((RadioButton) channelNode).setSelected(false);
-                            }
-                        }
-                    }
-                    if (inGrid) {
-                        Controller.this.altChannel.setText(null);
+                loadFile(thisRow);
+            }
+        }
+    }
+
+    private void loadFile(FileObjectImpl thisRow) {
+        error.setText(null);
+        if (thisRow != null) {
+            Controller.this.txtFilename.setText(thisRow.getFilename());
+            GregorianCalendar startCalendar = new GregorianCalendar();
+            if (thisRow.getStartDate() != null) {
+                startCalendar.setTime(thisRow.getStartDate());
+                Controller.this.startDatePicker.setCalendar(startCalendar);
+                Controller.this.startTimePicker.setCalendar(startCalendar);
+            } else {
+                Controller.this.startDatePicker.setCalendar(null);
+                Controller.this.startTimePicker.setCalendar(null);
+            }
+            GregorianCalendar endCalendar = new GregorianCalendar();
+            if (thisRow.getEndDate() != null) {
+                endCalendar.setTime(thisRow.getEndDate());
+                Controller.this.endDatePicker.setCalendar(endCalendar);
+                Controller.this.endTimePicker.setCalendar(endCalendar);
+            } else {
+                Controller.this.endDatePicker.setCalendar(null);
+                Controller.this.endTimePicker.setCalendar(null);
+            }
+            final String quality = thisRow.getQuality();
+            if (quality != null) {
+                Controller.this.cmbQuality.getSelectionModel().select(quality);
+            }
+            Controller.this.txtVhsLabel.setText(thisRow.getVhsLabel());
+            Controller.this.txtComment.setText(thisRow.getComment());
+            String currentChannel = thisRow.getChannel();
+            boolean inGrid = false;
+            for (Node channelNode: Controller.this.channelGridPane.getChildren()) {
+                if (channelNode instanceof RadioButton) {
+                    Channel buttonChannel = (Channel) channelNode.getUserData();
+                    if (buttonChannel.getChannelName().equals(currentChannel)) {
+                        ((RadioButton) channelNode).setSelected(true);
+                        inGrid = true;
                     } else {
-                        Controller.this.altChannel.setText(thisRow.getChannel());
+                        ((RadioButton) channelNode).setSelected(false);
                     }
                 }
+            }
+            if (inGrid) {
+                Controller.this.altChannel.setText(null);
+            } else {
+                Controller.this.altChannel.setText(thisRow.getChannel());
             }
         }
     }

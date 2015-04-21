@@ -29,6 +29,8 @@ public class FileObjectImpl implements FileObject {
 
     private String vhsLabel;
 
+    private String comment;
+
     private String quality;
 
     private String channel;
@@ -147,7 +149,7 @@ public class FileObjectImpl implements FileObject {
         }
         Date date = new Date();
         date.setTime(lastModifiedTime.toMillis());
-        return  date;
+        return date;
     }
 
     @Override
@@ -158,6 +160,11 @@ public class FileObjectImpl implements FileObject {
     @Override
     public String getVhsLabel() {
         return vhsLabel;
+    }
+
+    @Override
+    public String getComment() {
+        return comment;
     }
 
     @Override
@@ -201,6 +208,9 @@ public class FileObjectImpl implements FileObject {
         this.vhsLabel = vhsLabel;
     }
 
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
     public void setQuality(String quality) {
         this.quality = quality;
     }
