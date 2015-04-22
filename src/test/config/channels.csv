@@ -1,2 +1,16 @@
-dr1,DR 1,white
-tv2,TV 2,lightgray
+dr1,DR1,white,0,0
+dr2,DR2,lightgray,0,1
+tv2d,TV2Danmark,white,0,2
+tv2l,TV2Lorry,lightgray,0,3
+tv2s,TVSyd,white,0,4
+tv2n,TV2Nord,lightgray,1,0
+tvfyn,TVFyn,darkgray,1,1
+tv2mv,TV2Midt/Vest,lightgray,1,2
+tv2born,TV2Bornholm,darkgray,1,3
+tv2oj,TV2Østjylland,lightgray,1,4
+tv3,TV3,white,2,0
+tv3p,TV3+,lightgray,2,1
+tvdk,TVDanmark,white,2,2
+kanal5,Kanal5,lightgray,2,3
+dk4,DK4,white,2,4
+tvsport,TVSport,lightgray,3,0

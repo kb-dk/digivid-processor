@@ -1,33 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.text.*?>
-<?import java.lang.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.collections.*?>
 <?import javafx.scene.control.cell.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TableColumn?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
-<?import jfxtras.scene.control.CalendarPicker?>
-<?import jfxtras.scene.control.CalendarTimePicker?>
-<?import javafx.collections.FXCollections ?>
+<?import javafx.scene.layout.*?>
 
-
-<?import jfxtras.scene.control.CalendarTimeTextField?>
 <?import jfxtras.scene.control.CalendarTextField?>
+<?import jfxtras.scene.control.CalendarTimeTextField?>
+
+<?import java.lang.*?>
+
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dk.statsbiblioteket.digivid.processor.Controller">
     <children>
-        <SplitPane orientation="VERTICAL" dividerPositions="0.30203442879499215" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <SplitPane dividerPositions="0.30203442879499215" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                     <children>
                         <TableView id="tableView" fx:id="tableView" layoutY="29.0" onMouseClicked="#handleTableviewClicked" prefHeight="368.0" prefWidth="377.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
                             <columns>
-                                <TableColumn prefWidth="30.0" text="Processed" maxWidth="980.0" fx:id="processedColumn">
+                                <TableColumn fx:id="processedColumn" maxWidth="980.0" prefWidth="30.0" text="Processed">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="processed" />
                                     </cellValueFactory>
@@ -37,7 +30,7 @@
                                         <PropertyValueFactory property="filename" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" prefWidth="110.0" text="Last Modified">
+                                <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" prefWidth="110.0" maxWidth="1500.0" text="Last Modified">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="lastmodified" />
                                     </cellValueFactory>
@@ -51,20 +44,10 @@
                 </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                     <children>
-                        <!--<Label contentDisplay="CENTER" layoutX="314.0" text="File details" textAlignment="CENTER" AnchorPane.leftAnchor="314.0" AnchorPane.topAnchor="0.0">
-                            <font>
-                                <Font name="SansSerif Bold" size="24.0" />
-                            </font></Label>-->
-                        <VBox>
-                            <children>
-                                <Button layoutY="2.0" onAction="#commit" text="Process" />
-                                <Label fx:id="error" style="-fx-background-color:red" />
-                            </children>
-                        </VBox>
-                        <GridPane gridLinesVisible="false" layoutY="59.0" prefHeight="374.0" prefWidth="878.0" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="50.0">
+                        <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0" prefWidth="878.0" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
                             <columnConstraints>
-                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="431.0" minWidth="10.0" prefWidth="90.0" />
-                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="788.0" minWidth="10.0" prefWidth="788.0" />
+                                <ColumnConstraints hgrow="NEVER" maxWidth="5531.0" minWidth="10.0" prefWidth="157.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="5143.0" minWidth="10.0" prefWidth="1111.0" />
                             </columnConstraints>
                             <rowConstraints>
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -73,6 +56,7 @@
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints />
                             </rowConstraints>
                             <children>
                                 <Label text="Filename" />
@@ -82,9 +66,9 @@
                                 <Label text="Start" GridPane.rowIndex="4" />
                                 <Label text="End" GridPane.rowIndex="5" />
                                 <Label text="Channel" GridPane.rowIndex="6" />
-                                <Label fx:id="txtFilename"  GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                <Label fx:id="txtFilename" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                                 <TextField id="txtVhsLabel" fx:id="txtVhsLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                <TextArea id="txtComments" fx:id="txtComments" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                <TextArea id="txtComment" fx:id="txtComment" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                 <ComboBox id="cmbQuality" fx:id="cmbQuality" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                                     <items>
                                         <FXCollections fx:factory="observableArrayList">
@@ -92,7 +76,7 @@
                                             <String fx:value="2" />
                                             <String fx:value="3" />
                                             <String fx:value="4" />
-                                            <String fx:value="5 (Average Quality" />
+                                            <String fx:value="5 (Average Quality)" />
                                             <String fx:value="6" />
                                             <String fx:value="7" />
                                             <String fx:value="8" />
@@ -112,11 +96,11 @@
                                 </HBox>
                                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="5">
                                     <children>
-                                        <CalendarTimeTextField  fx:id="endTimePicker" />
+                                        <CalendarTimeTextField fx:id="endTimePicker" />
                                         <CalendarTextField fx:id="endDatePicker" />
                                     </children>
                                 </HBox>
-                                <GridPane GridPane.columnIndex="1" GridPane.rowIndex="6" fx:id="channelGridPane">
+                                <GridPane fx:id="channelGridPane" GridPane.columnIndex="1" GridPane.rowIndex="6">
                                     <children>
                                         <fx:define>
                                             <ToggleGroup fx:id="channelGroup"/>
@@ -128,6 +112,8 @@
                                 </GridPane>
                             </children>
                         </GridPane>
+                          <Button layoutX="530.0" layoutY="520.0" onAction="#commit" text="Process" AnchorPane.bottomAnchor="8.0" />
+                          <Label fx:id="error" layoutX="598.0" layoutY="517.0" style="-fx-background-color:coral" />
                     </children>
                 </AnchorPane>
             </items>

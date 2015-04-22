@@ -23,6 +23,9 @@ import jfxtras.scene.control.CalendarTimePicker;
 import jfxtras.scene.control.CalendarTimeTextField;
 
 import java.awt.event.TextEvent;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -168,22 +171,7 @@ public class Controller {
                 }
             });
         }
-        addChannelButton("dr1", "DR 1", "white", 0, 0);
-        addChannelButton("dr2", "DR 2", "lightgray", 0, 1);
-        addChannelButton("tv2d", "TV2 Danmark", "white", 0, 2);
-        addChannelButton("tv2l", "TV2 Lorry", "lightgray", 0, 3);
-        addChannelButton("tv2s", "TV Syd", "white", 0, 4);
-        addChannelButton("tv2n", "TV2 Nord", "lightgray",1,0);
-        addChannelButton("tvfyn", "TV Fyn", "darkgray",1,1);
-        addChannelButton("tv2mv", "TV2 Midt/Vest", "lightgray", 1, 2);
-        addChannelButton("tv2born", "TV2 Bornholm", "darkgray", 1, 3);
-        addChannelButton("tv2oj", "TV2 Østjylland", "lightgray", 1, 4);
-        addChannelButton("tv3", "TV3", "white", 2, 0);
-        addChannelButton("tv3p", "TV3+", "lightgray", 2, 1);
-        addChannelButton("tvdk", "TV Danmark", "white", 2, 2);
-        addChannelButton("kanal5", "Kanal 5", "lightgray", 2, 3);
-        addChannelButton("dk4", "DK4", "white", 2, 4);
-        addChannelButton("tvsport", "TV Sport", "lightgray", 3, 0);
+        createChannels(Main.channelDir);
         altChannel = new TextField();
         altChannel.setId("altChannel");
         altChannel.setPrefWidth(150.0);
@@ -259,6 +247,34 @@ public class Controller {
                 }
                 catch (IOException iex) {
                     throw new RuntimeException("" + getDataPath().toAbsolutePath());
+                }
+            }
+        }
+    }
+
+    public void createChannels(String csvFile) {
+        BufferedReader br = null;
+        String line = "";
+        String csvSplitBy = ",";
+        StringBuilder strBuilder = new StringBuilder();
+
+        try {
+
+            br = new BufferedReader(new FileReader(csvFile));
+            while ((line = br.readLine()) != null) {
+                String[] channel = line.split(csvSplitBy);
+                addChannelButton(channel[0], channel[1], channel[2], Integer.parseInt(channel[3]), Integer.parseInt(channel[4]));
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }

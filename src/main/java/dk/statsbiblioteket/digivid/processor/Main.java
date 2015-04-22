@@ -2,8 +2,12 @@ package dk.statsbiblioteket.digivid.processor;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -18,12 +22,23 @@ public class Main extends Application {
     private Stage primaryStage;
     private AnchorPane rootLayout;
     private static String recordsDir;
+    protected static String channelDir;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        /*final MediaPlayer oracleVid = new MediaPlayer(
+                new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv")
+        );
+        primaryStage.setScene(new Scene(new Group(new MediaView(oracleVid)), 540, 208));
+        primaryStage.show();
+
+        oracleVid.play();
+        */
+
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("Video processor");
         initRootLayout();
+
     }
 
     /**
@@ -77,7 +92,7 @@ public class Main extends Application {
             throw new RuntimeException("Could not read properties file " + propertiesPath, e);
         }
         recordsDir = properties.getProperty("digivid.processor.recordsdir");
-        System.out.println("Reading files from " + recordsDir);
+        channelDir = properties.getProperty("digivid.processor.channels");
         launch(args);
     }
 
