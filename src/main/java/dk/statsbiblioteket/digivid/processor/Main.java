@@ -2,16 +2,11 @@ package dk.statsbiblioteket.digivid.processor;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,8 +16,9 @@ public class Main extends Application {
 
     private Stage primaryStage;
     private AnchorPane rootLayout;
-    private static String recordsDir;
-    protected static String channelDir;
+    protected static String recordsDir;
+    protected static String channelCSV;
+    protected static String player;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -92,7 +88,8 @@ public class Main extends Application {
             throw new RuntimeException("Could not read properties file " + propertiesPath, e);
         }
         recordsDir = properties.getProperty("digivid.processor.recordsdir");
-        channelDir = properties.getProperty("digivid.processor.channels");
+        channelCSV = properties.getProperty("digivid.processor.channels");
+        player = properties.getProperty("digivid.processor.player");
         launch(args);
     }
 
