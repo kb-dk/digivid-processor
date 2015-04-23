@@ -14,15 +14,11 @@ import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.TilePane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import jfxtras.scene.control.CalendarPicker;
 import jfxtras.scene.control.CalendarTextField;
-import jfxtras.scene.control.CalendarTimePicker;
 import jfxtras.scene.control.CalendarTimeTextField;
 
-import java.awt.event.TextEvent;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -38,6 +34,7 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -171,7 +168,7 @@ public class Controller {
                 }
             });
         }
-        createChannels(Main.channelDir);
+        createChannels(Main.channelCSV);
         altChannel = new TextField();
         altChannel.setId("altChannel");
         altChannel.setPrefWidth(150.0);
@@ -320,7 +317,15 @@ public class Controller {
         final Toggle selectedToggle = channelGroup.getSelectedToggle();
         String altChannel = this.altChannel.getText();
         if (altChannel != null && altChannel.length() > 0 ) {
-            thisRow.setChannel(altChannel);
+            String channelPattern = "^[a-z0-9]{3,}$";
+            if (Pattern.matches(channelPattern,altChannel)) {
+                thisRow.setChannel(altChannel);
+            }
+            else {
+                error.setText("Channel not valid");
+                return;
+            }
+
         } else {
             String channel = null;
             if ( selectedToggle  != null ) {
@@ -348,6 +353,15 @@ public class Controller {
             if (mouseEvent.getButton() == MouseButton.PRIMARY) {
                 FileObjectImpl thisRow = (FileObjectImpl) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
                 loadFile(thisRow);
+            }
+            else if (mouseEvent.getButton() == MouseButton.MIDDLE.SECONDARY) {
+                FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
+                try {
+                    ProcessBuilder  pb = new ProcessBuilder(Main.player,Main.recordsDir+"/"+thisRow.getFilename()); //" C:\\Test\\test.mp4");
+                    Process start = pb.start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
