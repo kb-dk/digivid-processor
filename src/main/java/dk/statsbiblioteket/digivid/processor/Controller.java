@@ -17,7 +17,6 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import jfxtras.scene.control.CalendarTextField;
-import jfxtras.scene.control.CalendarTimeTextField;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -29,6 +28,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -77,13 +79,13 @@ public class Controller {
     @FXML
     public javafx.scene.control.ComboBox cmbQuality;
     @FXML
-    public CalendarTimeTextField startTimePicker;
+    public TextField startTimeField;
     @FXML
-    public CalendarTextField startDatePicker;
+    public DatePicker startDatePicker;
     @FXML
-    public CalendarTimeTextField endTimePicker;
+    public TextField endTimeField;
     @FXML
-    public CalendarTextField endDatePicker;
+    public DatePicker endDatePicker;
     @FXML
     public ToggleGroup channelGroup;
     @FXML
@@ -92,9 +94,10 @@ public class Controller {
     public TextField altChannel;
     @FXML
     public GridPane channelGridPane;
-
     @FXML
     public javafx.scene.control.DatePicker dpStart;
+    @FXML
+    public javafx.scene.layout.AnchorPane detailVHS;
     @FXML
     public javafx.scene.control.DatePicker dpEnd;
 
@@ -160,6 +163,7 @@ public class Controller {
 
     @FXML
     void initialize() {
+        detailVHS.setVisible(false);
         if (lastmodifiedColumn != null) {
             lastmodifiedColumn.setComparator(new Comparator<Date>() {
                 @Override
@@ -176,19 +180,23 @@ public class Controller {
         GridPane.setRowIndex(altChannel, 4);
         GridPane.setColumnIndex(altChannel, 0);
 
+        startDatePicker.setOnMouseClicked(event ->
+                endDatePicker.setValue (startDatePicker.getValue()));
+
         altChannel.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observableValue, String oldValue, String newValue) {
-                 if (newValue == null || newValue.length() == 0) {
-                    for (Toggle tg: Controller.this.channelGroup.getToggles()) {
-                        ((RadioButton) tg).setDisable(false); ;
+                if (newValue == null || newValue.length() == 0) {
+                    for (Toggle tg : Controller.this.channelGroup.getToggles()) {
+                        ((RadioButton) tg).setDisable(false);
+                        ;
                     }
-                 } else {
-                     for (Toggle tg: Controller.this.channelGroup.getToggles()) {
-                         ((RadioButton) tg).setDisable(true);
-                         tg.setSelected(false);
-                     }
-                 }
+                } else {
+                    for (Toggle tg : Controller.this.channelGroup.getToggles()) {
+                        ((RadioButton) tg).setDisable(true);
+                        tg.setSelected(false);
+                    }
+                }
             }
         });
     }
@@ -284,35 +292,44 @@ public class Controller {
      */
     public void commit(ActionEvent actionEvent) {
         FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
-        final Calendar startDateCalendar = startDatePicker.getCalendar();
-        if (startDateCalendar == null) {
+        //final Calendar startDateCalendar = startDatePicker.getCalendar();
+        if (startDatePicker.getValue() == null) {
             error.setText("No Start Date Set.");
             return;
         }
-        final Date startDate = startDateCalendar.getTime();
-        final Calendar startTimeCalendar = startTimePicker.getCalendar();
-        if (startTimeCalendar == null) {
+        final LocalDate localStartDate = startDatePicker.getValue();
+        final Date startDate = new Date(localStartDate.getYear(), localStartDate.getMonthValue(),localStartDate.getDayOfMonth());
+        //final Date startDate = startDateCalendar.getTime();
+        //final Calendar startDatePickerCalendar= startDatePicker.getCalendar();
+        if (startTimeField.getText().isEmpty()) {
             error.setText("No Start Time Set.");
             return;
         }
-        final Date startTime = startTimeCalendar.getTime();
-        startDate.setHours(startTime.getHours());
-        startDate.setMinutes(startTime.getMinutes());
+        final String[] startTimeStr = startTimeField.getText().split(":");
+        startDate.setHours(Integer.parseInt(startTimeStr[0]));
+        startDate.setMinutes(Integer.parseInt(startTimeStr[1]));
         thisRow.setStartDate(startDate);
-        final Calendar endDateCalendar = endDatePicker.getCalendar();
-        if (endDateCalendar == null) {
+        final Date endDate;
+        if (endDatePicker.getValue() != null && !endDatePicker.getValue().toString().isEmpty()) {
+            endDate = new Date(endDatePicker.getValue().toEpochDay()*1000);
+        }
+        else
+        {
             error.setText("No End Date Set.");
             return;
         }
-        final Date endDate = endDateCalendar.getTime();
-        final Calendar endTimeCalendar = endTimePicker.getCalendar();
-        if (endTimeCalendar == null) {
+
+        final String[] endTime;
+        if (endTimeField.getText() != null && !endTimeField.getText().isEmpty()) {
+            endTime = endTimeField.getText().split(":");
+        }
+        else
+        {
             error.setText("No End Time Set.");
             return;
         }
-        final Date endTime = endTimeCalendar.getTime();
-        endDate.setHours(endTime.getHours());
-        endDate.setMinutes(endTime.getMinutes());
+        endDate.setHours(Integer.parseInt(endTime[0]));
+        endDate.setMinutes(Integer.parseInt(endTime[1]));
         thisRow.setEndDate(endDate);
         final Toggle selectedToggle = channelGroup.getSelectedToggle();
         String altChannel = this.altChannel.getText();
@@ -342,6 +359,7 @@ public class Controller {
         thisRow.setComment(txtComment.getText());
         error.setText(null);
         thisRow.commit();
+        detailVHS.setVisible(false);
         //loadFile(thisRow);
         //tableView.getSelectionModel().select(thisRow);
     }
@@ -353,6 +371,7 @@ public class Controller {
             if (mouseEvent.getButton() == MouseButton.PRIMARY) {
                 FileObjectImpl thisRow = (FileObjectImpl) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
                 loadFile(thisRow);
+                detailVHS.setVisible(true);
             }
             else if (mouseEvent.getButton() == MouseButton.MIDDLE.SECONDARY) {
                 FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
@@ -371,22 +390,23 @@ public class Controller {
         if (thisRow != null) {
             Controller.this.txtFilename.setText(thisRow.getFilename());
             GregorianCalendar startCalendar = new GregorianCalendar();
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
             if (thisRow.getStartDate() != null) {
                 startCalendar.setTime(thisRow.getStartDate());
-                Controller.this.startDatePicker.setCalendar(startCalendar);
-                Controller.this.startTimePicker.setCalendar(startCalendar);
+                Controller.this.startDatePicker.setValue(thisRow.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                Controller.this.startTimeField.setText(timeFormat.format(startCalendar.getTime()));
             } else {
-                Controller.this.startDatePicker.setCalendar(null);
-                Controller.this.startTimePicker.setCalendar(null);
+                Controller.this.startDatePicker.setValue(null);
+                Controller.this.startTimeField.setText("");
             }
             GregorianCalendar endCalendar = new GregorianCalendar();
             if (thisRow.getEndDate() != null) {
                 endCalendar.setTime(thisRow.getEndDate());
-                Controller.this.endDatePicker.setCalendar(endCalendar);
-                Controller.this.endTimePicker.setCalendar(endCalendar);
+                Controller.this.endDatePicker.setValue(thisRow.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                Controller.this.endTimeField.setText(timeFormat.format(endCalendar.getTime()));
             } else {
-                Controller.this.endDatePicker.setCalendar(null);
-                Controller.this.endTimePicker.setCalendar(null);
+                Controller.this.endDatePicker.setValue(null);
+                Controller.this.endTimeField.setText("");
             }
             final String quality = thisRow.getQuality();
             if (quality != null) {

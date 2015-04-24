@@ -42,7 +42,7 @@
                         </TableView>
                     </children>
                 </AnchorPane>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                <AnchorPane id="detailVHS" fx:id="detailVHS" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                     <children>
                         <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0" prefWidth="878.0" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
                             <columnConstraints>
@@ -90,14 +90,14 @@
                                 </ComboBox>
                                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="4">
                                     <children>
-                                        <CalendarTimeTextField fx:id="startTimePicker" />
-                                        <CalendarTextField fx:id="startDatePicker" />
+                                        <TextField id="startTimeField" fx:id="startTimeField" />
+                                        <DatePicker id="startDatePicker" fx:id="startDatePicker" prefWidth="200.0" />
                                     </children>
                                 </HBox>
                                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="5">
                                     <children>
-                                        <CalendarTimeTextField fx:id="endTimePicker" />
-                                        <CalendarTextField fx:id="endDatePicker" />
+                                        <TextField id="endTimeField" fx:id="endTimeField" />
+                                        <DatePicker id="endDatePicker" fx:id="endDatePicker" prefWidth="200.0"/>
                                     </children>
                                 </HBox>
                                 <GridPane fx:id="channelGridPane" GridPane.columnIndex="1" GridPane.rowIndex="6">
