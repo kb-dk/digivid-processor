@@ -14,9 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import jfxtras.scene.control.CalendarTextField;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -29,41 +27,25 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.regex.Pattern;
 
-/**
- *
- * In outline this sample is based on
- * https://docs.oracle.com/javafx/2/fxml_get_started/fxml_tutorial_intermediate.htm
- *
- * Some other things we need to do/understand:
- *
- * i) Loading a new scene (form) on the stage
- * http://www.coderanch.com/t/620836/JavaFX/java/switch-scenes-stage-javafx
- *
- *
- * ii) Submitting data from one screen to the next:
- * http://www.coderanch.com/t/621496/JavaFX/java/Submitting-form-data-screen-javafx
- * http://stackoverflow.com/questions/14187963/passing-parameters-javafx-fxml/14190310#14190310
- */
+@SuppressWarnings("deprecation")
 public class Controller {
-
-    /*public TableView<FileObject> tableView;
-    public Label filelabel;
-    public Label currentFilename;
-    */
 
     private Path dataPath;
     private Stage myStage;
-    @FXML
-    public Label currentFilename;
+    private TextField altChannel;
+
+    private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
+    private static final String channelPattern = "^[a-z0-9]{3,}$";
+
     @FXML
     public TableColumn<FileObject, Date> lastmodifiedColumn;
     @FXML
@@ -90,29 +72,10 @@ public class Controller {
     public ToggleGroup channelGroup;
     @FXML
     public Label error;
-
-    public TextField altChannel;
     @FXML
     public GridPane channelGridPane;
     @FXML
-    public javafx.scene.control.DatePicker dpStart;
-    @FXML
     public javafx.scene.layout.AnchorPane detailVHS;
-    @FXML
-    public javafx.scene.control.DatePicker dpEnd;
-
-    @FXML
-    private void handleTableviewClicked(ActionEvent event) {
-        System.out.println("You clicked me!");
-        txtFilename.setText("Hello  ");
-    }
-
-
-    public DirectoryChooser directoryChooser = new DirectoryChooser();
-
-    public void setStage(Stage stage) {
-        myStage = stage;
-    }
 
     public Path getDataPath() {
         return dataPath;
@@ -143,7 +106,6 @@ public class Controller {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-
                     }
                 }
             }.start();
@@ -151,14 +113,6 @@ public class Controller {
             e.printStackTrace();
         }
         tableView.setOnMouseClicked(new FileclickMouseEventHandler());
-    }
-
-    private void nullifyLowerPane() {
-        txtFilename.setText(null);
-        txtVhsLabel.setText(null);
-        txtComment.setText(null);
-        altChannel.setText(null);
-        cmbQuality.setValue(null);
     }
 
     @FXML
@@ -180,8 +134,10 @@ public class Controller {
         GridPane.setRowIndex(altChannel, 4);
         GridPane.setColumnIndex(altChannel, 0);
 
-        startDatePicker.setOnMouseClicked(event ->
-                endDatePicker.setValue (startDatePicker.getValue()));
+        //Every time a date is put in the startdate picker the enddate picker is put to the same value.
+        startDatePicker.setOnAction(event -> {
+            endDatePicker.setValue(startDatePicker.getValue());
+        });
 
         altChannel.textProperty().addListener(new ChangeListener<String>() {
             @Override
@@ -189,7 +145,6 @@ public class Controller {
                 if (newValue == null || newValue.length() == 0) {
                     for (Toggle tg : Controller.this.channelGroup.getToggles()) {
                         ((RadioButton) tg).setDisable(false);
-                        ;
                     }
                 } else {
                     for (Toggle tg : Controller.this.channelGroup.getToggles()) {
@@ -214,11 +169,6 @@ public class Controller {
         GridPane.setRowIndex(rb1, row);
     }
 
-
-    public void loadFilenames(ActionEvent actionEvent) {
-                loadFilenames();
-            }
-
     public void loadFilenames() {
         if (tableView != null) {
             ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
@@ -234,6 +184,7 @@ public class Controller {
                     throw new RuntimeException("" + getDataPath().toAbsolutePath());
                 } finally {
                     try {
+                        assert tsFiles != null;
                         tsFiles.close();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -261,10 +212,8 @@ public class Controller {
         BufferedReader br = null;
         String line = "";
         String csvSplitBy = ",";
-        StringBuilder strBuilder = new StringBuilder();
 
         try {
-
             br = new BufferedReader(new FileReader(csvFile));
             while ((line = br.readLine()) != null) {
                 String[] channel = line.split(csvSplitBy);
@@ -273,7 +222,7 @@ public class Controller {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Input error: " + e.getMessage());
         } finally {
             if (br != null) {
                 try {
@@ -292,49 +241,51 @@ public class Controller {
      */
     public void commit(ActionEvent actionEvent) {
         FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
-        //final Calendar startDateCalendar = startDatePicker.getCalendar();
         if (startDatePicker.getValue() == null) {
             error.setText("No Start Date Set.");
             return;
         }
-        final LocalDate localStartDate = startDatePicker.getValue();
-        final Date startDate = new Date(localStartDate.getYear(), localStartDate.getMonthValue(),localStartDate.getDayOfMonth());
-        //final Date startDate = startDateCalendar.getTime();
-        //final Calendar startDatePickerCalendar= startDatePicker.getCalendar();
+        LocalDate localDate = startDatePicker.getValue();
+        Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        final Date startDate = Date.from(instant);
         if (startTimeField.getText().isEmpty()) {
             error.setText("No Start Time Set.");
             return;
         }
-        final String[] startTimeStr = startTimeField.getText().split(":");
-        startDate.setHours(Integer.parseInt(startTimeStr[0]));
-        startDate.setMinutes(Integer.parseInt(startTimeStr[1]));
-        thisRow.setStartDate(startDate);
-        final Date endDate;
-        if (endDatePicker.getValue() != null && !endDatePicker.getValue().toString().isEmpty()) {
-            endDate = new Date(endDatePicker.getValue().toEpochDay()*1000);
+        else if (!Pattern.matches(hourPattern,startTimeField.getText())){
+            error.setText("Start time not valid");
+            return;
         }
-        else
-        {
+        String[] timeStr = startTimeField.getText().split(":");
+        startDate.setHours(Integer.parseInt(timeStr[0]));
+        startDate.setMinutes(Integer.parseInt(timeStr[1]));
+        thisRow.setStartDate(startDate);
+
+        localDate = endDatePicker.getValue();
+        instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        if (endDatePicker.getValue() == null && !endDatePicker.getValue().toString().isEmpty()) {
             error.setText("No End Date Set.");
             return;
         }
+        final Date endDate = Date.from(instant);
 
-        final String[] endTime;
-        if (endTimeField.getText() != null && !endTimeField.getText().isEmpty()) {
-            endTime = endTimeField.getText().split(":");
-        }
-        else
-        {
+
+        if (endTimeField.getText().isEmpty()) {
             error.setText("No End Time Set.");
             return;
         }
-        endDate.setHours(Integer.parseInt(endTime[0]));
-        endDate.setMinutes(Integer.parseInt(endTime[1]));
+        else if (!Pattern.matches(hourPattern,endTimeField.getText())){
+            error.setText("End time not valid");
+            return;
+        }
+        timeStr = endTimeField.getText().split(":");
+        endDate.setHours(Integer.parseInt(timeStr[0]));
+        endDate.setMinutes(Integer.parseInt(timeStr[1]));
         thisRow.setEndDate(endDate);
         final Toggle selectedToggle = channelGroup.getSelectedToggle();
         String altChannel = this.altChannel.getText();
         if (altChannel != null && altChannel.length() > 0 ) {
-            String channelPattern = "^[a-z0-9]{3,}$";
+
             if (Pattern.matches(channelPattern,altChannel)) {
                 thisRow.setChannel(altChannel);
             }
@@ -346,7 +297,7 @@ public class Controller {
         } else {
             String channel = null;
             if ( selectedToggle  != null ) {
-                channel = ((Channel) ((RadioButton) selectedToggle).getUserData()).getChannelName();
+                channel = ((Channel) selectedToggle.getUserData()).getChannelName();
             }
             thisRow.setChannel(channel);
         }
@@ -360,8 +311,6 @@ public class Controller {
         error.setText(null);
         thisRow.commit();
         detailVHS.setVisible(false);
-        //loadFile(thisRow);
-        //tableView.getSelectionModel().select(thisRow);
     }
 
     public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
@@ -373,11 +322,11 @@ public class Controller {
                 loadFile(thisRow);
                 detailVHS.setVisible(true);
             }
-            else if (mouseEvent.getButton() == MouseButton.MIDDLE.SECONDARY) {
+            else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
                 FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
                 try {
                     ProcessBuilder  pb = new ProcessBuilder(Main.player,Main.recordsDir+"/"+thisRow.getFilename()); //" C:\\Test\\test.mp4");
-                    Process start = pb.start();
+                    pb.start();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

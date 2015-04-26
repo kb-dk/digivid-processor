@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.collections.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.cell.*?>
 <?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.*?>
-
-<?import jfxtras.scene.control.CalendarTextField?>
-<?import jfxtras.scene.control.CalendarTimeTextField?>
-
 <?import java.lang.*?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dk.statsbiblioteket.digivid.processor.Controller">
     <children>
-        <SplitPane dividerPositions="0.30203442879499215" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <SplitPane dividerPositions="0.30203442879499215, 0.5" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                     <children>
-                        <TableView id="tableView" fx:id="tableView" layoutY="29.0" onMouseClicked="#handleTableviewClicked" prefHeight="368.0" prefWidth="377.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
+                        <TableView id="tableView" fx:id="tableView" layoutY="29.0" prefHeight="368.0" prefWidth="377.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
                             <columns>
                                 <TableColumn fx:id="processedColumn" maxWidth="980.0" prefWidth="30.0" text="Processed">
                                     <cellValueFactory>
@@ -30,7 +28,7 @@
                                         <PropertyValueFactory property="filename" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" prefWidth="110.0" maxWidth="1500.0" text="Last Modified">
+                                <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" maxWidth="1500.0" prefWidth="110.0" text="Last Modified">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="lastmodified" />
                                     </cellValueFactory>
@@ -44,18 +42,18 @@
                 </AnchorPane>
                 <AnchorPane id="detailVHS" fx:id="detailVHS" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                     <children>
-                        <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0" prefWidth="878.0" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
+                        <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0" prefWidth="878.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
                             <columnConstraints>
                                 <ColumnConstraints hgrow="NEVER" maxWidth="5531.0" minWidth="10.0" prefWidth="157.0" />
                                 <ColumnConstraints hgrow="SOMETIMES" maxWidth="5143.0" minWidth="10.0" prefWidth="1111.0" />
                             </columnConstraints>
                             <rowConstraints>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                <RowConstraints minHeight="50.0" prefHeight="50.0" vgrow="NEVER" />
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                <RowConstraints minHeight="50.0" prefHeight="50.0" vgrow="SOMETIMES" />
-                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="NEVER" />
+                                <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="NEVER" />
                         <RowConstraints />
                             </rowConstraints>
                             <children>
@@ -69,7 +67,7 @@
                                 <Label fx:id="txtFilename" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                                 <TextField id="txtVhsLabel" fx:id="txtVhsLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                 <TextArea id="txtComment" fx:id="txtComment" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                <ComboBox id="cmbQuality" fx:id="cmbQuality" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                <ComboBox id="cmbQuality" fx:id="cmbQuality" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                                     <items>
                                         <FXCollections fx:factory="observableArrayList">
                                             <String fx:value="1 (Worst Quality)" />
@@ -91,23 +89,28 @@
                                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="4">
                                     <children>
                                         <TextField id="startTimeField" fx:id="startTimeField" />
-                                        <DatePicker id="startDatePicker" fx:id="startDatePicker" prefWidth="200.0" />
+                                        <DatePicker id="startDatePicker" fx:id="startDatePicker" showWeekNumbers="true">
+                                        <HBox.margin>
+                                            <Insets left="70.0" />
+                                        </HBox.margin></DatePicker>
                                     </children>
                                 </HBox>
                                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="5">
                                     <children>
                                         <TextField id="endTimeField" fx:id="endTimeField" />
-                                        <DatePicker id="endDatePicker" fx:id="endDatePicker" prefWidth="200.0"/>
+                                        <DatePicker id="endDatePicker" fx:id="endDatePicker" showWeekNumbers="true">
+                                        <HBox.margin>
+                                            <Insets left="70.0" />
+                                        </HBox.margin></DatePicker>
                                     </children>
                                 </HBox>
                                 <GridPane fx:id="channelGridPane" GridPane.columnIndex="1" GridPane.rowIndex="6">
                                     <children>
+
                                         <fx:define>
                                             <ToggleGroup fx:id="channelGroup"/>
                                         </fx:define>
-                                        <!--<RadioButton mnemonicParsing="false" text="DR 1" fx:id="dr1" toggleGroup="$channelGroup"  />
-                                        <RadioButton mnemonicParsing="false" text="TV 2" fx:id="tv2d" toggleGroup="$channelGroup"  />
-                                        <TextField fx:id="altChannel"  />-->
+
                                     </children>
                                 </GridPane>
                             </children>
