@@ -1,21 +1,22 @@
 package dk.statsbiblioteket.digivid.processor;
 
-import com.google.gson.Gson;
-import dk.statsbiblioteket.digivid.processor.json.FileObjectMetadata;
-import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
-import static org.testng.Assert.*;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import dk.statsbiblioteket.digivid.processor.json.FileObjectMetadata;
 
 /**
  * Created by csr on 4/14/15.

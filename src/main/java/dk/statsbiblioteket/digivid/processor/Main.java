@@ -14,38 +14,25 @@ import java.util.Properties;
 
 public class Main extends Application {
 
-    private Stage primaryStage;
-    private AnchorPane rootLayout;
-    protected static String recordsDir;
+	protected static String recordsDir;
     protected static String channelCSV;
     protected static String player;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        /*final MediaPlayer oracleVid = new MediaPlayer(
-                new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv")
-        );
-        primaryStage.setScene(new Scene(new Group(new MediaView(oracleVid)), 540, 208));
-        primaryStage.show();
-
-        oracleVid.play();
-        */
-
-        this.primaryStage = primaryStage;
-        this.primaryStage.setTitle("Video processor");
-        initRootLayout();
-
+        primaryStage.setTitle("Video processor");
+        initRootLayout(primaryStage);
     }
 
     /**
      * Initializes the root layout.
      */
-    public void initRootLayout() {
+    private void initRootLayout(Stage primaryStage) {
         try {
             // Load root layout from fxml file.
             FXMLLoader rootLoader = new FXMLLoader();
             rootLoader.setLocation(getClass().getClassLoader().getResource("filelist.fxml"));
-            rootLayout = (AnchorPane) rootLoader.load();
+            AnchorPane rootLayout = (AnchorPane) rootLoader.load();
             final Controller controller = rootLoader.getController();
             controller.setDataPath(Paths.get(recordsDir));
             controller.loadFilenames();
@@ -56,14 +43,6 @@ public class Main extends Application {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Returns the main stage.
-     * @return
-     */
-    public Stage getPrimaryStage() {
-        return primaryStage;
     }
 
     @Override
@@ -92,6 +71,4 @@ public class Main extends Application {
         player = properties.getProperty("digivid.processor.player");
         launch(args);
     }
-
-
 }

@@ -1,21 +1,5 @@
 package dk.statsbiblioteket.digivid.processor;
 
-import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.control.Label;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -31,16 +15,36 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("deprecation")
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
+
 public class Controller {
 
     private Path dataPath;
-    private Stage myStage;
     private TextField altChannel;
 
     private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
@@ -59,7 +63,7 @@ public class Controller {
     @FXML
     public TableView<FileObject> tableView;
     @FXML
-    public javafx.scene.control.ComboBox cmbQuality;
+    public javafx.scene.control.ComboBox<String> cmbQuality;
     @FXML
     public TextField startTimeField;
     @FXML
@@ -245,9 +249,6 @@ public class Controller {
             error.setText("No Start Date Set.");
             return;
         }
-        LocalDate localDate = startDatePicker.getValue();
-        Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        final Date startDate = Date.from(instant);
         if (startTimeField.getText().isEmpty()) {
             error.setText("No Start Time Set.");
             return;
@@ -257,17 +258,21 @@ public class Controller {
             return;
         }
         String[] timeStr = startTimeField.getText().split(":");
-        startDate.setHours(Integer.parseInt(timeStr[0]));
-        startDate.setMinutes(Integer.parseInt(timeStr[1]));
-        thisRow.setStartDate(startDate);
+        LocalDate localDate = startDatePicker.getValue();
+        Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+//        final Date startDate = Date.from(instant);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(Date.from(instant));
+        calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
+        calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
+//        startDate.setHours(Integer.parseInt(timeStr[0]));
+//        startDate.setMinutes(Integer.parseInt(timeStr[1]));
+        thisRow.setStartDate(calendar.getTime());
 
-        localDate = endDatePicker.getValue();
-        instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
         if (endDatePicker.getValue() == null && !endDatePicker.getValue().toString().isEmpty()) {
             error.setText("No End Date Set.");
             return;
         }
-        final Date endDate = Date.from(instant);
 
 
         if (endTimeField.getText().isEmpty()) {
@@ -279,9 +284,16 @@ public class Controller {
             return;
         }
         timeStr = endTimeField.getText().split(":");
-        endDate.setHours(Integer.parseInt(timeStr[0]));
-        endDate.setMinutes(Integer.parseInt(timeStr[1]));
-        thisRow.setEndDate(endDate);
+        localDate = endDatePicker.getValue();
+        instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        calendar = Calendar.getInstance();
+        calendar.setTime(Date.from(instant));
+        calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
+        calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
+//        endDate.setHours(Integer.parseInt(timeStr[0]));
+//        endDate.setMinutes(Integer.parseInt(timeStr[1]));
+        thisRow.setEndDate(calendar.getTime());
+
         final Toggle selectedToggle = channelGroup.getSelectedToggle();
         String altChannel = this.altChannel.getText();
         if (altChannel != null && altChannel.length() > 0 ) {
@@ -383,5 +395,4 @@ public class Controller {
             }
         }
     }
-
 }

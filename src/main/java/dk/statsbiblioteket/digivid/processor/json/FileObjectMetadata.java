@@ -1,11 +1,11 @@
 package dk.statsbiblioteket.digivid.processor.json;
 
-import com.google.gson.Gson;
-import dk.statsbiblioteket.digivid.processor.FileObject;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.file.Files;
+
+import com.google.gson.Gson;
+
+import dk.statsbiblioteket.digivid.processor.FileObject;
 
 /**
  * Class representing a JSON-serializable set of metadata corresponding to a FileObject

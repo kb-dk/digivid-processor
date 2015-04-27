@@ -1,16 +1,12 @@
 package dk.statsbiblioteket.digivid.processor.json;
 
-import com.google.gson.Gson;
-import dk.statsbiblioteket.digivid.processor.FileObject;
-import dk.statsbiblioteket.digivid.processor.FileObjectImpl;
-import org.testng.annotations.Test;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
-import static org.testng.Assert.*;
+import org.testng.annotations.Test;
+
+import dk.statsbiblioteket.digivid.processor.FileObjectImpl;
 
 /**
  * Created by csr on 4/14/15.
