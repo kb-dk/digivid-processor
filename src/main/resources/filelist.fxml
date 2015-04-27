@@ -61,6 +61,7 @@
                                 <HBox GridPane.rowIndex="0" GridPane.columnIndex="1">
                                     <children>
                                         <Label fx:id="txtFilename" />
+                                        <HBox prefWidth="40"/>
                                         <Button text="Play" onAction="#playCurrentFile" />
                                     </children>
                                 </HBox>
