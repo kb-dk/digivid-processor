@@ -58,13 +58,18 @@
                             </rowConstraints>
                             <children>
                                 <Label text="Filename" />
+                                <HBox GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                    <children>
+                                        <Label fx:id="txtFilename" />
+                                        <Button text="Play" onAction="#playCurrentFile" />
+                                    </children>
+                                </HBox>
                                 <Label text="VHS label" GridPane.rowIndex="1" />
                                 <Label text="Comment" GridPane.rowIndex="2" />
                                 <Label text="Quality" GridPane.rowIndex="3" />
                                 <Label text="Start" GridPane.rowIndex="4" />
                                 <Label text="End" GridPane.rowIndex="5" />
                                 <Label text="Channel" GridPane.rowIndex="6" />
-                                <Label fx:id="txtFilename" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                                 <TextField id="txtVhsLabel" fx:id="txtVhsLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                 <TextArea id="txtComment" fx:id="txtComment" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                 <ComboBox id="cmbQuality" fx:id="cmbQuality" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">

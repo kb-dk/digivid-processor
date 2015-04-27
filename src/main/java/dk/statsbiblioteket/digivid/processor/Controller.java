@@ -10,10 +10,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -41,6 +43,8 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.util.StringConverter;
+import javafx.util.converter.DateTimeStringConverter;
 
 public class Controller {
 
@@ -142,6 +146,35 @@ public class Controller {
         startDatePicker.setOnAction(event -> {
             endDatePicker.setValue(startDatePicker.getValue());
         });
+
+
+        startDatePicker.setConverter(new StringConverter<LocalDate>() {
+            DateTimeFormatter dtf = DateTimeFormatter.ISO_DATE;
+
+            @Override
+            public String toString(LocalDate localDate) {
+                return dtf.format(localDate);
+            }
+
+            @Override
+            public LocalDate fromString(String s) {
+                return LocalDate.parse(s, dtf);
+            }
+        }) ;
+
+        endDatePicker.setConverter(new StringConverter<LocalDate>() {
+            DateTimeFormatter dtf = DateTimeFormatter.ISO_DATE;
+
+            @Override
+            public String toString(LocalDate localDate) {
+                  return dtf.format(localDate);
+            }
+
+            @Override
+            public LocalDate fromString(String s) {
+                  return LocalDate.parse(s, dtf);
+            }
+        }) ;
 
         altChannel.textProperty().addListener(new ChangeListener<String>() {
             @Override
@@ -335,14 +368,18 @@ public class Controller {
                 detailVHS.setVisible(true);
             }
             else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
-                FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
-                try {
-                    ProcessBuilder  pb = new ProcessBuilder(DigividProcessor.player,DigividProcessor.recordsDir+"/"+thisRow.getFilename()); //" C:\\Test\\test.mp4");
-                    pb.start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                playCurrentFile();
             }
+        }
+    }
+
+    public void playCurrentFile() {
+        FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
+        try {
+            ProcessBuilder  pb = new ProcessBuilder(DigividProcessor.player,DigividProcessor.recordsDir+"/"+thisRow.getFilename()); //" C:\\Test\\test.mp4");
+            pb.start();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

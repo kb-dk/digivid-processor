@@ -11,6 +11,6 @@ public class MainTest {
 
     public void testMain() throws Exception {
         System.setProperty("digivid.config", "src/test/config/digivid-processor.properties");
-        Main.main(null);
+        DigividProcessor.main(null);
     }
 }
