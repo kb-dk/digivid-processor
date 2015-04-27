@@ -130,7 +130,7 @@ public class Controller {
                 }
             });
         }
-        createChannels(Main.channelCSV);
+        createChannels(DigividProcessor.channelCSV);
         altChannel = new TextField();
         altChannel.setId("altChannel");
         altChannel.setPrefWidth(150.0);
@@ -337,7 +337,7 @@ public class Controller {
             else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
                 FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
                 try {
-                    ProcessBuilder  pb = new ProcessBuilder(Main.player,Main.recordsDir+"/"+thisRow.getFilename()); //" C:\\Test\\test.mp4");
+                    ProcessBuilder  pb = new ProcessBuilder(DigividProcessor.player,DigividProcessor.recordsDir+"/"+thisRow.getFilename()); //" C:\\Test\\test.mp4");
                     pb.start();
                 } catch (IOException e) {
                     e.printStackTrace();
