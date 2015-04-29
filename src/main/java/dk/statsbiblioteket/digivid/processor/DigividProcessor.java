@@ -2,8 +2,10 @@ package dk.statsbiblioteket.digivid.processor;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -17,6 +19,7 @@ public class DigividProcessor extends Application {
 	protected static String recordsDir;
     protected static String channelCSV;
     protected static String player;
+    protected static String serial;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -37,7 +40,8 @@ public class DigividProcessor extends Application {
             controller.setDataPath(Paths.get(recordsDir));
             controller.loadFilenames();
             // Show the scene containing the root layout.
-            Scene scene = new Scene(rootLayout);
+            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+            Scene scene = new Scene(rootLayout, screenBounds.getWidth(), screenBounds.getHeight());
             primaryStage.setScene(scene);
             primaryStage.show();
         } catch (IOException e) {
@@ -69,6 +73,7 @@ public class DigividProcessor extends Application {
         recordsDir = properties.getProperty("digivid.processor.recordsdir");
         channelCSV = properties.getProperty("digivid.processor.channels");
         player = properties.getProperty("digivid.processor.player");
+        serial = properties.getProperty("digivid.processor.serial");
         launch(args);
     }
 }

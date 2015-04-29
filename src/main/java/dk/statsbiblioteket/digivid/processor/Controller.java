@@ -1,26 +1,14 @@
 package dk.statsbiblioteket.digivid.processor;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.text.ParseException;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import javafx.application.Platform;
@@ -32,24 +20,19 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.util.StringConverter;
-import javafx.util.converter.DateTimeStringConverter;
 
 public class Controller {
 
     private Path dataPath;
     private TextField altChannel;
+    private String manufacturer;
+    private String model;
+    private String serialNo;
 
     private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
     private static final String channelPattern = "^[a-z0-9]{3,}$";
@@ -84,6 +67,16 @@ public class Controller {
     public GridPane channelGridPane;
     @FXML
     public javafx.scene.layout.AnchorPane detailVHS;
+    @FXML
+    public TextField txtManufacturer;
+    @FXML
+    public TextField txtModel;
+    @FXML
+    public TextField txtSerial;
+    @FXML
+    public void handleSerial() {
+        writeSerial();
+    }
 
     public Path getDataPath() {
         return dataPath;
@@ -134,7 +127,16 @@ public class Controller {
                 }
             });
         }
-        createChannels(DigividProcessor.channelCSV);
+        try {
+            List<List<String>> channels = getCSV(DigividProcessor.channelCSV);
+            for(List<String> channel : channels) {
+                addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)), Integer.parseInt(channel.get(4)));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         altChannel = new TextField();
         altChannel.setId("altChannel");
         altChannel.setPrefWidth(150.0);
@@ -167,14 +169,63 @@ public class Controller {
 
             @Override
             public String toString(LocalDate localDate) {
-                  return dtf.format(localDate);
+                return dtf.format(localDate);
             }
 
             @Override
             public LocalDate fromString(String s) {
-                  return LocalDate.parse(s, dtf);
+                return LocalDate.parse(s, dtf);
             }
         }) ;
+
+        SimpleDateFormat myDateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        readSerial();
+
+        // Custom rendering of the table cell to have format specified "yyyy-mm-dd.
+        lastmodifiedColumn.setCellFactory(column -> {
+            return new TableCell<FileObject, Date>() {
+                @Override
+                protected void updateItem(Date item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (item == null || empty) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        // Format date.
+                        setText(myDateFormatter.format(item));
+                    }
+                }
+            };
+        });
+
+        processedColumn.setCellFactory(column -> {
+            return new TableCell<FileObject, Boolean>() {
+                @Override
+                protected void updateItem(Boolean item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (item == null || empty) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        // Format date.
+                        setText(item.toString());
+
+                        // Style all dates in March with a different color.
+                        if (item) {
+                            setTextFill(javafx.scene.paint.Color.BLACK);
+                            //setStyle("-fx-background-color: yellow");
+                        } else {
+                            setTextFill(javafx.scene.paint.Color.CHOCOLATE);
+                            setStyle("");
+                        }
+                    }
+                }
+            };
+        });
+
+
 
         altChannel.textProperty().addListener(new ChangeListener<String>() {
             @Override
@@ -191,6 +242,37 @@ public class Controller {
                 }
             }
         });
+    }
+
+    private void writeSerial() {
+        Path newFilePath = Paths.get(DigividProcessor.serial);
+        try {
+            if (Files.exists(newFilePath)) {
+                Files.delete(newFilePath);
+                String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText();
+                Files.write(Paths.get(DigividProcessor.serial), msg.getBytes());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void readSerial() {
+        Path newFilePath = Paths.get(DigividProcessor.serial);
+        try {
+            if (Files.exists(newFilePath)) {
+                List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.serial), Charset.defaultCharset());
+                String[] metadata = lines.get(0).split(",");
+
+                txtManufacturer.setText(metadata[0] == null ? "" : metadata[0]);
+                txtModel.setText(metadata[1] == null ? "" : metadata[1]);
+                txtSerial.setText(metadata[2] == null ? "" : metadata[2]);
+            } else {
+                    Files.createFile(newFilePath);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void addChannelButton(String channelName, String displayName, String color, int row, int column) {
@@ -245,16 +327,43 @@ public class Controller {
         }
     }
 
-    public void createChannels(String csvFile) {
+    private static List<List<String>> getCSV(String csvFile) throws IOException {
+
+
+        String line = null;
+        BufferedReader stream = null;
+        List<List<String>> csvData = new ArrayList<List<String>>();
+
+        try {
+            stream = new BufferedReader(new FileReader(csvFile));
+            while ((line = stream.readLine()) != null) {
+                String[] splitted = line.split(",");
+                List<String> dataLine = new ArrayList<String>(splitted.length);
+                for (String data : splitted)
+                    dataLine.add(data);
+                csvData.add(dataLine);
+            }
+        } finally {
+            if (stream != null)
+                stream.close();
+        }
+
+        return csvData;
+
+    }
+
+    /*public Map<String, String> getCSV(String csvFile) {
         BufferedReader br = null;
         String line = "";
         String csvSplitBy = ",";
+        Map<String, String> channels = new HashMap<String, String>();
+
 
         try {
             br = new BufferedReader(new FileReader(csvFile));
             while ((line = br.readLine()) != null) {
                 String[] channel = line.split(csvSplitBy);
-                addChannelButton(channel[0], channel[1], channel[2], Integer.parseInt(channel[3]), Integer.parseInt(channel[4]));
+                channels.put(channel[0], channel[1], channel[2], Integer.parseInt(channel[3]), Integer.parseInt(channel[4]));
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -269,7 +378,8 @@ public class Controller {
                 }
             }
         }
-    }
+        return channels;
+    }*/
 
     /**
      * Reads all the values set by the user and sets them on the current FileObject before calling the commit()
@@ -341,7 +451,7 @@ public class Controller {
 
         } else {
             String channel = null;
-            if ( selectedToggle  != null ) {
+            if ( selectedToggle != null) {
                 channel = ((Channel) selectedToggle.getUserData()).getChannelName();
             }
             thisRow.setChannel(channel);
@@ -356,6 +466,18 @@ public class Controller {
         error.setText(null);
         thisRow.commit();
         detailVHS.setVisible(false);
+    }
+
+    public String getManufacturer() {
+        return manufacturer;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public String getSerialNo() {
+        return serialNo;
     }
 
     public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
