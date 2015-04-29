@@ -69,7 +69,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>8.1.2</version>
                 <configuration>
-                    <mainClass>dk.statsbiblioteket.digivid.processor.Main</mainClass>
+                    <mainClass>dk.statsbiblioteket.digivid.processor.DigividProcessor</mainClass>
                     <appName>digivid-processor</appName>
                     <jfxAppOutputDir>target/digivid-processor</jfxAppOutputDir>
                 </configuration>

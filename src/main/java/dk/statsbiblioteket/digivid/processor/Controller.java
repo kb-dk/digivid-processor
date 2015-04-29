@@ -249,7 +249,7 @@ public class Controller {
         try {
             if (Files.exists(newFilePath)) {
                 Files.delete(newFilePath);
-                String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText();
+                String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText()+",1";
                 Files.write(Paths.get(DigividProcessor.serial), msg.getBytes());
             }
         } catch (IOException e) {
@@ -262,16 +262,20 @@ public class Controller {
         try {
             if (Files.exists(newFilePath)) {
                 List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.serial), Charset.defaultCharset());
-                String[] metadata = lines.get(0).split(",");
+                List<String> metadata = Arrays.asList(lines.get(0).split(","));
 
-                txtManufacturer.setText(metadata[0] == null ? "" : metadata[0]);
-                txtModel.setText(metadata[1] == null ? "" : metadata[1]);
-                txtSerial.setText(metadata[2] == null ? "" : metadata[2]);
+                txtManufacturer.setText(metadata.get(0));
+                txtModel.setText(metadata.get(1));
+                txtSerial.setText(metadata.get(2));
             } else {
-                    Files.createFile(newFilePath);
+                String msg = ",,,1";
+                Files.write(Paths.get(DigividProcessor.serial), msg.getBytes());
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
