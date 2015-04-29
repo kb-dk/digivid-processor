@@ -105,7 +105,7 @@ public class FileObjectImpl implements FileObject {
         setFilename(buildFilename());
         Path newPath = videoFilePath.getParent().resolve(Paths.get(filename));
         try {
-            checksum = DigestUtils.sha1Hex(Files.newInputStream(videoFilePath));
+            checksum = DigestUtils.md5Hex(Files.newInputStream(videoFilePath));
         } catch (IOException e) {
             //?
         }
