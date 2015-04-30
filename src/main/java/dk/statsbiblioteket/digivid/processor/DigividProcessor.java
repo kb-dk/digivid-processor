@@ -19,7 +19,7 @@ public class DigividProcessor extends Application {
 	protected static String recordsDir;
     protected static String channelCSV;
     protected static String player;
-    protected static String serial;
+    protected static String metadata;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -35,7 +35,7 @@ public class DigividProcessor extends Application {
             // Load root layout from fxml file.
             FXMLLoader rootLoader = new FXMLLoader();
             rootLoader.setLocation(getClass().getClassLoader().getResource("filelist.fxml"));
-            AnchorPane rootLayout = (AnchorPane) rootLoader.load();
+            AnchorPane rootLayout = rootLoader.load();
             final Controller controller = rootLoader.getController();
             controller.setDataPath(Paths.get(recordsDir));
             controller.loadFilenames();
@@ -73,7 +73,7 @@ public class DigividProcessor extends Application {
         recordsDir = properties.getProperty("digivid.processor.recordsdir");
         channelCSV = properties.getProperty("digivid.processor.channels");
         player = properties.getProperty("digivid.processor.player");
-        serial = properties.getProperty("digivid.processor.serial");
+        metadata = properties.getProperty("digivid.processor.metadata");
         launch(args);
     }
 }
