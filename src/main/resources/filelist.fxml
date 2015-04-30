@@ -49,7 +49,7 @@
                   </GridPane>
                         <TableView id="tableView" fx:id="tableView" layoutY="29.0" prefHeight="368.0" prefWidth="377.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
                             <columns>
-                                <TableColumn fx:id="processedColumn" maxWidth="980.0" prefWidth="30.0" text="Processed">
+                                <TableColumn fx:id="processedColumn" maxWidth="600.0" prefWidth="30.0" text="Processed">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="processed" />
                                     </cellValueFactory>
@@ -59,7 +59,7 @@
                                         <PropertyValueFactory property="filename" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" maxWidth="1500.0" prefWidth="110.0" text="Last Modified">
+                                <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" maxWidth="800.0" prefWidth="110.0" text="Last Modified">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="lastmodified" />
                                     </cellValueFactory>
@@ -71,7 +71,7 @@
                         </TableView>
                     </children>
                 </AnchorPane>
-                <AnchorPane id="detailVHS" fx:id="detailVHS" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                <AnchorPane id="detailVHS" fx:id="detailVHS" maxHeight="510.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                     <children>
                         <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0" prefWidth="878.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
                             <columnConstraints>
@@ -146,11 +146,9 @@
                                 </HBox>
                                 <GridPane fx:id="channelGridPane" GridPane.columnIndex="1" GridPane.rowIndex="6">
                                     <children>
-
                                         <fx:define>
                                             <ToggleGroup fx:id="channelGroup"/>
                                         </fx:define>
-
                                     </children>
                                 </GridPane>
                             </children>

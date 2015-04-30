@@ -19,11 +19,13 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 
 public class Controller {
@@ -188,6 +190,8 @@ public class Controller {
                 protected void updateItem(Date item, boolean empty) {
                     super.updateItem(item, empty);
 
+                    //Center the text
+                    setAlignment(Pos.CENTER);
                     if (item == null || empty) {
                         setText(null);
                         setStyle("");
@@ -209,16 +213,12 @@ public class Controller {
                         setText(null);
                         setStyle("");
                     } else {
-                        // Format date.
-                        setText(item.toString());
-
-                        // Style all dates in March with a different color.
+                        setAlignment(Pos.CENTER);
                         if (item) {
-                            setTextFill(javafx.scene.paint.Color.BLACK);
-                            //setStyle("-fx-background-color: yellow");
+                            //Set checkmark if processed
+                            setText(Character.toString((char) 10003));
                         } else {
-                            setTextFill(javafx.scene.paint.Color.CHOCOLATE);
-                            setStyle("");
+                            setText("");
                         }
                     }
                 }
@@ -244,19 +244,26 @@ public class Controller {
         });
     }
 
+    /**
+     * Deletes the serial.csv file if it already exists and writes information about content of Manufacturer, Model
+     * and serial number to serial.csv
+     */
     private void writeSerial() {
         Path newFilePath = Paths.get(DigividProcessor.serial);
         try {
             if (Files.exists(newFilePath)) {
                 Files.delete(newFilePath);
-                String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText()+",1";
-                Files.write(Paths.get(DigividProcessor.serial), msg.getBytes());
             }
+            String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText()+",1";
+            Files.write(Paths.get(DigividProcessor.serial), msg.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Reads information from the serial.csv file and put it in the fields for Manufacturer, Model and Serialnumber
+     */
     private void readSerial() {
         Path newFilePath = Paths.get(DigividProcessor.serial);
         try {
@@ -292,6 +299,9 @@ public class Controller {
         GridPane.setRowIndex(rb1, row);
     }
 
+    /**
+     * Puts an overview of ts-files in to the tableview
+     */
     public void loadFilenames() {
         if (tableView != null) {
             ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<FileObject>());
@@ -332,8 +342,6 @@ public class Controller {
     }
 
     private static List<List<String>> getCSV(String csvFile) throws IOException {
-
-
         String line = null;
         BufferedReader stream = null;
         List<List<String>> csvData = new ArrayList<List<String>>();
@@ -351,39 +359,8 @@ public class Controller {
             if (stream != null)
                 stream.close();
         }
-
         return csvData;
-
     }
-
-    /*public Map<String, String> getCSV(String csvFile) {
-        BufferedReader br = null;
-        String line = "";
-        String csvSplitBy = ",";
-        Map<String, String> channels = new HashMap<String, String>();
-
-
-        try {
-            br = new BufferedReader(new FileReader(csvFile));
-            while ((line = br.readLine()) != null) {
-                String[] channel = line.split(csvSplitBy);
-                channels.put(channel[0], channel[1], channel[2], Integer.parseInt(channel[3]), Integer.parseInt(channel[4]));
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            System.out.println("Input error: " + e.getMessage());
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return channels;
-    }*/
 
     /**
      * Reads all the values set by the user and sets them on the current FileObject before calling the commit()
@@ -412,8 +389,6 @@ public class Controller {
         calendar.setTime(Date.from(instant));
         calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
         calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-//        startDate.setHours(Integer.parseInt(timeStr[0]));
-//        startDate.setMinutes(Integer.parseInt(timeStr[1]));
         thisRow.setStartDate(calendar.getTime());
 
         if (endDatePicker.getValue() == null && !endDatePicker.getValue().toString().isEmpty()) {
@@ -437,8 +412,6 @@ public class Controller {
         calendar.setTime(Date.from(instant));
         calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
         calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-//        endDate.setHours(Integer.parseInt(timeStr[0]));
-//        endDate.setMinutes(Integer.parseInt(timeStr[1]));
         thisRow.setEndDate(calendar.getTime());
 
         final Toggle selectedToggle = channelGroup.getSelectedToggle();
