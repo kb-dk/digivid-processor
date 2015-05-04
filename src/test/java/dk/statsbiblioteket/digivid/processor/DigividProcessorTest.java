@@ -16,6 +16,7 @@ public class DigividProcessorTest extends ApplicationTest {
 		DigividProcessor.recordsDir = "src/test/data/sample";
 		DigividProcessor.channelCSV = "src/main/config/channels.csv";
 		DigividProcessor.player = "/usr/bin/vlc";
+		DigividProcessor.metadata = "src/main/config/metadata.csv";
 
 		try {
 			main.start(stage);
