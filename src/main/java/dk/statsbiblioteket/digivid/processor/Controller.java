@@ -74,9 +74,6 @@ public class Controller {
     @FXML
     public TextField txtSerial;
 
-    public Controller() {
-    }
-
     @FXML
     public void handleMetadata() {
         writeMetadata();
@@ -243,7 +240,7 @@ public class Controller {
             if (Files.exists(newFilePath)) {
                 Files.delete(newFilePath);
             }
-            String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText()+",1";
+            String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText()+", ";
             Files.write(Paths.get(DigividProcessor.metadata), msg.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
@@ -264,7 +261,7 @@ public class Controller {
                 txtModel.setText(metadata.get(1));
                 txtSerial.setText(metadata.get(2));
             } else {
-                String msg = ",,,1";
+                String msg = ",,, ";
                 Files.write(Paths.get(DigividProcessor.metadata), msg.getBytes());
             }
         } catch (IOException e) {
@@ -423,6 +420,9 @@ public class Controller {
         thisRow.setQuality(cmbQuality.getValue());
         thisRow.setVhsLabel(txtVhsLabel.getText());
         thisRow.setComment(txtComment.getText());
+        thisRow.setManufacturer(txtManufacturer.getText());
+        thisRow.setModel(txtModel.getText());
+        thisRow.setSerialNo(txtSerial.getText());
         error.setText(null);
         thisRow.commit();
         detailVHS.setVisible(false);

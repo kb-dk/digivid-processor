@@ -34,6 +34,9 @@ public class FileObjectMetadata {
         this.channelLabel = fileObject.getChannel();
         this.checksum = fileObject.getChecksum();
         this.quality = fileObject.getQuality();
+        this.manufacturer = fileObject.getManufacturer();
+        this.model = fileObject.getModel();
+        this.serialNo = fileObject.getSerialNo();
     }
 
     private String filename;
