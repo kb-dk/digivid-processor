@@ -39,6 +39,12 @@ public class FileObjectImpl implements FileObject {
 
     private String checksum;
 
+    private String manufacturer;
+
+    private String model;
+
+    private String serialNo;
+
     private static Date toDate(Long l) {
         if (l == null) {
             return null;
@@ -62,8 +68,12 @@ public class FileObjectImpl implements FileObject {
                     startDate = toDate(fileObjectMetadata.getStartDate());
                     channel = fileObjectMetadata.getChannelLabel();
                     checksum = fileObjectMetadata.getChecksum();
-                    vhsLabel = fileObjectMetadata.getComments();
+                    vhsLabel = fileObjectMetadata.getVhsLabel();
+                    comment = fileObjectMetadata.getComments();
                     quality = fileObjectMetadata.getQuality();
+                    manufacturer = fileObjectMetadata.getManufacturer();
+                    model = fileObjectMetadata.getModel();
+                    serialNo = fileObjectMetadata.getSerialNo();
                 }
             } catch (IOException e) {
                 //??
@@ -192,6 +202,21 @@ public class FileObjectImpl implements FileObject {
         return checksum;
     }
 
+    @Override
+    public String getManufacturer() {
+        return manufacturer;
+    }
+
+    @Override
+    public String getModel() {
+        return model;
+    }
+
+    @Override
+    public String getSerialNo() {
+        return serialNo;
+    }
+
     public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
@@ -213,5 +238,17 @@ public class FileObjectImpl implements FileObject {
     }
     public void setQuality(String quality) {
         this.quality = quality;
+    }
+
+    public void setManufacturer(String manufacturer) {
+        this.manufacturer = manufacturer;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public void setSerialNo(String serialNo) {
+        this.serialNo = serialNo;
     }
 }
