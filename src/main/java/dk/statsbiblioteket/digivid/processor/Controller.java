@@ -453,7 +453,7 @@ public class Controller {
     public void playCurrentFile() {
         FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
         try {
-            ProcessBuilder  pb = new ProcessBuilder(DigividProcessor.player,DigividProcessor.recordsDir+"/"+thisRow.getFilename()); //" C:\\Test\\test.mp4");
+        	ProcessBuilder  pb = new ProcessBuilder(DigividProcessor.player, new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
             pb.start();
         } catch (IOException e) {
             e.printStackTrace();
