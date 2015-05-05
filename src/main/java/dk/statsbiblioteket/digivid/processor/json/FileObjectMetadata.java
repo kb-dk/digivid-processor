@@ -54,6 +54,12 @@ public class FileObjectMetadata {
 
     private String quality;
 
+    private String manufacturer;
+
+    private String model;
+
+    private String serialNo;
+
     public String getQuality() {
         return quality;
     }
@@ -134,4 +140,27 @@ public class FileObjectMetadata {
         return (new Gson()).fromJson(json, FileObjectMetadata.class);
     }
 
+    public String getManufacturer() {
+        return manufacturer;
+    }
+
+    public void setManufacturer(String manufacturer) {
+        this.manufacturer = manufacturer;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public String getSerialNo() {
+        return serialNo;
+    }
+
+    public void setSerialNo(String serialNo) {
+        this.serialNo = serialNo;
+    }
 }

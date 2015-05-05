@@ -27,4 +27,10 @@ public interface FileObject {
 
     String getChecksum();
 
+    String getManufacturer();
+
+    String getModel();
+
+    String getSerialNo();
+
 }
