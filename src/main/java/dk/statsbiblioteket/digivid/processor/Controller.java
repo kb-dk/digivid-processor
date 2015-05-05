@@ -12,6 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 
 import java.io.BufferedReader;
@@ -37,79 +38,28 @@ public class Controller {
     private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
     private static final String channelPattern = "^[a-z0-9]{3,}$";
 
-    @FXML
-    public TableColumn<FileObject, Date> lastmodifiedColumn;
-    @FXML
-    public TableColumn<FileObject, Boolean> processedColumn;
-    @FXML
-    public javafx.scene.control.Label txtFilename;
-    @FXML
-    public javafx.scene.control.TextField txtVhsLabel;
-    @FXML
-    public javafx.scene.control.TextArea txtComment;
-    @FXML
-    public TableView<FileObject> tableView;
-    @FXML
-    public javafx.scene.control.ComboBox<String> cmbQuality;
-    @FXML
-    public TextField startTimeField;
-    @FXML
-    public DatePicker startDatePicker;
-    @FXML
-    public TextField endTimeField;
-    @FXML
-    public DatePicker endDatePicker;
-    @FXML
-    public ToggleGroup channelGroup;
-    @FXML
-    public Label error;
-    @FXML
-    public GridPane channelGridPane;
-    @FXML
-    public javafx.scene.layout.AnchorPane detailVHS;
-    @FXML
-    public TextField txtManufacturer;
-    @FXML
-    public TextField txtModel;
-    @FXML
-    public TextField txtSerial;
+    @FXML public Label txtFilename;
+    @FXML public Label error;
+    @FXML public TableView<FileObject> tableView;
+    @FXML public GridPane channelGridPane;
+    @FXML public TableColumn<FileObject, Date> lastmodifiedColumn;
+    @FXML public TableColumn<FileObject, Boolean> processedColumn;
+    @FXML public TextArea txtComment;
+    @FXML public ComboBox<String> cmbQuality;
+    @FXML public TextField txtVhsLabel;
+    @FXML public TextField startTimeField;
+    @FXML public TextField endTimeField;
+    @FXML public TextField txtManufacturer;
+    @FXML public TextField txtModel;
+    @FXML public TextField txtSerial;
+    @FXML public DatePicker startDatePicker;
+    @FXML public DatePicker endDatePicker;
+    @FXML public ToggleGroup channelGroup;
+    @FXML public javafx.scene.layout.AnchorPane detailVHS;
 
     @FXML
     public void handleMetadata() {
         writeMetadata();
-    }
-
-    public Path getDataPath() {
-        return dataPath;
-    }
-
-    public void setDataPath(Path dataPath) {
-        this.dataPath = dataPath;
-        try {
-            WatchService service = getDataPath().getFileSystem().newWatchService();
-            getDataPath().register(service,
-                    StandardWatchEventKinds.ENTRY_CREATE,
-                    StandardWatchEventKinds.ENTRY_DELETE);
-            new Thread(){
-                @Override
-                public void run() {
-                    while(true) {
-                        try {
-                            WatchKey key = service.take();
-                            if (!key.pollEvents().isEmpty()) {
-                                Platform.runLater(() -> loadFilenames());
-                            }
-                            key.reset();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        tableView.setOnMouseClicked(new FileclickMouseEventHandler());
     }
 
     @FXML
@@ -125,7 +75,6 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
         altChannel = new TextField();
         altChannel.setId("altChannel");
@@ -230,6 +179,42 @@ public class Controller {
         });
     }
 
+
+    public Path getDataPath() {
+        return dataPath;
+    }
+
+    public void setDataPath(Path dataPath) {
+        this.dataPath = dataPath;
+        try {
+            WatchService service = getDataPath().getFileSystem().newWatchService();
+            getDataPath().register(service,
+                    StandardWatchEventKinds.ENTRY_CREATE,
+                    StandardWatchEventKinds.ENTRY_DELETE);
+            new Thread(){
+                @Override
+                public void run() {
+                    while(true) {
+                        try {
+                            WatchKey key = service.take();
+                            if (!key.pollEvents().isEmpty()) {
+                                Platform.runLater(() -> loadFilenames());
+                            }
+                            boolean valid = key.reset();
+                            if (!valid)
+                                break;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        tableView.setOnMouseClicked(new FileclickMouseEventHandler());
+    }
+
     /**
      * Deletes the metadata.csv file if it already exists and writes information about content of Manufacturer, Model
      * and metadata number to metadata.csv
@@ -240,7 +225,7 @@ public class Controller {
             if (Files.exists(newFilePath)) {
                 Files.delete(newFilePath);
             }
-            String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText()+", ";
+            String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText()+",stop";
             Files.write(Paths.get(DigividProcessor.metadata), msg.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
@@ -261,7 +246,7 @@ public class Controller {
                 txtModel.setText(metadata.get(1));
                 txtSerial.setText(metadata.get(2));
             } else {
-                String msg = ",,, ";
+                String msg = ",,,stop";
                 Files.write(Paths.get(DigividProcessor.metadata), msg.getBytes());
             }
         } catch (IOException e) {
@@ -329,17 +314,12 @@ public class Controller {
         BufferedReader stream = null;
         List<List<String>> csvData = new ArrayList<>();
 
-        try {
-            stream = new BufferedReader(new FileReader(csvFile));
-            while ((line = stream.readLine()) != null) {
-                String[] splitted = line.split(",");
-                List<String> dataLine = new ArrayList<>(splitted.length);
-                Collections.addAll(dataLine, splitted);
-                csvData.add(dataLine);
-            }
-        } finally {
-            if (stream != null)
-                stream.close();
+        stream = new BufferedReader(new FileReader(csvFile));
+        while ((line = stream.readLine()) != null) {
+            String[] splitted = line.split(",");
+            List<String> dataLine = new ArrayList<>(splitted.length);
+            Collections.addAll(dataLine, splitted);
+            csvData.add(dataLine);
         }
         return csvData;
     }
@@ -466,32 +446,32 @@ public class Controller {
     private void loadFile(FileObjectImpl thisRow) {
         error.setText(null);
         if (thisRow != null) {
-            Controller.this.txtFilename.setText(thisRow.getFilename());
+            txtFilename.setText(thisRow.getFilename());
             GregorianCalendar startCalendar = new GregorianCalendar();
             SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
             if (thisRow.getStartDate() != null) {
                 startCalendar.setTime(thisRow.getStartDate());
-                Controller.this.startDatePicker.setValue(thisRow.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-                Controller.this.startTimeField.setText(timeFormat.format(startCalendar.getTime()));
+                startDatePicker.setValue(thisRow.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                startTimeField.setText(timeFormat.format(startCalendar.getTime()));
             } else {
-                Controller.this.startDatePicker.setValue(null);
-                Controller.this.startTimeField.setText("");
+                startDatePicker.setValue(null);
+                startTimeField.setText("");
             }
             GregorianCalendar endCalendar = new GregorianCalendar();
             if (thisRow.getEndDate() != null) {
                 endCalendar.setTime(thisRow.getEndDate());
-                Controller.this.endDatePicker.setValue(thisRow.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-                Controller.this.endTimeField.setText(timeFormat.format(endCalendar.getTime()));
+                endDatePicker.setValue(thisRow.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                endTimeField.setText(timeFormat.format(endCalendar.getTime()));
             } else {
-                Controller.this.endDatePicker.setValue(null);
-                Controller.this.endTimeField.setText("");
+                endDatePicker.setValue(null);
+                endTimeField.setText("");
             }
             final String quality = thisRow.getQuality();
             if (quality != null) {
-                Controller.this.cmbQuality.getSelectionModel().select(quality);
+                cmbQuality.getSelectionModel().select(quality);
             }
-            Controller.this.txtVhsLabel.setText(thisRow.getVhsLabel());
-            Controller.this.txtComment.setText(thisRow.getComment());
+            txtVhsLabel.setText(thisRow.getVhsLabel());
+            txtComment.setText(thisRow.getComment());
             String currentChannel = thisRow.getChannel();
             boolean inGrid = false;
             for (Node channelNode: Controller.this.channelGridPane.getChildren()) {
@@ -506,9 +486,9 @@ public class Controller {
                 }
             }
             if (inGrid) {
-                Controller.this.altChannel.setText(null);
+                altChannel.setText(null);
             } else {
-                Controller.this.altChannel.setText(thisRow.getChannel());
+                altChannel.setText(thisRow.getChannel());
             }
         }
     }
