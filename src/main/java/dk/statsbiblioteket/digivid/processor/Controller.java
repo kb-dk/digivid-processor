@@ -196,6 +196,13 @@ public class Controller {
          */
         processedColumn.setCellFactory(column -> new TableCell<FileObject, Boolean>() {
             @Override
+            /**
+             * Note the only subtlety here is that if processed is null and empty is false then
+             * this represents an actual value - e.g. an empty String. This is not really
+             * relevant for our application, but explains why this method has an "if" as well as
+             * an "else" clause.
+             *
+             */
             protected void updateItem(Boolean processed, boolean empty) {
                 super.updateItem(processed, empty);
 
