@@ -1,5 +1,5 @@
 package dk.statsbiblioteket.digivid.processor;
-import dk.statsbiblioteket.digivid.processor.json.FileObjectMetadata;
+import dk.statsbiblioteket.digivid.processor.json.VHSFileMetadata;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
@@ -13,15 +13,15 @@ import java.util.Date;
 
 /**
  * Object representing a digitised file. An instance of the class is created by loading a video file via the constructor.
- * If a metadata (.comments) file is found then this is also loaded.
+ * If a localProperties (.comments) file is found then this is also loaded.
  *
- * The commit() method saves any changes - renaming the file according to the metadata information and either creating
- * a corresponding metadata file.
+ * The commit() method saves any changes - renaming the file according to the localProperties information and either creating
+ * a corresponding localProperties file.
  */
 public class FileObjectImpl implements FileObject {
 
     private Path videoFilePath;
-    private Path metadataFilePath;
+    private Path vhsFileMetadataFilePath;
 
     private String filename;
 
@@ -57,23 +57,23 @@ public class FileObjectImpl implements FileObject {
     public FileObjectImpl(Path path) {
         videoFilePath = path;
         filename = videoFilePath.getFileName().toString();
-        metadataFilePath = path.getParent().resolve(path.getFileName().toString() + ".comments");
-        if (Files.exists(metadataFilePath)) {
+        vhsFileMetadataFilePath = path.getParent().resolve(path.getFileName().toString() + ".comments");
+        if (Files.exists(vhsFileMetadataFilePath)) {
             final byte[] bytes;
             try {
-                bytes = Files.readAllBytes(metadataFilePath);
-                FileObjectMetadata fileObjectMetadata = FileObjectMetadata.fromJson(new String(bytes, "UTF-8"));
-                if (fileObjectMetadata != null) {
-                    endDate = toDate(fileObjectMetadata.getEndDate());
-                    startDate = toDate(fileObjectMetadata.getStartDate());
-                    channel = fileObjectMetadata.getChannelLabel();
-                    checksum = fileObjectMetadata.getChecksum();
-                    vhsLabel = fileObjectMetadata.getVhsLabel();
-                    comment = fileObjectMetadata.getComments();
-                    quality = fileObjectMetadata.getQuality();
-                    manufacturer = fileObjectMetadata.getManufacturer();
-                    model = fileObjectMetadata.getModel();
-                    serialNo = fileObjectMetadata.getSerialNo();
+                bytes = Files.readAllBytes(vhsFileMetadataFilePath);
+                VHSFileMetadata vhsFileMetadata = VHSFileMetadata.fromJson(new String(bytes, "UTF-8"));
+                if (vhsFileMetadata != null) {
+                    endDate = toDate(vhsFileMetadata.getEndDate());
+                    startDate = toDate(vhsFileMetadata.getStartDate());
+                    channel = vhsFileMetadata.getChannelLabel();
+                    checksum = vhsFileMetadata.getChecksum();
+                    vhsLabel = vhsFileMetadata.getVhsLabel();
+                    comment = vhsFileMetadata.getComments();
+                    quality = vhsFileMetadata.getQuality();
+                    manufacturer = vhsFileMetadata.getManufacturer();
+                    model = vhsFileMetadata.getModel();
+                    serialNo = vhsFileMetadata.getSerialNo();
                 }
             } catch (IOException e) {
                 //??
@@ -108,7 +108,7 @@ public class FileObjectImpl implements FileObject {
     }
 
     /**
-     * This is the heart of the processing functionality. It renames the file to correspond to the specified metadata.
+     * This is the heart of the processing functionality. It renames the file to correspond to the specified localProperties.
      *
      */
     public void commit() {
@@ -126,15 +126,15 @@ public class FileObjectImpl implements FileObject {
         } catch (IOException e) {
             //??
         }
-        String metadata = (new FileObjectMetadata(this)).toJson();
-        Path newMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
+        String vhsFileMetadata = (new VHSFileMetadata(this)).toJson();
+        Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
         try {
-            Files.delete(metadataFilePath);
+            Files.delete(vhsFileMetadataFilePath);
         } catch (IOException e) {
             //??
         }
         try {
-            Files.write(newMetadataPath, metadata.getBytes());
+            Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes());
         } catch (IOException e) {
             //?
         }
@@ -164,7 +164,7 @@ public class FileObjectImpl implements FileObject {
 
     @Override
     public Boolean isProcessed() {
-        return Files.exists(metadataFilePath);
+        return Files.exists(vhsFileMetadataFilePath);
     }
 
     @Override

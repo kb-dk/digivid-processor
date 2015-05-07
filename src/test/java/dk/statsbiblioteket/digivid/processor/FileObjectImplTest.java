@@ -16,7 +16,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import dk.statsbiblioteket.digivid.processor.json.FileObjectMetadata;
+import dk.statsbiblioteket.digivid.processor.json.VHSFileMetadata;
 
 /**
  * Created by csr on 4/14/15.
@@ -41,10 +41,10 @@ public class FileObjectImplTest {
     }
 
     /**
-     * This test creates a video file and specifies its metadata, then checks that we can persist it to disk.
-     * It then reopens the file and checks that the metadata is correctly read in again.
-     * Finally it changes the filename again and checks that the file is moved, new metadata created, and the old
-     * metadata deleted.
+     * This test creates a video file and specifies its localProperties, then checks that we can persist it to disk.
+     * It then reopens the file and checks that the localProperties is correctly read in again.
+     * Finally it changes the filename again and checks that the file is moved, new localProperties created, and the old
+     * localProperties deleted.
      * @throws IOException
      */
     @Test
@@ -73,9 +73,9 @@ public class FileObjectImplTest {
         assertTrue(Files.exists(newComments));
         assertFalse(Files.exists(tsPath));
         assertFalse(Files.exists(commentsPath));
-        FileObjectMetadata metadata = new FileObjectMetadata(fileObject1);
-        System.out.println(metadata.toJson());
-        metadata = FileObjectMetadata.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
-        System.out.println(metadata.toJson());
+        VHSFileMetadata vhsFileMetadata = new VHSFileMetadata(fileObject1);
+        System.out.println(vhsFileMetadata.toJson());
+        vhsFileMetadata = VHSFileMetadata.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
+        System.out.println(vhsFileMetadata.toJson());
     }
 }

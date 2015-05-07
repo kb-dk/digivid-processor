@@ -19,7 +19,7 @@ public class DigividProcessor extends Application {
 	protected static String recordsDir;
     protected static String channelCSV;
     protected static String player;
-    protected static String metadata;
+    protected static String localProperties;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -73,7 +73,7 @@ public class DigividProcessor extends Application {
         recordsDir = properties.getProperty("digivid.processor.recordsdir");
         channelCSV = properties.getProperty("digivid.processor.channels");
         player = properties.getProperty("digivid.processor.player");
-        metadata = properties.getProperty("digivid.processor.metadata");
+        localProperties = properties.getProperty("digivid.processor.localVHSProperties");
         launch(args);
     }
 }

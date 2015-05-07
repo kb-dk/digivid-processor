@@ -12,8 +12,9 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -28,7 +29,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Pattern;
 
+
 public class Controller {
+
+    private static Logger log = LoggerFactory.getLogger(Controller.class);
 
     private static final int CHECKMARK = 10003;
     private Path dataPath;
@@ -58,8 +62,8 @@ public class Controller {
     @FXML public javafx.scene.layout.AnchorPane detailVHS;
 
     @FXML
-    public void handleMetadata() {
-        writeMetadata();
+    public void handleLocalProperties() {
+        writeLocalProperties();
     }
 
     @FXML
@@ -73,7 +77,7 @@ public class Controller {
                         Integer.parseInt(channel.get(4)));
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Caught exception while reading {}", DigividProcessor.channelCSV, e);
         }
 
         altChannel = new TextField();
@@ -116,7 +120,7 @@ public class Controller {
             }
         }) ;
 
-        readMetadata();
+        readLocalProperties();
 
         /**
          * Custom rendering of the table cell to have format specified "yyyy-mm-dd.
@@ -216,17 +220,17 @@ public class Controller {
     }
 
     /**
-     * Deletes the metadata.csv file if it already exists and writes information about content of Manufacturer, Model
-     * and metadata number to metadata.csv
+     * Deletes the localProperties.csv file if it already exists and writes information about content of Manufacturer, Model
+     * and localProperties number to localProperties.csv
      */
-    private void writeMetadata() {
-        Path newFilePath = Paths.get(DigividProcessor.metadata);
+    private void writeLocalProperties() {
+        Path newFilePath = Paths.get(DigividProcessor.localProperties);
         try {
             if (Files.exists(newFilePath)) {
                 Files.delete(newFilePath);
             }
             String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText()+",stop";
-            Files.write(Paths.get(DigividProcessor.metadata), msg.getBytes());
+            Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -235,19 +239,19 @@ public class Controller {
     /**
      * Reads information from the meatadata.csv file and put it in the fields for Manufacturer, Model and Serialnumber
      */
-    private void readMetadata() {
-        Path newFilePath = Paths.get(DigividProcessor.metadata);
+    private void readLocalProperties() {
+        Path newFilePath = Paths.get(DigividProcessor.localProperties);
         try {
             if (Files.exists(newFilePath)) {
-                List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.metadata), Charset.defaultCharset());
-                List<String> metadata = Arrays.asList(lines.get(0).split(","));
+                List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties), Charset.defaultCharset());
+                List<String> localProperties = Arrays.asList(lines.get(0).split(","));
 
-                txtManufacturer.setText(metadata.get(0));
-                txtModel.setText(metadata.get(1));
-                txtSerial.setText(metadata.get(2));
+                txtManufacturer.setText(localProperties.get(0));
+                txtModel.setText(localProperties.get(1));
+                txtSerial.setText(localProperties.get(2));
             } else {
                 String msg = ",,,stop";
-                Files.write(Paths.get(DigividProcessor.metadata), msg.getBytes());
+                Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -316,10 +320,12 @@ public class Controller {
 
         stream = new BufferedReader(new FileReader(csvFile));
         while ((line = stream.readLine()) != null) {
-            String[] splitted = line.split(",");
-            List<String> dataLine = new ArrayList<>(splitted.length);
-            Collections.addAll(dataLine, splitted);
-            csvData.add(dataLine);
+            if (!line.substring(0,2).equals("//")) {
+                String[] splitted = line.split(",");
+                List<String> dataLine = new ArrayList<>(splitted.length);
+                Collections.addAll(dataLine, splitted);
+                csvData.add(dataLine);
+            }
         }
         return csvData;
     }
@@ -441,7 +447,7 @@ public class Controller {
     }
 
     /**
-     * Show the file details for the file (which is found in the files metadata file), that the user clicked on
+     * Show the file details for the file (which is found in the files localProperties file), that the user clicked on
      */
     private void loadFile(FileObjectImpl thisRow) {
         error.setText(null);

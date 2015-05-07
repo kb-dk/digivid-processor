@@ -11,7 +11,7 @@ import dk.statsbiblioteket.digivid.processor.FileObjectImpl;
 /**
  * Created by csr on 4/14/15.
  */
-public class FileObjectMetadataTest {
+public class VHSFileMetadataTest {
 
     @Test
     public void testToJson() throws Exception {
@@ -22,13 +22,13 @@ public class FileObjectMetadataTest {
         fileObject.setChannel("tv2");
         fileObject.setQuality("3");
         fileObject.setVhsLabel("This is the finest VHS tape I have ever seen.");
-        FileObjectMetadata fileObjectMetadata = new FileObjectMetadata(fileObject);
-        System.out.println(fileObjectMetadata.toJson());
+        VHSFileMetadata VHSFileMetadata = new VHSFileMetadata(fileObject);
+        System.out.println(VHSFileMetadata.toJson());
     }
 
     @Test
     public void testFromJson() throws Exception {
         String json = "{\"filename\":\"c\"} ";
-        FileObjectMetadata.fromJson(json);
+        VHSFileMetadata.fromJson(json);
     }
 }

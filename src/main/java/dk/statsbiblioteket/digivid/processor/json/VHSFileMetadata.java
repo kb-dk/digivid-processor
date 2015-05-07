@@ -8,15 +8,15 @@ import com.google.gson.Gson;
 import dk.statsbiblioteket.digivid.processor.FileObject;
 
 /**
- * Class representing a JSON-serializable set of metadata corresponding to a FileObject
+ * Class representing a JSON-serializable set of localProperties corresponding to a FileObject
  */
-public class FileObjectMetadata {
+public class VHSFileMetadata {
 
-    public FileObjectMetadata() {
+    public VHSFileMetadata() {
 
     }
 
-    public FileObjectMetadata(FileObject fileObject) {
+    public VHSFileMetadata(FileObject fileObject) {
         this.filename = fileObject.getFilename();
         this.vhsLabel = fileObject.getVhsLabel();
         this.comments = fileObject.getComment();
@@ -139,8 +139,8 @@ public class FileObjectMetadata {
         return (new Gson()).toJson(this);
     }
 
-    public static FileObjectMetadata fromJson(String json) {
-        return (new Gson()).fromJson(json, FileObjectMetadata.class);
+    public static VHSFileMetadata fromJson(String json) {
+        return (new Gson()).fromJson(json, VHSFileMetadata.class);
     }
 
     public String getManufacturer() {

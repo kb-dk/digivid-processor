@@ -1,3 +1,8 @@
+//1. parameter: Channel which is put in the meatadata to the ts-file
+//2. parameter: What is presented in the GUI's radiobutton
+//3. parameter: The color that the radiobutton should have
+//4. parameter: The row which the radiobutton should be placed in
+//5. parameter: The column which the radiobutton should be placed in
 dr1,DR1,white,0,0
 dr2,DR2,lightgray,0,1
 tv2d,TV2Danmark,white,0,2
