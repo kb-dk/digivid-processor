@@ -44,10 +44,10 @@ public class Controller {
 
     @FXML public Label txtFilename;
     @FXML public Label error;
-    @FXML public TableView<FileObject> tableView;
+    @FXML public TableView<VideoFileObject> tableView;
     @FXML public GridPane channelGridPane;
-    @FXML public TableColumn<FileObject, Date> lastmodifiedColumn;
-    @FXML public TableColumn<FileObject, Boolean> processedColumn;
+    @FXML public TableColumn<VideoFileObject, Date> lastmodifiedColumn;
+    @FXML public TableColumn<VideoFileObject, Boolean> processedColumn;
     @FXML public TextArea txtComment;
     @FXML public ComboBox<String> cmbQuality;
     @FXML public TextField txtVhsLabel;
@@ -127,7 +127,7 @@ public class Controller {
          */
         lastmodifiedColumn.setCellFactory(column -> {
             SimpleDateFormat myDateFormatter = new SimpleDateFormat("yyyy-MM-dd");
-            return new TableCell<FileObject, Date>() {
+            return new TableCell<VideoFileObject, Date>() {
                 @Override
                 protected void updateItem(Date item, boolean empty) {
                     super.updateItem(item, empty);
@@ -147,7 +147,7 @@ public class Controller {
         /**
          * Indicate with a checkmark if the file is processed
          */
-        processedColumn.setCellFactory(column -> new TableCell<FileObject, Boolean>() {
+        processedColumn.setCellFactory(column -> new TableCell<VideoFileObject, Boolean>() {
             @Override
             protected void updateItem(Boolean processed, boolean empty) {
                 super.updateItem(processed, empty);
@@ -276,15 +276,15 @@ public class Controller {
      */
     public void loadFilenames() {
         if (tableView != null) {
-            ObservableList<FileObject> fileObjects = FXCollections.observableList(new ArrayList<>());
+            ObservableList<VideoFileObject> videoFileObjects = FXCollections.observableList(new ArrayList<>());
             if (getDataPath() != null) {
                 DirectoryStream<Path> tsFiles = null;
                 try {
                     tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts");
                     for (Path tsFile : tsFiles) {
-                        fileObjects.add(new FileObjectImpl(tsFile));
+                        videoFileObjects.add(new VideoFileObject(tsFile));
                     }
-                    tableView.setItems(fileObjects);
+                    tableView.setItems(videoFileObjects);
                 } catch (IOException e) {
                     throw new RuntimeException("" + getDataPath().toAbsolutePath());
                 } finally {
@@ -295,7 +295,7 @@ public class Controller {
                         e.printStackTrace();
                     }
                 }
-                ObservableList<TableColumn<FileObject,?>> sortOrder = tableView.getSortOrder();
+                ObservableList<TableColumn<VideoFileObject,?>> sortOrder = tableView.getSortOrder();
                 sortOrder.removeAll();
                 sortOrder.addAll(processedColumn, lastmodifiedColumn);
                 tableView.sort();
@@ -331,12 +331,12 @@ public class Controller {
     }
 
     /**
-     * Reads all the values set by the user and sets them on the current FileObject before calling the commit()
+     * Reads all the values set by the user and sets them on the current VideoFileObject before calling the commit()
      * method on that object.
      * @param actionEvent
      */
     public void commit(ActionEvent actionEvent) {
-        FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
+        VideoFileObject thisRow = tableView.getSelectionModel().getSelectedItem();
         if (startDatePicker.getValue() == null) {
             error.setText("No Start Date Set.");
             return;
@@ -423,7 +423,7 @@ public class Controller {
         @Override
         public void handle(MouseEvent mouseEvent) {
             if (mouseEvent.getButton() == MouseButton.PRIMARY) {
-                FileObjectImpl thisRow = (FileObjectImpl) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
+                VideoFileObject thisRow = (VideoFileObject) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
                 loadFile(thisRow);
                 detailVHS.setVisible(true);
             }
@@ -437,7 +437,7 @@ public class Controller {
      * Show the video file in the player
      */
     public void playCurrentFile() {
-        FileObjectImpl thisRow = (FileObjectImpl) tableView.getSelectionModel().getSelectedItem();
+        VideoFileObject thisRow = (VideoFileObject) tableView.getSelectionModel().getSelectedItem();
         try {
         	ProcessBuilder  pb = new ProcessBuilder(DigividProcessor.player, new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
             pb.start();
@@ -449,7 +449,7 @@ public class Controller {
     /**
      * Show the file details for the file (which is found in the files localProperties file), that the user clicked on
      */
-    private void loadFile(FileObjectImpl thisRow) {
+    private void loadFile(VideoFileObject thisRow) {
         error.setText(null);
         if (thisRow != null) {
             txtFilename.setText(thisRow.getFilename());
