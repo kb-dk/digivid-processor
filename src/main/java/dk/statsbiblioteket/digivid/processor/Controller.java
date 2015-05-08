@@ -29,19 +29,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Pattern;
 
-
 public class Controller {
 
-    private static Logger log = LoggerFactory.getLogger(Controller.class);
-
     private static final int CHECKMARK = 10003;
-    private Path dataPath;
-    private TextField altChannel;
-    private String serialNo = "";
-
     private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
     private static final String channelPattern = "^[a-z0-9]{3,}$";
-
+    private static Logger log = LoggerFactory.getLogger(Controller.class);
     @FXML public Label txtFilename;
     @FXML public Label error;
     @FXML public TableView<VideoFileObject> tableView;
@@ -60,6 +53,26 @@ public class Controller {
     @FXML public DatePicker endDatePicker;
     @FXML public ToggleGroup channelGroup;
     @FXML public javafx.scene.layout.AnchorPane detailVHS;
+    private Path dataPath;
+    private TextField altChannel;
+    private String serialNo = "";
+
+    private static List<List<String>> getCSV(String csvFile) throws IOException {
+        String line;
+        BufferedReader stream = null;
+        List<List<String>> csvData = new ArrayList<>();
+
+        stream = new BufferedReader(new FileReader(csvFile));
+        while ((line = stream.readLine()) != null) {
+            if (!line.substring(0, 2).equals("//")) {
+                String[] splitted = line.split(",");
+                List<String> dataLine = new ArrayList<>(splitted.length);
+                Collections.addAll(dataLine, splitted);
+                csvData.add(dataLine);
+            }
+        }
+        return csvData;
+    }
 
     @FXML
     public void handleLocalProperties() {
@@ -126,7 +139,7 @@ public class Controller {
          * Custom rendering of the table cell to have format specified "yyyy-mm-dd.
          */
         lastmodifiedColumn.setCellFactory(column -> {
-            SimpleDateFormat myDateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat myDateFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm");
             return new TableCell<VideoFileObject, Date>() {
                 @Override
                 protected void updateItem(Date item, boolean empty) {
@@ -142,7 +155,6 @@ public class Controller {
                 }
             };
         });
-
 
         /**
          * Indicate with a checkmark if the file is processed
@@ -182,7 +194,6 @@ public class Controller {
             }
         });
     }
-
 
     public Path getDataPath() {
         return dataPath;
@@ -313,23 +324,6 @@ public class Controller {
         }
     }
 
-    private static List<List<String>> getCSV(String csvFile) throws IOException {
-        String line;
-        BufferedReader stream = null;
-        List<List<String>> csvData = new ArrayList<>();
-
-        stream = new BufferedReader(new FileReader(csvFile));
-        while ((line = stream.readLine()) != null) {
-            if (!line.substring(0,2).equals("//")) {
-                String[] splitted = line.split(",");
-                List<String> dataLine = new ArrayList<>(splitted.length);
-                Collections.addAll(dataLine, splitted);
-                csvData.add(dataLine);
-            }
-        }
-        return csvData;
-    }
-
     /**
      * Reads all the values set by the user and sets them on the current VideoFileObject before calling the commit()
      * method on that object.
@@ -418,28 +412,13 @@ public class Controller {
         return serialNo;
     }
 
-    public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
-
-        @Override
-        public void handle(MouseEvent mouseEvent) {
-            if (mouseEvent.getButton() == MouseButton.PRIMARY) {
-                VideoFileObject thisRow = (VideoFileObject) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
-                loadFile(thisRow);
-                detailVHS.setVisible(true);
-            }
-            else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
-                playCurrentFile();
-            }
-        }
-    }
-
     /**
      * Show the video file in the player
      */
     public void playCurrentFile() {
         VideoFileObject thisRow = (VideoFileObject) tableView.getSelectionModel().getSelectedItem();
         try {
-        	ProcessBuilder  pb = new ProcessBuilder(DigividProcessor.player, new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
+            ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player, new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
             pb.start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -480,7 +459,7 @@ public class Controller {
             txtComment.setText(thisRow.getComment());
             String currentChannel = thisRow.getChannel();
             boolean inGrid = false;
-            for (Node channelNode: Controller.this.channelGridPane.getChildren()) {
+            for (Node channelNode : Controller.this.channelGridPane.getChildren()) {
                 if (channelNode instanceof RadioButton) {
                     Channel buttonChannel = (Channel) channelNode.getUserData();
                     if (buttonChannel.getChannelName().equals(currentChannel)) {
@@ -495,6 +474,20 @@ public class Controller {
                 altChannel.setText(null);
             } else {
                 altChannel.setText(thisRow.getChannel());
+            }
+        }
+    }
+
+    public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
+
+        @Override
+        public void handle(MouseEvent mouseEvent) {
+            if (mouseEvent.getButton() == MouseButton.PRIMARY) {
+                VideoFileObject thisRow = (VideoFileObject) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
+                loadFile(thisRow);
+                detailVHS.setVisible(true);
+            } else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
+                playCurrentFile();
             }
         }
     }
