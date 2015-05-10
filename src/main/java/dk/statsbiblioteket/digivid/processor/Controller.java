@@ -29,6 +29,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * Class which requests videofiles to be renamed and a JSON-file to be generated according to the GUI-users choices.
+ */
 public class Controller {
 
     private static final int CHECKMARK = 10003;
