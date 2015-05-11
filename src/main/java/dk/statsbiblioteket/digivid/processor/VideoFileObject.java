@@ -1,9 +1,11 @@
 package dk.statsbiblioteket.digivid.processor;
 
-import dk.statsbiblioteket.digivid.processor.json.VideoFileMetadata;
+import com.google.gson.Gson;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,7 +24,7 @@ public class VideoFileObject {
 
     private String filename;
 
-    private Date startDate;
+    private Long startDate;
 
     private String vhsLabel;
 
@@ -42,34 +44,18 @@ public class VideoFileObject {
 
     private String serialNo;
 
-    public VideoFileObject(Path path) {
-        videoFilePath = path;
-        filename = videoFilePath.getFileName().toString();
-        vhsFileMetadataFilePath = path.getParent().resolve(path.getFileName().toString() + ".comments");
-        if (Files.exists(vhsFileMetadataFilePath)) {
-            final byte[] bytes;
-            try {
-                bytes = Files.readAllBytes(vhsFileMetadataFilePath);
-                VideoFileMetadata videoFileMetadata = VideoFileMetadata.fromJson(new String(bytes, "UTF-8"));
-                if (videoFileMetadata != null) {
-                    endDate = toDate(videoFileMetadata.getEndDate());
-                    startDate = toDate(videoFileMetadata.getStartDate());
-                    channel = videoFileMetadata.getChannelLabel();
-                    checksum = videoFileMetadata.getChecksum();
-                    vhsLabel = videoFileMetadata.getVhsLabel();
-                    comment = videoFileMetadata.getComments();
-                    quality = videoFileMetadata.getQuality();
-                    manufacturer = videoFileMetadata.getManufacturer();
-                    model = videoFileMetadata.getModel();
-                    serialNo = videoFileMetadata.getSerialNo();
-                }
-            } catch (IOException e) {
-                //??
-            }
-            catch (NullPointerException nEx) {
-                nEx.printStackTrace();
-            }
-        }
+    private String encoderName;
+
+    //private Long startDateLong;
+
+    private Long endDateLong;
+
+    public String toJson() {
+        return (new Gson()).toJson(this);
+    }
+
+    public static VideoFileObject fromJson(String json) {
+        return (new Gson()).fromJson(json, VideoFileObject.class);
     }
 
     public String getFilename() {
@@ -80,11 +66,11 @@ public class VideoFileObject {
         this.filename = filename;
     }
 
-    public Date getStartDate() {
+    public Long getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(Long startDate) {
         this.startDate = startDate;
     }
 
@@ -156,6 +142,59 @@ public class VideoFileObject {
         this.serialNo = serialNo;
     }
 
+    public VideoFileObject(VideoFileObject videoFileObject) {
+        this.filename = videoFileObject.getFilename();
+        this.vhsLabel = videoFileObject.getVhsLabel();
+        this.comment = videoFileObject.getComment();
+        try {
+            this.encoderName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            this.encoderName = "unknown";
+        }
+        if (videoFileObject.getStartDate() != null) {
+            this.startDate =  videoFileObject.getStartDate();
+        }
+        if (videoFileObject.getEndDate() != null) {
+            this.endDateLong = videoFileObject.getEndDate().getTime();
+        }
+        this.channel = videoFileObject.getChannel();
+        this.checksum = videoFileObject.getChecksum();
+        this.quality = videoFileObject.getQuality();
+        this.manufacturer = videoFileObject.getManufacturer();
+        this.model = videoFileObject.getModel();
+        this.serialNo = videoFileObject.getSerialNo();
+    }
+
+    public VideoFileObject(Path path) {
+        videoFilePath = path;
+        filename = videoFilePath.getFileName().toString();
+        vhsFileMetadataFilePath = path.getParent().resolve(path.getFileName().toString() + ".comments");
+        if (Files.exists(vhsFileMetadataFilePath)) {
+            final byte[] bytes;
+            try {
+                bytes = Files.readAllBytes(vhsFileMetadataFilePath);
+                VideoFileObject videoFileObject = VideoFileObject.fromJson(new String(bytes, "UTF-8"));
+                if (videoFileObject != null) {
+                    endDate = toDate(videoFileObject.getEndDateLong());
+                    startDate = getStartDate();
+                    channel = videoFileObject.getChannel();
+                    checksum = videoFileObject.getChecksum();
+                    vhsLabel = videoFileObject.getVhsLabel();
+                    comment = videoFileObject.getComment();
+                    quality = videoFileObject.getQuality();
+                    manufacturer = videoFileObject.getManufacturer();
+                    model = videoFileObject.getModel();
+                    serialNo = videoFileObject.getSerialNo();
+                }
+            } catch (IOException e) {
+                //??
+            }
+            catch (NullPointerException nEx) {
+                nEx.printStackTrace();
+            }
+        }
+    }
+
     private static Date toDate(Long l) {
         if (l == null) {
             return null;
@@ -190,13 +229,13 @@ public class VideoFileObject {
         DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd-HH.mm.ss");
         //TODO replace this with proper error handling, input validation
         if (startDate == null) {
-            startDate = new Date();
+            startDate = new Date().getTime();
         }
         if (endDate == null) {
             endDate = new Date();
         }
         String e1 = "" + channel;
-        String e2 = "" + startDate.getTime()/1000L;
+        String e2 = "" + startDate/1000L;
         String e3 = dateFormat.format(startDate);
         String e4 = "" + endDate.getTime()/1000L;
         String e5 = dateFormat.format(endDate);
@@ -223,7 +262,12 @@ public class VideoFileObject {
         } catch (IOException e) {
             //??
         }
-        String vhsFileMetadata = (new VideoFileMetadata(this)).toJson();
+        try {
+            this.encoderName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            this.encoderName = "unknown";
+        }
+        String vhsFileMetadata = (new VideoFileObject(this)).toJson();
         Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
         try {
             Files.delete(vhsFileMetadataFilePath);
@@ -235,6 +279,14 @@ public class VideoFileObject {
         } catch (IOException e) {
             //?
         }
+    }
+
+    /*public Long getStartDateLong() {
+        return startDateLong;
+    }*/
+
+    public Long getEndDateLong() {
+        return endDateLong;
     }
 
 }

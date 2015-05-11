@@ -5,19 +5,11 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,11 +51,6 @@ public class DigividProcessor extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        // start is called on the FX Application Thread,
-        // so Thread.currentThread() is the FX application thread:
-        Thread.currentThread().setUncaughtExceptionHandler((thread, throwable) -> {
-            System.out.println("Handler caught exception: " + throwable.getMessage());
-        });
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> Platform.runLater(() -> showErrorDialog(t, e)));
         Thread.currentThread().setUncaughtExceptionHandler(this::showErrorDialog);
 
@@ -100,7 +87,7 @@ public class DigividProcessor extends Application {
     }
 
     private void showErrorDialog(Thread t, Throwable e) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        /*Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Exception Dialog");
         alert.setHeaderText("Exception encountered");
         alert.setContentText("Click below to view the stacktrace, or close this dialog to terminate the application.");
@@ -133,7 +120,9 @@ public class DigividProcessor extends Application {
         alert.getDialogPane().setExpandableContent(expContent);
 
         alert.showAndWait();
-        /*Dialogs.create().title("Error")
+        */
+        /*
+        Dialogs.create().title("Error")
                 .message("An uncaught exception was thrown in thread " + t
                         + ". Click below to view the stacktrace, or close this "
                         + "dialog to terminate the application.")
