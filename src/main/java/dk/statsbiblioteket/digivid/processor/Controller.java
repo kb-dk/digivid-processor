@@ -353,7 +353,8 @@ public class Controller {
         calendar.setTime(Date.from(instant));
         calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
         calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisRow.setStartDate(calendar.getTime());
+        Date tmpStartDate = calendar.getTime();
+        thisRow.setStartDate(tmpStartDate.getTime());
 
         if ((endDatePicker.getValue() == null) && !endDatePicker.getValue().toString().isEmpty()) {
             error.setText("No End Date Set.");
@@ -438,8 +439,9 @@ public class Controller {
             GregorianCalendar startCalendar = new GregorianCalendar();
             SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
             if (thisRow.getStartDate() != null) {
-                startCalendar.setTime(thisRow.getStartDate());
-                startDatePicker.setValue(thisRow.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                Date tmpStartDate = new Date(thisRow.getStartDate());
+                startCalendar.setTime(new Date(thisRow.getStartDate()));
+                startDatePicker.setValue(new Date(thisRow.getStartDate()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
                 startTimeField.setText(timeFormat.format(startCalendar.getTime()));
             } else {
                 startDatePicker.setValue(null);

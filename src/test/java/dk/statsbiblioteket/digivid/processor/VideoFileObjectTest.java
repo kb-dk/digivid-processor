@@ -16,7 +16,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import dk.statsbiblioteket.digivid.processor.json.VideoFileMetadata;
+//import dk.statsbiblioteket.digivid.processor.json.VideoFileMetadata;
 
 /**
  * Created by csr on 4/14/15.
@@ -53,7 +53,7 @@ public class VideoFileObjectTest {
         Files.createDirectories(dir);
         Files.createFile(path);
         VideoFileObject videoFileObject = new VideoFileObject(path);
-        videoFileObject.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime());
+        videoFileObject.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime().getTime());
         videoFileObject.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime());
         videoFileObject.setChannel("dr5");
         videoFileObject.commit();
@@ -73,9 +73,9 @@ public class VideoFileObjectTest {
         assertTrue(Files.exists(newComments));
         assertFalse(Files.exists(tsPath));
         assertFalse(Files.exists(commentsPath));
-        VideoFileMetadata videoFileMetadata = new VideoFileMetadata(videoFileObject1);
-        System.out.println(videoFileMetadata.toJson());
-        videoFileMetadata = VideoFileMetadata.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
-        System.out.println(videoFileMetadata.toJson());
+        VideoFileObject videoFileObject2 = new VideoFileObject(videoFileObject1);
+        System.out.println(videoFileObject2.toJson());
+        videoFileObject2 = VideoFileObject.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
+        System.out.println(videoFileObject2.toJson());
     }
 }
