@@ -1,8 +1,9 @@
 package dk.statsbiblioteket.digivid.processor;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -11,10 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.GregorianCalendar;
 
-import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 //import dk.statsbiblioteket.digivid.processor.json.VideoFileMetadata;
 
@@ -54,7 +52,7 @@ public class VideoFileObjectTest {
         Files.createFile(path);
         VideoFileObject videoFileObject = new VideoFileObject(path);
         videoFileObject.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime().getTime());
-        videoFileObject.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime());
+        videoFileObject.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime().getTime());
         videoFileObject.setChannel("dr5");
         videoFileObject.commit();
         DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir, "dr5_*.ts");

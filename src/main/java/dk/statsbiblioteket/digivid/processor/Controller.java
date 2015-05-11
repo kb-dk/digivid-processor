@@ -353,8 +353,7 @@ public class Controller {
         calendar.setTime(Date.from(instant));
         calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
         calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        Date tmpStartDate = calendar.getTime();
-        thisRow.setStartDate(tmpStartDate.getTime());
+        thisRow.setStartDate(calendar.getTime().getTime());
 
         if ((endDatePicker.getValue() == null) && !endDatePicker.getValue().toString().isEmpty()) {
             error.setText("No End Date Set.");
@@ -376,7 +375,7 @@ public class Controller {
         calendar.setTime(Date.from(instant));
         calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
         calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisRow.setEndDate(calendar.getTime());
+        thisRow.setEndDate(calendar.getTime().getTime());
 
         final Toggle selectedToggle = channelGroup.getSelectedToggle();
         String altChannel = this.altChannel.getText();
@@ -439,7 +438,6 @@ public class Controller {
             GregorianCalendar startCalendar = new GregorianCalendar();
             SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
             if (thisRow.getStartDate() != null) {
-                Date tmpStartDate = new Date(thisRow.getStartDate());
                 startCalendar.setTime(new Date(thisRow.getStartDate()));
                 startDatePicker.setValue(new Date(thisRow.getStartDate()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
                 startTimeField.setText(timeFormat.format(startCalendar.getTime()));
@@ -449,8 +447,8 @@ public class Controller {
             }
             GregorianCalendar endCalendar = new GregorianCalendar();
             if (thisRow.getEndDate() != null) {
-                endCalendar.setTime(thisRow.getEndDate());
-                endDatePicker.setValue(thisRow.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                endCalendar.setTime(new Date(thisRow.getEndDate()));
+                endDatePicker.setValue(new Date(thisRow.getEndDate()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
                 endTimeField.setText(timeFormat.format(endCalendar.getTime()));
             } else {
                 endDatePicker.setValue(null);
