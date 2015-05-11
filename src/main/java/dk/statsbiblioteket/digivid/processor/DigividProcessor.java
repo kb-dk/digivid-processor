@@ -1,28 +1,72 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
+
+/*
+import org.controlsfx.dialog.Dialogs;
+import org.controlsfx.dialog.DialogStyle;
+*/
 
 public class DigividProcessor extends Application {
 
 	protected static String recordsDir;
     protected static String channelCSV;
     protected static String player;
-    protected static String metadata;
+    protected static String localProperties;
+
+    public static void main(String[] args) {
+        String propertiesLocation = System.getProperty("digivid.config");
+        if (propertiesLocation == null) {
+            throw new RuntimeException("Must define location of root properties with -Ddigivid.config=....");
+        }
+        Path propertiesPath = Paths.get(propertiesLocation);
+        if (!Files.exists(propertiesPath)) {
+            throw new RuntimeException("No such file: " + propertiesPath);
+        }
+        Properties properties = new Properties();
+        try {
+            properties.load(Files.newInputStream(propertiesPath));
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read properties file " + propertiesPath, e);
+        }
+        recordsDir = properties.getProperty("digivid.processor.recordsdir");
+        channelCSV = properties.getProperty("digivid.processor.channels");
+        player = properties.getProperty("digivid.processor.player");
+        localProperties = properties.getProperty("digivid.processor.localVHSProperties");
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        // start is called on the FX Application Thread,
+        // so Thread.currentThread() is the FX application thread:
+        Thread.currentThread().setUncaughtExceptionHandler((thread, throwable) -> {
+            System.out.println("Handler caught exception: " + throwable.getMessage());
+        });
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> Platform.runLater(() -> showErrorDialog(t, e)));
+        Thread.currentThread().setUncaughtExceptionHandler(this::showErrorDialog);
+
         primaryStage.setTitle("Video processor");
         initRootLayout(primaryStage);
     }
@@ -55,25 +99,48 @@ public class DigividProcessor extends Application {
         System.exit(0);
     }
 
-    public static void main(String[] args) {
-        String propertiesLocation = System.getProperty("digivid.config");
-        if (propertiesLocation == null) {
-            throw new RuntimeException("Must define location of root properties with -Ddigivid.config=....");
-        }
-        Path propertiesPath = Paths.get(propertiesLocation);
-        if (!Files.exists(propertiesPath)) {
-            throw new RuntimeException("No such file: " + propertiesPath);
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(Files.newInputStream(propertiesPath));
-        } catch (IOException e) {
-            throw new RuntimeException("Could not read properties file " + propertiesPath, e);
-        }
-        recordsDir = properties.getProperty("digivid.processor.recordsdir");
-        channelCSV = properties.getProperty("digivid.processor.channels");
-        player = properties.getProperty("digivid.processor.player");
-        metadata = properties.getProperty("digivid.processor.metadata");
-        launch(args);
+    private void showErrorDialog(Thread t, Throwable e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Exception Dialog");
+        alert.setHeaderText("Exception encountered");
+        alert.setContentText("Click below to view the stacktrace, or close this dialog to terminate the application.");
+
+        Exception ex = new FileNotFoundException("Could not find file blabla.txt");
+
+// Create expandable Exception.
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+        String exceptionText = sw.toString();
+
+        Label label = new Label("The exception stacktrace was:");
+
+        TextArea textArea = new TextArea(exceptionText);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+        textArea.setMaxWidth(Double.MAX_VALUE);
+        textArea.setMaxHeight(Double.MAX_VALUE);
+        GridPane.setVgrow(textArea, Priority.ALWAYS);
+        GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+        GridPane expContent = new GridPane();
+        expContent.setMaxWidth(Double.MAX_VALUE);
+        expContent.add(label, 0, 0);
+        expContent.add(textArea, 0, 1);
+
+// Set expandable Exception into the dialog pane.
+        alert.getDialogPane().setExpandableContent(expContent);
+
+        alert.showAndWait();
+        /*Dialogs.create().title("Error")
+                .message("An uncaught exception was thrown in thread " + t
+                        + ". Click below to view the stacktrace, or close this "
+                        + "dialog to terminate the application.")
+                .style(DialogStyle.NATIVE)
+                .showExceptionInNewWindow(e);
+        */
+        Platform.exit();
     }
+
 }

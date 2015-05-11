@@ -29,19 +29,19 @@
                              <HBox prefHeight="100.0" prefWidth="200.0">
                                  <children>
                                      <Label text="Manufacturer" />
-                                     <TextField id="txtManufacturer" fx:id="txtManufacturer" onAction="#handleMetadata" onMouseExited="#handleMetadata" />
+                                     <TextField id="txtManufacturer" fx:id="txtManufacturer" onAction="#handleLocalProperties" onMouseExited="#handleLocalProperties" />
                                  </children>
                              </HBox>
                              <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1">
                                  <children>
                                      <Label text="Model" />
-                                     <TextField id="txtModel" fx:id="txtModel" onAction="#handleMetadata" onMouseExited="#handleMetadata" />
+                                     <TextField id="txtModel" fx:id="txtModel" onAction="#handleLocalProperties" onMouseExited="#handleLocalProperties" />
                                  </children>
                              </HBox>
                              <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2">
                                 <children>
                                     <Label text="Serialnumber" />
-                                    <TextField id="txtSerial" fx:id="txtSerial" onAction="#handleMetadata" onMouseExited="#handleMetadata" />
+                                    <TextField id="txtSerial" fx:id="txtSerial" onAction="#handleLocalProperties" onMouseExited="#handleLocalProperties" />
                                 </children>
                              </HBox>
                          </children>
