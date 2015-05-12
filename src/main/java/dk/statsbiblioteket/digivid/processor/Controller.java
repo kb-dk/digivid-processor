@@ -30,7 +30,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * Class which requests videofiles to be renamed and a JSON-file to be generated according to the GUI-users choices.
+ * Shows GUI and requests videofiles to be renamed and a JSON-file to be generated according to the GUI-users choices.
  */
 public class Controller {
 
@@ -38,6 +38,9 @@ public class Controller {
     private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
     private static final String channelPattern = "^[a-z0-9]{3,}$";
     private static Logger log = LoggerFactory.getLogger(Controller.class);
+    private Path dataPath;
+    private TextField altChannel;
+    private String serialNo = "";
     @FXML public Label txtFilename;
     @FXML public Label error;
     @FXML public TableView<VideoFileObject> tableView;
@@ -56,32 +59,9 @@ public class Controller {
     @FXML public DatePicker endDatePicker;
     @FXML public ToggleGroup channelGroup;
     @FXML public javafx.scene.layout.AnchorPane detailVHS;
-    private Path dataPath;
-    private TextField altChannel;
-    private String serialNo = "";
-
-    private static List<List<String>> getCSV(String csvFile) throws IOException {
-        String line;
-        BufferedReader stream = null;
-        List<List<String>> csvData = new ArrayList<>();
-
-        stream = new BufferedReader(new FileReader(csvFile));
-        while ((line = stream.readLine()) != null) {
-            if (!line.substring(0, 2).equals("//")) {
-                String[] splitted = line.split(",");
-                List<String> dataLine = new ArrayList<>(splitted.length);
-                Collections.addAll(dataLine, splitted);
-                csvData.add(dataLine);
-            }
-        }
-        return csvData;
-    }
-
-    @FXML
-    public void handleLocalProperties() {
+    @FXML public void handleLocalProperties() {
         writeLocalProperties();
     }
-
     @FXML
     void initialize() {
         detailVHS.setVisible(false);
@@ -89,8 +69,10 @@ public class Controller {
         try {
             List<List<String>> channels = getCSV(DigividProcessor.channelCSV);
             for(List<String> channel : channels) {
-                addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
-                        Integer.parseInt(channel.get(4)));
+                if (channel.size() > 1) {
+                    addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
+                            Integer.parseInt(channel.get(4)));
+                }
             }
         } catch (IOException e) {
             log.error("Caught exception while reading {}", DigividProcessor.channelCSV, e);
@@ -222,15 +204,27 @@ public class Controller {
                             if (!valid)
                                 break;
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            log.error("Thread error in setDataPath: "+e.getMessage(), e);
                         }
                     }
                 }
             }.start();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Thread error in setDataPath: "+e.getMessage(), e);
         }
         tableView.setOnMouseClicked(new FileclickMouseEventHandler());
+    }
+
+    private static List<List<String>> getCSV(String csvFile) throws IOException {
+        List<List<String>> csvData = new ArrayList<>();
+        List<String> lines = Files.readAllLines(Paths.get(csvFile), Charset.defaultCharset());
+        for (String line: lines) {
+            String[] splitted = line.split(",");
+            List<String> dataLine = new ArrayList<>(splitted.length);
+            Collections.addAll(dataLine, splitted);
+            csvData.add(dataLine);
+        }
+        return csvData;
     }
 
     /**
@@ -243,10 +237,12 @@ public class Controller {
             if (Files.exists(newFilePath)) {
                 Files.delete(newFilePath);
             }
-            String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText()+",stop";
+            String msg = (txtManufacturer.getText().equals("") ? "§" : txtManufacturer.getText());
+            msg += "," + (txtModel.getText().equals("") ? "§" : txtModel.getText());
+            msg += "," + (txtSerial.getText().equals("") ? "§" : txtSerial.getText());
             Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ioe) {
+            log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
         }
     }
 
@@ -259,16 +255,15 @@ public class Controller {
             if (Files.exists(newFilePath)) {
                 List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties), Charset.defaultCharset());
                 List<String> localProperties = Arrays.asList(lines.get(0).split(","));
-
-                txtManufacturer.setText(localProperties.get(0));
-                txtModel.setText(localProperties.get(1));
-                txtSerial.setText(localProperties.get(2));
+                txtManufacturer.setText(localProperties.get(0).equals("§") ? "" : localProperties.get(0));
+                txtModel.setText(localProperties.get(1).equals("§") ? "" : localProperties.get(1));
+                txtSerial.setText(localProperties.get(2).equals("§") ? "" : localProperties.get(2));
             } else {
-                String msg = ",,,stop";
+                String msg = "§,§,§";
                 Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Error occured reading {}", DigividProcessor.localProperties);
         }
     }
 
@@ -303,10 +298,10 @@ public class Controller {
                     throw new RuntimeException("" + getDataPath().toAbsolutePath());
                 } finally {
                     try {
-                        assert tsFiles != null;
-                        tsFiles.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        if (tsFiles != null)
+                            tsFiles.close();
+                    } catch (IOException ioe) {
+                        log.error("Error occured while loading files", ioe);
                     }
                 }
                 ObservableList<TableColumn<VideoFileObject,?>> sortOrder = tableView.getSortOrder();
@@ -424,7 +419,7 @@ public class Controller {
             ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player, new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
             pb.start();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("{} could not be played",thisRow.getFilename());
         }
     }
 
