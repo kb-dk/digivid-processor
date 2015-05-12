@@ -16,8 +16,6 @@ import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
@@ -38,9 +36,6 @@ public class Controller {
     private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
     private static final String channelPattern = "^[a-z0-9]{3,}$";
     private static Logger log = LoggerFactory.getLogger(Controller.class);
-    private Path dataPath;
-    private TextField altChannel;
-    private String serialNo = "";
     @FXML public Label txtFilename;
     @FXML public Label error;
     @FXML public TableView<VideoFileObject> tableView;
@@ -59,9 +54,26 @@ public class Controller {
     @FXML public DatePicker endDatePicker;
     @FXML public ToggleGroup channelGroup;
     @FXML public javafx.scene.layout.AnchorPane detailVHS;
+    private Path dataPath;
+    private TextField altChannel;
+    private String serialNo = "";
+
+    private static List<List<String>> getCSV(String csvFile) throws IOException {
+        List<List<String>> csvData = new ArrayList<>();
+        List<String> lines = Files.readAllLines(Paths.get(csvFile), Charset.defaultCharset());
+        for (String line : lines) {
+            String[] splitted = line.split(",");
+            List<String> dataLine = new ArrayList<>(splitted.length);
+            Collections.addAll(dataLine, splitted);
+            csvData.add(dataLine);
+        }
+        return csvData;
+    }
+
     @FXML public void handleLocalProperties() {
         writeLocalProperties();
     }
+
     @FXML
     void initialize() {
         detailVHS.setVisible(false);
@@ -215,18 +227,6 @@ public class Controller {
         tableView.setOnMouseClicked(new FileclickMouseEventHandler());
     }
 
-    private static List<List<String>> getCSV(String csvFile) throws IOException {
-        List<List<String>> csvData = new ArrayList<>();
-        List<String> lines = Files.readAllLines(Paths.get(csvFile), Charset.defaultCharset());
-        for (String line: lines) {
-            String[] splitted = line.split(",");
-            List<String> dataLine = new ArrayList<>(splitted.length);
-            Collections.addAll(dataLine, splitted);
-            csvData.add(dataLine);
-        }
-        return csvData;
-    }
-
     /**
      * Deletes the localProperties.csv file if it already exists and writes information about content of Manufacturer, Model
      * and localProperties number to localProperties.csv
@@ -237,9 +237,7 @@ public class Controller {
             if (Files.exists(newFilePath)) {
                 Files.delete(newFilePath);
             }
-            String msg = (txtManufacturer.getText().equals("") ? "§" : txtManufacturer.getText());
-            msg += "," + (txtModel.getText().equals("") ? "§" : txtModel.getText());
-            msg += "," + (txtSerial.getText().equals("") ? "§" : txtSerial.getText());
+            String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText();
             Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes());
         } catch (IOException ioe) {
             log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
@@ -254,12 +252,13 @@ public class Controller {
         try {
             if (Files.exists(newFilePath)) {
                 List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties), Charset.defaultCharset());
-                List<String> localProperties = Arrays.asList(lines.get(0).split(","));
-                txtManufacturer.setText(localProperties.get(0).equals("§") ? "" : localProperties.get(0));
-                txtModel.setText(localProperties.get(1).equals("§") ? "" : localProperties.get(1));
-                txtSerial.setText(localProperties.get(2).equals("§") ? "" : localProperties.get(2));
+                String metadataLine = lines.get(0) + " ";
+                List<String> localProperties = Arrays.asList(metadataLine.split(","));
+                txtManufacturer.setText(localProperties.get(0));
+                txtModel.setText(localProperties.get(1));
+                txtSerial.setText(localProperties.get(2).trim());
             } else {
-                String msg = "§,§,§";
+                String msg = ",,";
                 Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes());
             }
         } catch (IOException e) {
