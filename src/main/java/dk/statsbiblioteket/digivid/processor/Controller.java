@@ -56,7 +56,6 @@ public class Controller {
     @FXML public javafx.scene.layout.AnchorPane detailVHS;
     private Path dataPath;
     private TextField altChannel;
-    private String serialNo = "";
 
     private static List<List<String>> getCSV(String csvFile) throws IOException {
         List<List<String>> csvData = new ArrayList<>();
@@ -77,7 +76,7 @@ public class Controller {
     @FXML
     void initialize() {
         detailVHS.setVisible(false);
-        if (lastmodifiedColumn != null) lastmodifiedColumn.setComparator((o1, o2) -> o1.compareTo(o2));
+        if (lastmodifiedColumn != null) lastmodifiedColumn.setComparator(Date::compareTo);
         try {
             List<List<String>> channels = getCSV(DigividProcessor.channelCSV);
             for(List<String> channel : channels) {
@@ -97,9 +96,7 @@ public class Controller {
         GridPane.setRowIndex(altChannel, 4);
         GridPane.setColumnIndex(altChannel, 0);
 
-        startDatePicker.setOnAction(event -> {
-            endDatePicker.setValue(startDatePicker.getValue());
-        });
+        startDatePicker.setOnAction(event -> endDatePicker.setValue(startDatePicker.getValue()));
 
 
         startDatePicker.setConverter(new StringConverter<LocalDate>() {
@@ -210,7 +207,7 @@ public class Controller {
                         try {
                             WatchKey key = service.take();
                             if (!key.pollEvents().isEmpty()) {
-                                Platform.runLater(() -> loadFilenames());
+                                Platform.runLater(Controller.this::loadFilenames);
                             }
                             boolean valid = key.reset();
                             if (!valid)
@@ -237,7 +234,7 @@ public class Controller {
             if (Files.exists(newFilePath)) {
                 Files.delete(newFilePath);
             }
-            String msg = txtManufacturer.getText() + "," + txtModel.getText() + "," + txtSerial.getText();
+            String msg = String.format("%s,%s,%s", txtManufacturer.getText(), txtModel.getText(), txtSerial.getText());
             Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes());
         } catch (IOException ioe) {
             log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
@@ -280,7 +277,7 @@ public class Controller {
     }
 
     /**
-     * Put an overview of ts-files in to the tableview
+     * The tableview displays an overview of ts-files
      */
     public void loadFilenames() {
         if (tableView != null) {
@@ -304,19 +301,13 @@ public class Controller {
                     }
                 }
                 ObservableList<TableColumn<VideoFileObject,?>> sortOrder = tableView.getSortOrder();
-                sortOrder.removeAll();
+                sortOrder.clear();
                 sortOrder.addAll(processedColumn, lastmodifiedColumn);
                 tableView.sort();
                 tableView.getSelectionModel().select(0);
-            }
-            else
-            {
-                try {
-                    Files.createDirectories(getDataPath());
-                }
-                catch (IOException iex) {
-                    throw new RuntimeException("" + getDataPath().toAbsolutePath());
-                }
+            } else {
+                log.error("Datapath is not defined in when file is loaded");
+                Platform.exit();
             }
         }
     }
@@ -327,7 +318,7 @@ public class Controller {
      * @param actionEvent
      */
     public void commit(ActionEvent actionEvent) {
-        VideoFileObject thisRow = tableView.getSelectionModel().getSelectedItem();
+        VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
         if (startDatePicker.getValue() == null) {
             error.setText("No Start Date Set.");
             return;
@@ -347,9 +338,9 @@ public class Controller {
         calendar.setTime(Date.from(instant));
         calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
         calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisRow.setStartDate(calendar.getTime().getTime());
+        thisVideoFileRow.setStartDate(calendar.getTime().getTime());
 
-        if ((endDatePicker.getValue() == null) && !endDatePicker.getValue().toString().isEmpty()) {
+        if ((endDatePicker.getValue() != null && endDatePicker.getValue().toString().isEmpty()) || (endDatePicker.getValue() == null)) {
             error.setText("No End Date Set.");
             return;
         }
@@ -369,14 +360,14 @@ public class Controller {
         calendar.setTime(Date.from(instant));
         calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
         calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisRow.setEndDate(calendar.getTime().getTime());
+        thisVideoFileRow.setEndDate(calendar.getTime().getTime());
 
         final Toggle selectedToggle = channelGroup.getSelectedToggle();
         String altChannel = this.altChannel.getText();
         if (altChannel != null && altChannel.length() > 0 ) {
 
             if (Pattern.matches(channelPattern,altChannel)) {
-                thisRow.setChannel(altChannel);
+                thisVideoFileRow.setChannel(altChannel);
             }
             else {
                 error.setText("Channel not valid");
@@ -388,32 +379,28 @@ public class Controller {
             if ( selectedToggle != null) {
                 channel = ((Channel) selectedToggle.getUserData()).getChannelName();
             }
-            thisRow.setChannel(channel);
+            thisVideoFileRow.setChannel(channel);
         }
-        if (thisRow.getChannel() == null) {
+        if (thisVideoFileRow.getChannel() == null) {
             error.setText("No channel specified.");
             return;
         }
-        thisRow.setQuality(cmbQuality.getValue());
-        thisRow.setVhsLabel(txtVhsLabel.getText());
-        thisRow.setComment(txtComment.getText());
-        thisRow.setManufacturer(txtManufacturer.getText());
-        thisRow.setModel(txtModel.getText());
-        thisRow.setSerialNo(txtSerial.getText());
+        thisVideoFileRow.setQuality(cmbQuality.getValue());
+        thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
+        thisVideoFileRow.setComment(txtComment.getText());
+        thisVideoFileRow.setManufacturer(txtManufacturer.getText());
+        thisVideoFileRow.setModel(txtModel.getText());
+        thisVideoFileRow.setSerialNo(txtSerial.getText());
         error.setText(null);
-        thisRow.commit();
+        thisVideoFileRow.commit();
         detailVHS.setVisible(false);
-    }
-
-    public String getSerialNo() {
-        return serialNo;
     }
 
     /**
      * Show the video file in the player
      */
     public void playCurrentFile() {
-        VideoFileObject thisRow = (VideoFileObject) tableView.getSelectionModel().getSelectedItem();
+        VideoFileObject thisRow = tableView.getSelectionModel().getSelectedItem();
         try {
             ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player, new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
             pb.start();
@@ -425,53 +412,51 @@ public class Controller {
     /**
      * Show the file details for the file (which is found in the files localProperties file), that the user clicked on
      */
-    private void loadFile(VideoFileObject thisRow) {
+    private void loadFile(VideoFileObject currentVideoFile) {
         error.setText(null);
-        if (thisRow != null) {
-            txtFilename.setText(thisRow.getFilename());
-            GregorianCalendar startCalendar = new GregorianCalendar();
-            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
-            if (thisRow.getStartDate() != null) {
-                startCalendar.setTime(new Date(thisRow.getStartDate()));
-                startDatePicker.setValue(new Date(thisRow.getStartDate()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-                startTimeField.setText(timeFormat.format(startCalendar.getTime()));
-            } else {
-                startDatePicker.setValue(null);
-                startTimeField.setText("");
-            }
-            GregorianCalendar endCalendar = new GregorianCalendar();
-            if (thisRow.getEndDate() != null) {
-                endCalendar.setTime(new Date(thisRow.getEndDate()));
-                endDatePicker.setValue(new Date(thisRow.getEndDate()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-                endTimeField.setText(timeFormat.format(endCalendar.getTime()));
-            } else {
-                endDatePicker.setValue(null);
-                endTimeField.setText("");
-            }
-            final String quality = thisRow.getQuality();
-            if (quality != null) {
-                cmbQuality.getSelectionModel().select(quality);
-            }
-            txtVhsLabel.setText(thisRow.getVhsLabel());
-            txtComment.setText(thisRow.getComment());
-            String currentChannel = thisRow.getChannel();
-            boolean inGrid = false;
-            for (Node channelNode : Controller.this.channelGridPane.getChildren()) {
-                if (channelNode instanceof RadioButton) {
-                    Channel buttonChannel = (Channel) channelNode.getUserData();
-                    if (buttonChannel.getChannelName().equals(currentChannel)) {
-                        ((RadioButton) channelNode).setSelected(true);
-                        inGrid = true;
-                    } else {
-                        ((RadioButton) channelNode).setSelected(false);
-                    }
+        txtFilename.setText(currentVideoFile.getFilename());
+        GregorianCalendar startCalendar = new GregorianCalendar();
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        if (currentVideoFile.getStartDate() != null) {
+            startCalendar.setTime(new Date(currentVideoFile.getStartDate()));
+            startDatePicker.setValue(new Date(currentVideoFile.getStartDate()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            startTimeField.setText(timeFormat.format(startCalendar.getTime()));
+        } else {
+            startDatePicker.setValue(null);
+            startTimeField.setText("");
+        }
+        GregorianCalendar endCalendar = new GregorianCalendar();
+        if (currentVideoFile.getEndDate() != null) {
+            endCalendar.setTime(new Date(currentVideoFile.getEndDate()));
+            endDatePicker.setValue(new Date(currentVideoFile.getEndDate()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            endTimeField.setText(timeFormat.format(endCalendar.getTime()));
+        } else {
+            endDatePicker.setValue(null);
+            endTimeField.setText("");
+        }
+        final String quality = currentVideoFile.getQuality();
+        if (quality != null) {
+            cmbQuality.getSelectionModel().select(quality);
+        }
+        txtVhsLabel.setText(currentVideoFile.getVhsLabel());
+        txtComment.setText(currentVideoFile.getComment());
+        String currentChannel = currentVideoFile.getChannel();
+        boolean inGrid = false;
+        for (Node channelNode : Controller.this.channelGridPane.getChildren()) {
+            if (channelNode instanceof RadioButton) {
+                Channel buttonChannel = (Channel) channelNode.getUserData();
+                if (buttonChannel.getChannelName().equals(currentChannel)) {
+                    ((RadioButton) channelNode).setSelected(true);
+                    inGrid = true;
+                } else {
+                    ((RadioButton) channelNode).setSelected(false);
                 }
             }
-            if (inGrid) {
-                altChannel.setText(null);
-            } else {
-                altChannel.setText(thisRow.getChannel());
-            }
+        }
+        if (inGrid) {
+            altChannel.setText(null);
+        } else {
+            altChannel.setText(currentVideoFile.getChannel());
         }
     }
 

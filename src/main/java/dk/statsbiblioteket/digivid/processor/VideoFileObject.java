@@ -250,7 +250,7 @@ public class VideoFileObject {
         } catch (UnknownHostException e) {
             this.encoderName = "unknown";
         }
-        String vhsFileMetadata = (new VideoFileObject(this)).toJson();
+        String vhsFileMetadata = new VideoFileObject(this).toJson();
         Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
         try {
             Files.delete(vhsFileMetadataFilePath);
