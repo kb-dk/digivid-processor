@@ -54,6 +54,7 @@ public class Controller {
     @FXML public DatePicker endDatePicker;
     @FXML public ToggleGroup channelGroup;
     @FXML public javafx.scene.layout.AnchorPane detailVHS;
+
     private Path dataPath;
     private TextField altChannel;
 
@@ -319,6 +320,10 @@ public class Controller {
      */
     public void commit(ActionEvent actionEvent) {
         VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+        if (txtVhsLabel.getText() != null && txtVhsLabel.getText().trim().isEmpty()) {
+            error.setText("VHS label has to be filled");
+            return;
+        }
         if (startDatePicker.getValue() == null) {
             error.setText("No Start Date Set.");
             return;
