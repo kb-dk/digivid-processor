@@ -435,9 +435,10 @@ public class Controller {
             endTimeField.setText("");
         }
         final String quality = currentVideoFile.getQuality();
-        if (quality != null) {
+        if (quality != null)
             cmbQuality.getSelectionModel().select(quality);
-        }
+        else
+            cmbQuality.getSelectionModel().select(4);
         txtVhsLabel.setText(currentVideoFile.getVhsLabel());
         txtComment.setText(currentVideoFile.getComment());
         String currentChannel = currentVideoFile.getChannel();
