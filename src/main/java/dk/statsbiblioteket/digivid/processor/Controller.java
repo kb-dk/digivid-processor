@@ -1,6 +1,8 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -36,7 +38,7 @@ public class Controller {
     private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
     private static final String channelPattern = "^[a-z0-9]{3,}$";
     private static Logger log = LoggerFactory.getLogger(Controller.class);
-    @FXML public Label txtFilename;
+    //@FXML public Label txtFilename;
     @FXML public Label error;
     @FXML public TableView<VideoFileObject> tableView;
     @FXML public GridPane channelGridPane;
@@ -44,6 +46,8 @@ public class Controller {
     @FXML public TableColumn<VideoFileObject, Boolean> processedColumn;
     @FXML public TextArea txtComment;
     @FXML public ComboBox<String> cmbQuality;
+    @FXML
+    public TextField txtFilename;
     @FXML public TextField txtVhsLabel;
     @FXML public TextField startTimeField;
     @FXML public TextField endTimeField;
@@ -90,6 +94,9 @@ public class Controller {
             log.error("Caught exception while reading {}", DigividProcessor.channelCSV, e);
         }
 
+        txtFilename.setEditable(false);
+        txtFilename.getStyleClass().add("copyable-label");
+
         altChannel = new TextField();
         altChannel.setId("altChannel");
         altChannel.setPrefWidth(150.0);
@@ -97,6 +104,15 @@ public class Controller {
         GridPane.setRowIndex(altChannel, 4);
         GridPane.setColumnIndex(altChannel, 0);
 
+        txtFilename.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ob, String o,
+                                String n) {
+                // expand the textfield
+                txtFilename.setPrefWidth(TextUtils.computeTextWidth(txtFilename.getFont(),
+                        txtFilename.getText(), 0.0D) + 20);
+            }
+        });
         startDatePicker.setOnAction(event -> endDatePicker.setValue(startDatePicker.getValue()));
 
 
