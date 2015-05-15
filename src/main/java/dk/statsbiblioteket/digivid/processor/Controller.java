@@ -252,7 +252,7 @@ public class Controller {
                 Files.delete(newFilePath);
             }
             String msg = String.format("%s,%s,%s", txtManufacturer.getText(), txtModel.getText(), txtSerial.getText());
-            Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes());
+            Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes("UTF-8"));
         } catch (IOException ioe) {
             log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
         }
@@ -273,7 +273,7 @@ public class Controller {
                 txtSerial.setText(localProperties.get(2).trim());
             } else {
                 String msg = ",,";
-                Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes());
+                Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes("UTF-8"));
             }
         } catch (IOException e) {
             log.warn("Error occured reading {}", DigividProcessor.localProperties);
