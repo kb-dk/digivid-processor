@@ -17,7 +17,7 @@ public class VideoFileMetadataTest {
         Path path = Paths.get("/a/b/foobar.ts");
         VideoFileObject videoFileObject = new VideoFileObject(path);
         videoFileObject.setStartDate(new GregorianCalendar(1992, 01, 23, 18, 00).getTime().getTime());
-        videoFileObject.setEndDate(new GregorianCalendar(1992, 01, 23, 21, 30).getTime());
+        videoFileObject.setEndDate(new GregorianCalendar(1992, 01, 23, 21, 30).getTime().getTime());
         videoFileObject.setChannel("tv2");
         videoFileObject.setQuality("3");
         videoFileObject.setVhsLabel("This is the finest VHS tape I have ever seen.");

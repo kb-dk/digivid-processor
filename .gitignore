@@ -9,3 +9,4 @@ target
 *.ts
 *.comments
 *.csv
+src/main/config/localVHS.properties
