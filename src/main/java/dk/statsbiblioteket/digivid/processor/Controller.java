@@ -494,9 +494,11 @@ public class Controller {
         @Override
         public void handle(MouseEvent mouseEvent) {
             if (mouseEvent.getButton() == MouseButton.PRIMARY) {
-                VideoFileObject thisRow = (VideoFileObject) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
-                loadFile(thisRow);
-                detailVHS.setVisible(true);
+                VideoFileObject thisVideoFile = (VideoFileObject) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
+                if (thisVideoFile != null) {
+                    loadFile(thisVideoFile);
+                    detailVHS.setVisible(true);
+                }
             } else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
                 playCurrentFile();
             }
