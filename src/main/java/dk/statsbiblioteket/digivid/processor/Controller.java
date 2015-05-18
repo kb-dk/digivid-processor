@@ -38,7 +38,6 @@ public class Controller {
     private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
     private static final String channelPattern = "^[a-z0-9]{3,}$";
     private static Logger log = LoggerFactory.getLogger(Controller.class);
-    //@FXML public Label txtFilename;
     @FXML public Label error;
     @FXML public TableView<VideoFileObject> tableView;
     @FXML public GridPane channelGridPane;
@@ -92,6 +91,7 @@ public class Controller {
             }
         } catch (IOException e) {
             log.error("Caught exception while reading {}", DigividProcessor.channelCSV, e);
+            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
         }
 
         txtFilename.setEditable(false);
@@ -231,12 +231,15 @@ public class Controller {
                                 break;
                         } catch (InterruptedException e) {
                             log.error("Thread error in setDataPath: "+e.getMessage(), e);
+                            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
                         }
                     }
                 }
             }.start();
+
         } catch (IOException e) {
-            log.error("Thread error in setDataPath: "+e.getMessage(), e);
+            log.error("Error in setDataPath: " + e.getMessage(), e);
+            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
         }
         tableView.setOnMouseClicked(new FileclickMouseEventHandler());
     }
@@ -255,6 +258,7 @@ public class Controller {
             Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes("UTF-8"));
         } catch (IOException ioe) {
             log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
+            DigividProcessor.showErrorDialog(Thread.currentThread(), ioe);
         }
     }
 
@@ -277,6 +281,7 @@ public class Controller {
             }
         } catch (IOException e) {
             log.warn("Error occured reading {}", DigividProcessor.localProperties);
+            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
         }
     }
 
@@ -315,6 +320,7 @@ public class Controller {
                             tsFiles.close();
                     } catch (IOException ioe) {
                         log.error("Error occured while loading files", ioe);
+                        DigividProcessor.showErrorDialog(Thread.currentThread(), ioe);
                     }
                 }
                 ObservableList<TableColumn<VideoFileObject,?>> sortOrder = tableView.getSortOrder();
@@ -323,8 +329,8 @@ public class Controller {
                 tableView.sort();
                 tableView.getSelectionModel().select(0);
             } else {
-                log.error("Datapath is not defined in when file is loaded");
-                Platform.exit();
+                log.error("Datapath is not defined when file is loaded");
+                DigividProcessor.showErrorDialog(Thread.currentThread(), new Exception("Datapath is not defined when file is loaded"));
             }
         }
     }
@@ -426,7 +432,8 @@ public class Controller {
             ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player, new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
             pb.start();
         } catch (IOException e) {
-            log.warn("{} could not be played",thisRow.getFilename());
+            log.error("{} could not be played", thisRow.getFilename());
+            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
         }
     }
 

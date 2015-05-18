@@ -8,6 +8,9 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.controlsfx.dialog.Dialogs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,10 +18,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-/*
-import org.controlsfx.dialog.Dialogs;
-import org.controlsfx.dialog.DialogStyle;
-*/
 
 public class DigividProcessor extends Application {
 
@@ -26,6 +25,7 @@ public class DigividProcessor extends Application {
     protected static String channelCSV;
     protected static String player;
     protected static String localProperties;
+    private static Logger log = LoggerFactory.getLogger(DigividProcessor.class);
 
     public static void main(String[] args) {
         String propertiesLocation = System.getProperty("digivid.config");
@@ -49,10 +49,18 @@ public class DigividProcessor extends Application {
         launch(args);
     }
 
+    static public void showErrorDialog(Thread t, Throwable e) {
+
+        Dialogs.create().title("Error").message("An uncaught exception was thrown in thread " + t + ".\n" +
+                "Click below to view the stacktrace, or close this " +
+                "dialog to terminate the application.").showException(e);
+        Platform.exit();
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception{
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> Platform.runLater(() -> showErrorDialog(t, e)));
-        Thread.currentThread().setUncaughtExceptionHandler(this::showErrorDialog);
+        Thread.currentThread().setUncaughtExceptionHandler(DigividProcessor::showErrorDialog);
 
         primaryStage.setTitle("Video processor");
         initRootLayout(primaryStage);
@@ -75,8 +83,9 @@ public class DigividProcessor extends Application {
             Scene scene = new Scene(rootLayout, screenBounds.getWidth(), screenBounds.getHeight());
             primaryStage.setScene(scene);
             primaryStage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ioe) {
+            log.error("Error occured while loading file in initRootLayout", ioe);
+            DigividProcessor.showErrorDialog(Thread.currentThread(), ioe);
         }
     }
 
@@ -84,52 +93,6 @@ public class DigividProcessor extends Application {
     public void stop() throws Exception {
         super.stop();
         System.exit(0);
-    }
-
-    private void showErrorDialog(Thread t, Throwable e) {
-        /*Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Exception Dialog");
-        alert.setHeaderText("Exception encountered");
-        alert.setContentText("Click below to view the stacktrace, or close this dialog to terminate the application.");
-
-        Exception ex = new FileNotFoundException("Could not find file blabla.txt");
-
-// Create expandable Exception.
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        ex.printStackTrace(pw);
-        String exceptionText = sw.toString();
-
-        Label label = new Label("The exception stacktrace was:");
-
-        TextArea textArea = new TextArea(exceptionText);
-        textArea.setEditable(false);
-        textArea.setWrapText(true);
-
-        textArea.setMaxWidth(Double.MAX_VALUE);
-        textArea.setMaxHeight(Double.MAX_VALUE);
-        GridPane.setVgrow(textArea, Priority.ALWAYS);
-        GridPane.setHgrow(textArea, Priority.ALWAYS);
-
-        GridPane expContent = new GridPane();
-        expContent.setMaxWidth(Double.MAX_VALUE);
-        expContent.add(label, 0, 0);
-        expContent.add(textArea, 0, 1);
-
-// Set expandable Exception into the dialog pane.
-        alert.getDialogPane().setExpandableContent(expContent);
-
-        alert.showAndWait();
-        */
-        /*
-        Dialogs.create().title("Error")
-                .message("An uncaught exception was thrown in thread " + t
-                        + ". Click below to view the stacktrace, or close this "
-                        + "dialog to terminate the application.")
-                .style(DialogStyle.NATIVE)
-                .showExceptionInNewWindow(e);
-        */
-        Platform.exit();
     }
 
 }
