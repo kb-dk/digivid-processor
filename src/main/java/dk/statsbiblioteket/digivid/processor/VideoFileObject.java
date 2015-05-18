@@ -1,7 +1,6 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
@@ -88,19 +87,20 @@ public class VideoFileObject {
     }
 
     public static VideoFileObject fromJson(String json) {
-        GsonBuilder builder = new GsonBuilder();
-        builder.disableHtmlEscaping();
-        Gson gson = builder.create();
+        return (new Gson()).fromJson(json, VideoFileObject.class);
+    }
 
-        return (gson).fromJson(json, VideoFileObject.class);
+    private static Date toDate(Long l) {
+        if (l == null) {
+            return null;
+        }
+        Date date = new Date();
+        date.setTime(l);
+        return date;
     }
 
     public String toJson() {
-        GsonBuilder builder = new GsonBuilder();
-        builder.disableHtmlEscaping();
-        Gson gson = builder.create();
-
-        return (gson.toJson(this));
+        return (new Gson()).toJson(this);
     }
 
     public String getFilename() {
