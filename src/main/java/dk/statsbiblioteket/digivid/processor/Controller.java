@@ -53,6 +53,12 @@ public class Controller {
     @FXML public TextField txtManufacturer;
     @FXML public TextField txtModel;
     @FXML public TextField txtSerial;
+    @FXML
+    public TextField txtProcessedManufacturer;
+    @FXML
+    public TextField txtProcessedModel;
+    @FXML
+    public TextField txtProcessedSerial;
     @FXML public DatePicker startDatePicker;
     @FXML public DatePicker endDatePicker;
     @FXML public ToggleGroup channelGroup;
@@ -91,7 +97,7 @@ public class Controller {
             }
         } catch (IOException e) {
             log.error("Caught exception while reading {}", DigividProcessor.channelCSV, e);
-            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
+            TextUtils.showErrorDialog(Thread.currentThread(), e);
         }
 
         txtFilename.setEditable(false);
@@ -231,7 +237,7 @@ public class Controller {
                                 break;
                         } catch (InterruptedException e) {
                             log.error("Thread error in setDataPath: "+e.getMessage(), e);
-                            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
+                            TextUtils.showErrorDialog(Thread.currentThread(), e);
                         }
                     }
                 }
@@ -239,7 +245,7 @@ public class Controller {
 
         } catch (IOException e) {
             log.error("Error in setDataPath: " + e.getMessage(), e);
-            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
+            TextUtils.showErrorDialog(Thread.currentThread(), e);
         }
         tableView.setOnMouseClicked(new FileclickMouseEventHandler());
     }
@@ -258,7 +264,7 @@ public class Controller {
             Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes("UTF-8"));
         } catch (IOException ioe) {
             log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
-            DigividProcessor.showErrorDialog(Thread.currentThread(), ioe);
+            TextUtils.showErrorDialog(Thread.currentThread(), ioe);
         }
     }
 
@@ -281,7 +287,7 @@ public class Controller {
             }
         } catch (IOException e) {
             log.warn("Error occured reading {}", DigividProcessor.localProperties);
-            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
+            TextUtils.showErrorDialog(Thread.currentThread(), e);
         }
     }
 
@@ -320,7 +326,7 @@ public class Controller {
                             tsFiles.close();
                     } catch (IOException ioe) {
                         log.error("Error occured while loading files", ioe);
-                        DigividProcessor.showErrorDialog(Thread.currentThread(), ioe);
+                        TextUtils.showErrorDialog(Thread.currentThread(), ioe);
                     }
                 }
                 ObservableList<TableColumn<VideoFileObject,?>> sortOrder = tableView.getSortOrder();
@@ -330,7 +336,7 @@ public class Controller {
                 tableView.getSelectionModel().select(0);
             } else {
                 log.error("Datapath is not defined when file is loaded");
-                DigividProcessor.showErrorDialog(Thread.currentThread(), new Exception("Datapath is not defined when file is loaded"));
+                TextUtils.showErrorDialog(Thread.currentThread(), new Exception("Datapath is not defined when file is loaded"));
             }
         }
     }
@@ -415,9 +421,9 @@ public class Controller {
         thisVideoFileRow.setQuality(cmbQuality.getValue());
         thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
         thisVideoFileRow.setComment(txtComment.getText());
-        thisVideoFileRow.setManufacturer(txtManufacturer.getText());
-        thisVideoFileRow.setModel(txtModel.getText());
-        thisVideoFileRow.setSerialNo(txtSerial.getText());
+        thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
+        thisVideoFileRow.setModel(txtProcessedModel.getText());
+        thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
         error.setText(null);
         thisVideoFileRow.commit();
         detailVHS.setVisible(false);
@@ -433,7 +439,7 @@ public class Controller {
             pb.start();
         } catch (IOException e) {
             log.error("{} could not be played", thisRow.getFilename());
-            DigividProcessor.showErrorDialog(Thread.currentThread(), e);
+            TextUtils.showErrorDialog(Thread.currentThread(), e);
         }
     }
 
@@ -469,6 +475,22 @@ public class Controller {
             cmbQuality.getSelectionModel().select(4);
         txtVhsLabel.setText(currentVideoFile.getVhsLabel());
         txtComment.setText(currentVideoFile.getComment());
+
+        if (currentVideoFile.getManufacturer() != null)
+            txtProcessedManufacturer.setText(currentVideoFile.getManufacturer());
+        else
+            txtProcessedManufacturer.setText(txtManufacturer.getText());
+
+        if (currentVideoFile.getModel() != null)
+            txtProcessedModel.setText(currentVideoFile.getModel());
+        else
+            txtProcessedModel.setText(txtModel.getText());
+
+        if (currentVideoFile.getSerialNo() != null)
+            txtProcessedSerial.setText(currentVideoFile.getSerialNo());
+        else
+            txtProcessedSerial.setText(txtSerial.getText());
+
         String currentChannel = currentVideoFile.getChannel();
         boolean inGrid = false;
         for (Node channelNode : Controller.this.channelGridPane.getChildren()) {

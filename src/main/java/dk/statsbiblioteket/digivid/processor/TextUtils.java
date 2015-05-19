@@ -1,8 +1,10 @@
 package dk.statsbiblioteket.digivid.processor;
 
+import javafx.application.Platform;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
+import org.controlsfx.dialog.Dialogs;
 
 public class TextUtils {
 
@@ -38,4 +40,13 @@ public class TextUtils {
         helper.setText(DEFAULT_TEXT);
         return d;
     }
+
+    static public void showErrorDialog(Thread t, Throwable e) {
+
+        Dialogs.create().title("Error").message("An uncaught exception was thrown in thread " + t + ".\n" +
+                "Click below to view the stacktrace, or close this " +
+                "dialog to terminate the application.").showException(e);
+        Platform.exit();
+    }
+
 }

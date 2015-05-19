@@ -2,6 +2,8 @@ package dk.statsbiblioteket.digivid.processor;
 
 import com.google.gson.Gson;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -15,10 +17,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- *
+ * Class which beside the properties about the videfile also has methods for renaming the videofile and
+ * commiting the class which also writes a json-file
  */
 public class VideoFileObject {
 
+    private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
     private Path videoFilePath;
     private Path vhsFileMetadataFilePath;
     private String filename;
@@ -79,15 +83,13 @@ public class VideoFileObject {
                     serialNo = videoFileObject.getSerialNo();
                 }
             } catch (IOException e) {
-                //??
+                log.error("IO exception happened in VideoFileObject(Path path)");
+                TextUtils.showErrorDialog(Thread.currentThread(), e);
             } catch (NullPointerException nEx) {
-                nEx.printStackTrace();
+                log.error("Null pointer exception happened in VideoFileObject(Path path))");
+                TextUtils.showErrorDialog(Thread.currentThread(), nEx);
             }
         }
-    }
-
-    public static VideoFileObject fromJson(String json) {
-        return (new Gson()).fromJson(json, VideoFileObject.class);
     }
 
     private static Date toDate(Long l) {
@@ -99,8 +101,8 @@ public class VideoFileObject {
         return date;
     }
 
-    public String toJson() {
-        return (new Gson()).toJson(this);
+    public static VideoFileObject fromJson(String json) {
+        return (new Gson()).fromJson(json, VideoFileObject.class);
     }
 
     public String getFilename() {
@@ -187,6 +189,16 @@ public class VideoFileObject {
         this.serialNo = serialNo;
     }
 
+    //Even though the compiler tells that it can be removed, it cannot because when removing it the processed marks
+    //in the file list overview disappears
+    public Boolean isProcessed() {
+        return Files.exists(vhsFileMetadataFilePath);
+    }
+
+    public String toJson() {
+        return (new Gson()).toJson(this);
+    }
+
     public Date getLastmodified() {
         FileTime lastModifiedTime;
         try {
@@ -197,10 +209,6 @@ public class VideoFileObject {
         Date date = new Date();
         date.setTime(lastModifiedTime.toMillis());
         return date;
-    }
-
-    public Boolean isProcessed() {
-        return Files.exists(vhsFileMetadataFilePath);
     }
 
     /**
@@ -223,7 +231,6 @@ public class VideoFileObject {
         String e4 = "" + getEndDate() / 1000L;
         String e5 = dateFormat.format(getEndDate());
         return e1 + "_digivid_" + e2 + "-" +e3 + "_" + e4 + "-" + e5 + ".ts";
-
     }
 
     /**
@@ -236,14 +243,16 @@ public class VideoFileObject {
         try {
             checksum = DigestUtils.md5Hex(Files.newInputStream(videoFilePath));
         } catch (IOException e) {
-            //?
+            log.error("IO exception happened when setting checksum in commit");
+            TextUtils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
                 Files.move(videoFilePath, newPath);
             }
         } catch (IOException e) {
-            //??
+            log.error("IO exception happened when moving the file in commit");
+            TextUtils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             this.encoderName = InetAddress.getLocalHost().getHostName();
@@ -255,12 +264,14 @@ public class VideoFileObject {
         try {
             Files.delete(vhsFileMetadataFilePath);
         } catch (IOException e) {
-            //??
+            log.error("IO exception happened when deleting the file in commit");
+            TextUtils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes());
         } catch (IOException e) {
-            //?
+            log.error("IO exception happened when writing the file in commit");
+            TextUtils.showErrorDialog(Thread.currentThread(), e);
         }
     }
 }

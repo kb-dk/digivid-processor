@@ -8,7 +8,6 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import org.controlsfx.dialog.Dialogs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-
+/**
+ * Performs initializing steps like reading information from the property file and setup the GUI
+ */
 public class DigividProcessor extends Application {
 
 	protected static String recordsDir;
@@ -49,18 +50,10 @@ public class DigividProcessor extends Application {
         launch(args);
     }
 
-    static public void showErrorDialog(Thread t, Throwable e) {
-
-        Dialogs.create().title("Error").message("An uncaught exception was thrown in thread " + t + ".\n" +
-                "Click below to view the stacktrace, or close this " +
-                "dialog to terminate the application.").showException(e);
-        Platform.exit();
-    }
-
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Thread.setDefaultUncaughtExceptionHandler((t, e) -> Platform.runLater(() -> showErrorDialog(t, e)));
-        Thread.currentThread().setUncaughtExceptionHandler(DigividProcessor::showErrorDialog);
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> Platform.runLater(() -> TextUtils.showErrorDialog(t, e)));
+        Thread.currentThread().setUncaughtExceptionHandler(TextUtils::showErrorDialog);
 
         primaryStage.setTitle("Video processor");
         initRootLayout(primaryStage);
@@ -85,14 +78,7 @@ public class DigividProcessor extends Application {
             primaryStage.show();
         } catch (IOException ioe) {
             log.error("Error occured while loading file in initRootLayout", ioe);
-            DigividProcessor.showErrorDialog(Thread.currentThread(), ioe);
+            TextUtils.showErrorDialog(Thread.currentThread(), ioe);
         }
     }
-
-    @Override
-    public void stop() throws Exception {
-        super.stop();
-        System.exit(0);
-    }
-
 }
