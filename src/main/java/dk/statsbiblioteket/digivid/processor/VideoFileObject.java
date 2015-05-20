@@ -225,17 +225,17 @@ public class VideoFileObject {
         if (getEndDate() == null) {
             setEndDate(new Date().getTime());
         }
-        String e1 = "" + channel;
-        String e2 = "" + getStartDate() / 1000L;
-        String e3 = dateFormat.format(getStartDate());
-        String e4 = "" + getEndDate() / 1000L;
-        String e5 = dateFormat.format(getEndDate());
-        return e1 + "_digivid_" + e2 + "-" +e3 + "_" + e4 + "-" + e5 + ".ts";
+        return String.format("%s_digivid_%s-%s_%s-%s.ts",
+                getChannel(),
+                getStartDate() / 1000L,
+                dateFormat.format(getStartDate()),
+                getEndDate() / 1000L,
+                dateFormat.format(getEndDate()));
     }
 
     /**
-     * This is the heart of the processing functionality. It renames the file to correspond to the specified localProperties.
-     *
+     * This is the heart of the processing functionality.
+     * It renames the file to correspond to the specified localProperties and writes a json-file
      */
     public void commit() {
         setFilename(buildFilename());
