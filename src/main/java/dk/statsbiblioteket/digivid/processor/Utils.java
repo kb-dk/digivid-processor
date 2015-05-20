@@ -6,7 +6,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import org.controlsfx.dialog.Dialogs;
 
-public class TextUtils {
+public class Utils {
 
     static final Text helper;
     static final double DEFAULT_WRAPPING_WIDTH;
@@ -42,7 +42,6 @@ public class TextUtils {
     }
 
     static public void showErrorDialog(Thread t, Throwable e) {
-
         Dialogs.create().title("Error").message("An uncaught exception was thrown in thread " + t + ".\n" +
                 "Click below to view the stacktrace, or close this " +
                 "dialog to terminate the application.").showException(e);

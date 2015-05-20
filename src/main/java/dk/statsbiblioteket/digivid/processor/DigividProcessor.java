@@ -52,8 +52,8 @@ public class DigividProcessor extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Thread.setDefaultUncaughtExceptionHandler((t, e) -> Platform.runLater(() -> TextUtils.showErrorDialog(t, e)));
-        Thread.currentThread().setUncaughtExceptionHandler(TextUtils::showErrorDialog);
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> Platform.runLater(() -> Utils.showErrorDialog(t, e)));
+        Thread.currentThread().setUncaughtExceptionHandler(Utils::showErrorDialog);
 
         primaryStage.setTitle("Video processor");
         initRootLayout(primaryStage);
@@ -78,7 +78,7 @@ public class DigividProcessor extends Application {
             primaryStage.show();
         } catch (IOException ioe) {
             log.error("Error occured while loading file in initRootLayout", ioe);
-            TextUtils.showErrorDialog(Thread.currentThread(), ioe);
+            Utils.showErrorDialog(Thread.currentThread(), ioe);
         }
     }
 }

@@ -1,8 +1,6 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -97,7 +95,7 @@ public class Controller {
             }
         } catch (IOException e) {
             log.error("Caught exception while reading {}", DigividProcessor.channelCSV, e);
-            TextUtils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
 
         txtFilename.setEditable(false);
@@ -110,14 +108,10 @@ public class Controller {
         GridPane.setRowIndex(altChannel, 4);
         GridPane.setColumnIndex(altChannel, 0);
 
-        txtFilename.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> ob, String o,
-                                String n) {
-                // expand the textfield
-                txtFilename.setPrefWidth(TextUtils.computeTextWidth(txtFilename.getFont(),
-                        txtFilename.getText(), 0.0D) + 20);
-            }
+        txtFilename.textProperty().addListener((ob, o, n) -> {
+            // expand the textfield
+            txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(),
+                    txtFilename.getText(), 0.0D) + 20);
         });
         startDatePicker.setOnAction(event -> endDatePicker.setValue(startDatePicker.getValue()));
 
@@ -237,7 +231,7 @@ public class Controller {
                                 break;
                         } catch (InterruptedException e) {
                             log.error("Thread error in setDataPath: "+e.getMessage(), e);
-                            TextUtils.showErrorDialog(Thread.currentThread(), e);
+                            Utils.showErrorDialog(Thread.currentThread(), e);
                         }
                     }
                 }
@@ -245,7 +239,7 @@ public class Controller {
 
         } catch (IOException e) {
             log.error("Error in setDataPath: " + e.getMessage(), e);
-            TextUtils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
         tableView.setOnMouseClicked(new FileclickMouseEventHandler());
     }
@@ -264,7 +258,7 @@ public class Controller {
             Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes("UTF-8"));
         } catch (IOException ioe) {
             log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
-            TextUtils.showErrorDialog(Thread.currentThread(), ioe);
+            Utils.showErrorDialog(Thread.currentThread(), ioe);
         }
     }
 
@@ -287,7 +281,7 @@ public class Controller {
             }
         } catch (IOException e) {
             log.warn("Error occured reading {}", DigividProcessor.localProperties);
-            TextUtils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
     }
 
@@ -326,7 +320,7 @@ public class Controller {
                             tsFiles.close();
                     } catch (IOException ioe) {
                         log.error("Error occured while loading files", ioe);
-                        TextUtils.showErrorDialog(Thread.currentThread(), ioe);
+                        Utils.showErrorDialog(Thread.currentThread(), ioe);
                     }
                 }
                 ObservableList<TableColumn<VideoFileObject,?>> sortOrder = tableView.getSortOrder();
@@ -336,7 +330,7 @@ public class Controller {
                 tableView.getSelectionModel().select(0);
             } else {
                 log.error("Datapath is not defined when file is loaded");
-                TextUtils.showErrorDialog(Thread.currentThread(), new Exception("Datapath is not defined when file is loaded"));
+                Utils.showErrorDialog(Thread.currentThread(), new Exception("Datapath is not defined when file is loaded"));
             }
         }
     }
@@ -344,7 +338,7 @@ public class Controller {
     /**
      * Reads all the values set by the user and sets them on the current VideoFileObject before calling the commit()
      * method on that object.
-     * @param actionEvent
+     * @param actionEvent The event that activated commit
      */
     public void commit(ActionEvent actionEvent) {
         VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
@@ -439,7 +433,7 @@ public class Controller {
             pb.start();
         } catch (IOException e) {
             log.error("{} could not be played", thisRow.getFilename());
-            TextUtils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
     }
 

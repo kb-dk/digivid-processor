@@ -84,10 +84,10 @@ public class VideoFileObject {
                 }
             } catch (IOException e) {
                 log.error("IO exception happened in VideoFileObject(Path path)");
-                TextUtils.showErrorDialog(Thread.currentThread(), e);
+                Utils.showErrorDialog(Thread.currentThread(), e);
             } catch (NullPointerException nEx) {
                 log.error("Null pointer exception happened in VideoFileObject(Path path))");
-                TextUtils.showErrorDialog(Thread.currentThread(), nEx);
+                Utils.showErrorDialog(Thread.currentThread(), nEx);
             }
         }
     }
@@ -214,7 +214,7 @@ public class VideoFileObject {
     /**
      * Filenames look like:
      * dr1_digivid.1425196800-2015-03-01-09.00.00_1425200400-2015-03-01-10.00.00.ts
-     * @return
+     * @return The new filename
      */
     private String buildFilename() {
         DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd-HH.mm.ss");
@@ -244,7 +244,7 @@ public class VideoFileObject {
             checksum = DigestUtils.md5Hex(Files.newInputStream(videoFilePath));
         } catch (IOException e) {
             log.error("IO exception happened when setting checksum in commit");
-            TextUtils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
@@ -252,7 +252,7 @@ public class VideoFileObject {
             }
         } catch (IOException e) {
             log.error("IO exception happened when moving the file in commit");
-            TextUtils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             this.encoderName = InetAddress.getLocalHost().getHostName();
@@ -265,13 +265,13 @@ public class VideoFileObject {
             Files.delete(vhsFileMetadataFilePath);
         } catch (IOException e) {
             log.error("IO exception happened when deleting the file in commit");
-            TextUtils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes());
         } catch (IOException e) {
             log.error("IO exception happened when writing the file in commit");
-            TextUtils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
     }
 }

@@ -29,8 +29,7 @@
                             <Insets top="6.0"/>
                         </HBox.margin>
                     </Label>
-                    <TextField id="txtManufacturer" fx:id="txtManufacturer"
-                               onAction="#handleLocalProperties"
+                    <TextField id="txtManufacturer" fx:id="txtManufacturer" onAction="#handleLocalProperties"
                                onMouseExited="#handleLocalProperties"/>
                 </HBox>
                 <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1">
@@ -48,13 +47,13 @@
                             <Insets top="6.0"/>
                         </HBox.margin>
                     </Label>
-                    <TextField id="txtSerial" fx:id="txtSerial" onAction="#handleLocalProperties"
-                               onMouseExited="#handleLocalProperties"/>
+                    <TextField id="txtSerial" fx:id="txtSerial" alignment="CENTER_RIGHT"
+                               onAction="#handleLocalProperties" onMouseExited="#handleLocalProperties"/>
                 </HBox>
             </GridPane>
             <TableView id="tableView" fx:id="tableView" layoutY="29.0" prefHeight="368.0" prefWidth="377.0"
-                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
+                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                       AnchorPane.topAnchor="40.0">
                 <columns>
                     <TableColumn fx:id="processedColumn" maxWidth="600.0" prefWidth="30.0" text="Processed">
                         <cellValueFactory>
@@ -80,13 +79,12 @@
         </AnchorPane>
         <AnchorPane id="detailVHS" fx:id="detailVHS" maxHeight="510.0" minHeight="0.0" minWidth="0.0"
                     prefHeight="160.0" prefWidth="100.0">
-            <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0"
-                      prefWidth="878.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="5.0"
-                      AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
+            <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0" prefWidth="878.0"
+                      AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
+                      AnchorPane.topAnchor="0.0">
                 <columnConstraints>
                     <ColumnConstraints hgrow="NEVER" maxWidth="5531.0" minWidth="10.0" prefWidth="157.0"/>
-                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="5143.0" minWidth="10.0"
-                                       prefWidth="1111.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="5143.0" minWidth="10.0" prefWidth="1111.0"/>
                 </columnConstraints>
                 <rowConstraints>
                     <RowConstraints maxHeight="44.0" minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
@@ -100,9 +98,8 @@
                 </rowConstraints>
                 <Label alignment="TOP_LEFT" contentDisplay="TOP" text="Filename" GridPane.rowIndex="1"/>
                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
-                    <TextField id="txtFilename" fx:id="txtFilename" alignment="BOTTOM_LEFT"
-                               prefHeight="25.0" prefWidth="0.0"
-                               stylesheets="@Digivid-stylesheet.css"/>
+                    <TextField id="txtFilename" fx:id="txtFilename" alignment="BOTTOM_LEFT" prefHeight="25.0"
+                               prefWidth="0.0" stylesheets="@Digivid-stylesheet.css"/>
                     <HBox alignment="CENTER_LEFT" prefWidth="40"/>
                     <Button alignment="BOTTOM_CENTER" onAction="#playCurrentFile" text="Play"/>
                 </HBox>
@@ -116,12 +113,10 @@
                     </GridPane.margin>
                 </Label>
                 <Label alignment="TOP_LEFT" text="Channel" GridPane.rowIndex="7"/>
-                <TextField id="txtVhsLabel" fx:id="txtVhsLabel" GridPane.columnIndex="1"
-                           GridPane.rowIndex="2"/>
+                <TextField id="txtVhsLabel" fx:id="txtVhsLabel" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                 <TextArea id="txtComment" fx:id="txtComment" prefHeight="200.0" prefWidth="200.0"
                           GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-                <ComboBox id="cmbQuality" fx:id="cmbQuality" GridPane.columnIndex="1"
-                          GridPane.rowIndex="4">
+                <ComboBox id="cmbQuality" fx:id="cmbQuality" GridPane.columnIndex="1" GridPane.rowIndex="4">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="1 (Worst Quality)"/>
@@ -148,8 +143,8 @@
                         </HBox.margin>
                     </DatePicker>
                 </HBox>
-                <HBox alignment="CENTER_LEFT" prefHeight="51.0" prefWidth="1107.0"
-                      GridPane.columnIndex="1" GridPane.rowIndex="6">
+                <HBox alignment="CENTER_LEFT" prefHeight="51.0" prefWidth="1107.0" GridPane.columnIndex="1"
+                      GridPane.rowIndex="6">
                     <TextField id="endTimeField" fx:id="endTimeField"/>
                     <DatePicker id="endDatePicker" fx:id="endDatePicker" showWeekNumbers="true">
                         <HBox.margin>
@@ -183,7 +178,7 @@
                             <Insets top="6.0"/>
                         </HBox.margin>
                     </Label>
-                    <TextField id="txtProcessedSerial" fx:id="txtProcessedSerial"/>
+                    <TextField id="txtProcessedSerial" fx:id="txtProcessedSerial" alignment="CENTER_RIGHT"/>
                 </HBox>
             </GridPane>
             <Button layoutX="530.0" layoutY="520.0" onAction="#commit" text="Process"
