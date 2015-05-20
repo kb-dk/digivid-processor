@@ -48,4 +48,8 @@ public class Utils {
         Platform.exit();
     }
 
+    static public void showWarning(String informationStr) {
+        Dialogs.create().title("Warning").message(informationStr).showWarning();
+    }
+
 }

@@ -343,51 +343,55 @@ public class Controller {
     public void commit(ActionEvent actionEvent) {
         VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
         if (txtVhsLabel.getText() != null && txtVhsLabel.getText().trim().isEmpty()) {
-            error.setText("VHS label has to be filled");
+            Utils.showWarning("VHS label has to be filled");
             return;
         }
         if (startDatePicker.getValue() == null) {
-            error.setText("No Start Date Set.");
+            Utils.showWarning("No Start Date Set.");
             return;
         }
         if (startTimeField.getText().isEmpty()) {
-            error.setText("No Start Time Set.");
+            Utils.showWarning("No Start Time Set.");
             return;
         }
         else if (!Pattern.matches(hourPattern,startTimeField.getText())){
-            error.setText("Start time not valid");
+            Utils.showWarning("Start time not valid");
             return;
         }
         String[] timeStr = startTimeField.getText().split(":");
         LocalDate localDate = startDatePicker.getValue();
         Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(Date.from(instant));
-        calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
-        calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisVideoFileRow.setStartDate(calendar.getTime().getTime());
+        Calendar startCalendar = Calendar.getInstance();
+        startCalendar.setTime(Date.from(instant));
+        startCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
+        startCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
+        thisVideoFileRow.setStartDate(startCalendar.getTime().getTime());
 
         if ((endDatePicker.getValue() != null && endDatePicker.getValue().toString().isEmpty()) || (endDatePicker.getValue() == null)) {
-            error.setText("No End Date Set.");
+            Utils.showWarning("No End Date Set.");
             return;
         }
 
         if (endTimeField.getText().isEmpty()) {
-            error.setText("No End Time Set.");
+            Utils.showWarning("No End Time Set.");
             return;
         }
         else if (!Pattern.matches(hourPattern,endTimeField.getText())){
-            error.setText("End time not valid");
+            Utils.showWarning("End time not valid");
             return;
         }
         timeStr = endTimeField.getText().split(":");
         localDate = endDatePicker.getValue();
         instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        calendar = Calendar.getInstance();
-        calendar.setTime(Date.from(instant));
-        calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
-        calendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisVideoFileRow.setEndDate(calendar.getTime().getTime());
+        Calendar endCalendar = Calendar.getInstance();
+        endCalendar.setTime(Date.from(instant));
+        endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
+        endCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
+        thisVideoFileRow.setEndDate(endCalendar.getTime().getTime());
+        if (startCalendar.getTime().after(endCalendar.getTime())) {
+            Utils.showWarning("Start time must be before end time");
+            return;
+        }
 
         final Toggle selectedToggle = channelGroup.getSelectedToggle();
         String altChannel = this.altChannel.getText();
@@ -397,7 +401,7 @@ public class Controller {
                 thisVideoFileRow.setChannel(altChannel);
             }
             else {
-                error.setText("Channel not valid");
+                Utils.showWarning("Channel not valid");
                 return;
             }
 
@@ -409,7 +413,7 @@ public class Controller {
             thisVideoFileRow.setChannel(channel);
         }
         if (thisVideoFileRow.getChannel() == null) {
-            error.setText("No channel specified.");
+            Utils.showWarning("No channel specified.");
             return;
         }
         thisVideoFileRow.setQuality(cmbQuality.getValue());
