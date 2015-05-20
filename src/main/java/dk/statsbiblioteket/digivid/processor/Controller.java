@@ -36,7 +36,6 @@ public class Controller {
     private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
     private static final String channelPattern = "^[a-z0-9]{3,}$";
     private static Logger log = LoggerFactory.getLogger(Controller.class);
-    @FXML public Label error;
     @FXML public TableView<VideoFileObject> tableView;
     @FXML public GridPane channelGridPane;
     @FXML public TableColumn<VideoFileObject, Date> lastmodifiedColumn;
@@ -65,18 +64,6 @@ public class Controller {
     private Path dataPath;
     private TextField altChannel;
 
-    private static List<List<String>> getCSV(String csvFile) throws IOException {
-        List<List<String>> csvData = new ArrayList<>();
-        List<String> lines = Files.readAllLines(Paths.get(csvFile), Charset.defaultCharset());
-        for (String line : lines) {
-            String[] splitted = line.split(",");
-            List<String> dataLine = new ArrayList<>(splitted.length);
-            Collections.addAll(dataLine, splitted);
-            csvData.add(dataLine);
-        }
-        return csvData;
-    }
-
     @FXML public void handleLocalProperties() {
         writeLocalProperties();
     }
@@ -86,11 +73,14 @@ public class Controller {
         detailVHS.setVisible(false);
         if (lastmodifiedColumn != null) lastmodifiedColumn.setComparator(Date::compareTo);
         try {
-            List<List<String>> channels = getCSV(DigividProcessor.channelCSV);
+            List<List<String>> channels = Utils.getCSV(DigividProcessor.channelCSV);
             for(List<String> channel : channels) {
-                if (channel.size() > 1) {
-                    addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
-                            Integer.parseInt(channel.get(4)));
+                if (channel.size() > 2) {
+                    if (channel.get(5).equals("Radiobutton")) {
+                        addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
+                                Integer.parseInt(channel.get(4)));
+                    } else if (channel.get(5).equals("TextField"))
+                        addChannelTextfield(Integer.parseInt(channel.get(3)), Integer.parseInt(channel.get(4)));
                 }
             }
         } catch (IOException e) {
@@ -99,23 +89,16 @@ public class Controller {
         }
 
         txtFilename.setEditable(false);
+        //Use css-style to make the textfield seem like a label
         txtFilename.getStyleClass().add("copyable-label");
-
-        altChannel = new TextField();
-        altChannel.setId("altChannel");
-        altChannel.setPrefWidth(150.0);
-        channelGridPane.getChildren().add(altChannel);
-        GridPane.setRowIndex(altChannel, 4);
-        GridPane.setColumnIndex(altChannel, 0);
-
-        txtFilename.textProperty().addListener((ob, o, n) -> {
+        txtFilename.textProperty().addListener((ob, o, n) ->
+        {
             // expand the textfield
             txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(),
                     txtFilename.getText(), 0.0D) + 20);
         });
+
         startDatePicker.setOnAction(event -> endDatePicker.setValue(startDatePicker.getValue()));
-
-
         startDatePicker.setConverter(new StringConverter<LocalDate>() {
             DateTimeFormatter dtf = DateTimeFormatter.ISO_DATE;
 
@@ -147,7 +130,7 @@ public class Controller {
         readLocalProperties();
 
         /**
-         * Custom rendering of the table cell to have format specified "yyyy-mm-dd.
+         * Custom rendering of the table cell to have format specified "yyyy-mm-dd hh:mm.
          */
         lastmodifiedColumn.setCellFactory(column -> {
             SimpleDateFormat myDateFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm");
@@ -298,6 +281,15 @@ public class Controller {
         GridPane.setRowIndex(rb1, row);
     }
 
+    private void addChannelTextfield(int row, int column) {
+        altChannel = new TextField();
+        altChannel.setId("altChannel");
+        altChannel.setPrefWidth(150.0);
+        channelGridPane.getChildren().add(altChannel);
+        GridPane.setRowIndex(altChannel, 4);
+        GridPane.setColumnIndex(altChannel, 0);
+    }
+
     /**
      * The tableview displays an overview of ts-files
      */
@@ -342,8 +334,24 @@ public class Controller {
      */
     public void commit(ActionEvent actionEvent) {
         VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+
+        if (txtProcessedManufacturer.getText().trim().isEmpty()) {
+            Utils.showWarning("Manufacturer field is not allowed to be empty");
+            return;
+        }
+
+        if (txtProcessedModel.getText().trim().isEmpty()) {
+            Utils.showWarning("Model field is not allowed to be empty");
+            return;
+        }
+
+        if (txtProcessedSerial.getText().trim().isEmpty()) {
+            Utils.showWarning("Serial number field is not allowed to be empty");
+            return;
+        }
+
         if (txtVhsLabel.getText() != null && txtVhsLabel.getText().trim().isEmpty()) {
-            Utils.showWarning("VHS label has to be filled");
+            Utils.showWarning("VHS label field is not allowed to be empty");
             return;
         }
         if (startDatePicker.getValue() == null) {
@@ -389,7 +397,7 @@ public class Controller {
         endCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
         thisVideoFileRow.setEndDate(endCalendar.getTime().getTime());
         if (startCalendar.getTime().after(endCalendar.getTime())) {
-            Utils.showWarning("Start time must be before end time");
+            Utils.showWarning("Start time has to be before end time");
             return;
         }
 
@@ -422,7 +430,6 @@ public class Controller {
         thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
         thisVideoFileRow.setModel(txtProcessedModel.getText());
         thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
-        error.setText(null);
         thisVideoFileRow.commit();
         detailVHS.setVisible(false);
     }
@@ -445,7 +452,6 @@ public class Controller {
      * Show the file details for the file (which is found in the files localProperties file), that the user clicked on
      */
     private void loadFile(VideoFileObject currentVideoFile) {
-        error.setText(null);
         txtFilename.setText(currentVideoFile.getFilename());
         GregorianCalendar startCalendar = new GregorianCalendar();
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");

@@ -197,8 +197,6 @@
                 </HBox>
             </GridPane>
             <Button layoutX="530.0" layoutY="520.0" onAction="#commit" text="Process" AnchorPane.bottomAnchor="0.0"/>
-            <Label fx:id="error" layoutX="598.0" layoutY="517.0" style="-fx-background-color:coral"
-                   AnchorPane.bottomAnchor="0.0"/>
         </AnchorPane>
     </SplitPane>
 </AnchorPane>

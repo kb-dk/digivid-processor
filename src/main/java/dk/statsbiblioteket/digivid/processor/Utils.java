@@ -6,6 +6,14 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import org.controlsfx.dialog.Dialogs;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class Utils {
 
     static final Text helper;
@@ -50,6 +58,18 @@ public class Utils {
 
     static public void showWarning(String informationStr) {
         Dialogs.create().title("Warning").message(informationStr).showWarning();
+    }
+
+    public static List<List<String>> getCSV(String csvFile) throws IOException {
+        List<List<String>> csvData = new ArrayList<>();
+        List<String> lines = Files.readAllLines(Paths.get(csvFile), Charset.defaultCharset());
+        for (String line : lines) {
+            String[] splitted = line.split(",");
+            List<String> dataLine = new ArrayList<>(splitted.length);
+            Collections.addAll(dataLine, splitted);
+            csvData.add(dataLine);
+        }
+        return csvData;
     }
 
 }
