@@ -48,8 +48,10 @@ public class VideoFileObjectTest {
     @Test
     public void testCommit() throws IOException {
         Path path = dir.resolve("f1.ts");
-        Files.createDirectories(dir);
-        Files.createFile(path);
+        if (!Files.exists(path)) {
+            Files.createDirectories(dir);
+            Files.createFile(path);
+        }
         VideoFileObject videoFileObject = new VideoFileObject(path);
         videoFileObject.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime().getTime());
         videoFileObject.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime().getTime());

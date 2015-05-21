@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -248,7 +249,7 @@ public class VideoFileObject {
         }
         try {
             if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
-                Files.move(videoFilePath, newPath);
+                Files.move(videoFilePath, newPath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
             log.error("IO exception happened when moving the file in commit");
@@ -262,7 +263,8 @@ public class VideoFileObject {
         String vhsFileMetadata = new VideoFileObject(this).toJson();
         Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
         try {
-            Files.delete(vhsFileMetadataFilePath);
+            if (Files.exists(vhsFileMetadataFilePath))
+                Files.delete(vhsFileMetadataFilePath);
         } catch (IOException e) {
             log.error("IO exception happened when deleting the file in commit");
             Utils.showErrorDialog(Thread.currentThread(), e);
