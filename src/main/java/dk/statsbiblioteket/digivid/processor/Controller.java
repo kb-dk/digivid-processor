@@ -335,103 +335,117 @@ public class Controller {
     public void commit(ActionEvent actionEvent) {
         VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
 
-        if (txtProcessedManufacturer.getText().trim().isEmpty()) {
-            Utils.showWarning("Manufacturer field is not allowed to be empty");
-            return;
-        }
+        if (!setValidChannel(thisVideoFileRow)) return;
+        if (!setValidDate(thisVideoFileRow)) return;
+        if (!validVideoMetadata()) return;
 
-        if (txtProcessedModel.getText().trim().isEmpty()) {
-            Utils.showWarning("Model field is not allowed to be empty");
-            return;
-        }
-
-        if (txtProcessedSerial.getText().trim().isEmpty()) {
-            Utils.showWarning("Serial number field is not allowed to be empty");
-            return;
-        }
-
-        if (txtVhsLabel.getText() != null && txtVhsLabel.getText().trim().isEmpty()) {
-            Utils.showWarning("VHS label field is not allowed to be empty");
-            return;
-        }
-        if (startDatePicker.getValue() == null) {
-            Utils.showWarning("No Start Date Set.");
-            return;
-        }
-        if (startTimeField.getText().isEmpty()) {
-            Utils.showWarning("No Start Time Set.");
-            return;
-        }
-        else if (!Pattern.matches(hourPattern,startTimeField.getText())){
-            Utils.showWarning("Start time not valid");
-            return;
-        }
-        String[] timeStr = startTimeField.getText().split(":");
-        LocalDate localDate = startDatePicker.getValue();
-        Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        Calendar startCalendar = Calendar.getInstance();
-        startCalendar.setTime(Date.from(instant));
-        startCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
-        startCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisVideoFileRow.setStartDate(startCalendar.getTime().getTime());
-
-        if ((endDatePicker.getValue() != null && endDatePicker.getValue().toString().isEmpty()) || (endDatePicker.getValue() == null)) {
-            Utils.showWarning("No End Date Set.");
-            return;
-        }
-
-        if (endTimeField.getText().isEmpty()) {
-            Utils.showWarning("No End Time Set.");
-            return;
-        }
-        else if (!Pattern.matches(hourPattern,endTimeField.getText())){
-            Utils.showWarning("End time not valid");
-            return;
-        }
-        timeStr = endTimeField.getText().split(":");
-        localDate = endDatePicker.getValue();
-        instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        Calendar endCalendar = Calendar.getInstance();
-        endCalendar.setTime(Date.from(instant));
-        endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
-        endCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisVideoFileRow.setEndDate(endCalendar.getTime().getTime());
-        if (startCalendar.getTime().after(endCalendar.getTime())) {
-            Utils.showWarning("Start time has to be before end time");
-            return;
-        }
-
-        final Toggle selectedToggle = channelGroup.getSelectedToggle();
-        String altChannel = this.altChannel.getText();
-        if (altChannel != null && altChannel.length() > 0 ) {
-
-            if (Pattern.matches(channelPattern,altChannel)) {
-                thisVideoFileRow.setChannel(altChannel);
-            }
-            else {
-                Utils.showWarning("Channel not valid");
-                return;
-            }
-
-        } else {
-            String channel = null;
-            if ( selectedToggle != null) {
-                channel = ((Channel) selectedToggle.getUserData()).getChannelName();
-            }
-            thisVideoFileRow.setChannel(channel);
-        }
-        if (thisVideoFileRow.getChannel() == null) {
-            Utils.showWarning("No channel specified.");
-            return;
-        }
         thisVideoFileRow.setQuality(cmbQuality.getValue());
         thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
         thisVideoFileRow.setComment(txtComment.getText());
         thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
         thisVideoFileRow.setModel(txtProcessedModel.getText());
         thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
-        thisVideoFileRow.commit();
         detailVHS.setVisible(false);
+
+        thisVideoFileRow.commit();
+    }
+
+    private boolean setValidDate(VideoFileObject thisVideoFileRow) {
+        if (startDatePicker.getValue() == null) {
+            Utils.showWarning("No Start Date Set.");
+            return false;
+        }
+        if (startTimeField.getText().isEmpty()) {
+            Utils.showWarning("No Start Time Set.");
+            return false;
+        } else if (!Pattern.matches(hourPattern, startTimeField.getText())) {
+            Utils.showWarning("Start time not valid");
+            return false;
+        }
+        if ((endDatePicker.getValue() != null && endDatePicker.getValue().toString().isEmpty()) || (endDatePicker.getValue() == null)) {
+            Utils.showWarning("No End Date Set.");
+            return false;
+        }
+
+        if (endTimeField.getText().isEmpty()) {
+            Utils.showWarning("No End Time Set.");
+            return false;
+        } else if (!Pattern.matches(hourPattern, endTimeField.getText())) {
+            Utils.showWarning("End time not valid");
+            return false;
+        }
+
+        LocalDate localDate = startDatePicker.getValue();
+        Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        Calendar startCalendar = Calendar.getInstance();
+        startCalendar.setTime(Date.from(instant));
+
+        String[] timeStr = startTimeField.getText().split(":");
+        startCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
+        startCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
+        thisVideoFileRow.setStartDate(startCalendar.getTime().getTime());
+
+        localDate = endDatePicker.getValue();
+        instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        Calendar endCalendar = Calendar.getInstance();
+        endCalendar.setTime(Date.from(instant));
+
+        timeStr = endTimeField.getText().split(":");
+        endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
+        endCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
+        thisVideoFileRow.setEndDate(endCalendar.getTime().getTime());
+
+        if (startCalendar.getTime().after(endCalendar.getTime())) {
+            Utils.showWarning("Start time has to be before end time");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean setValidChannel(VideoFileObject thisVideoFileRow) {
+        final Toggle selectedToggle = channelGroup.getSelectedToggle();
+        String altChannel = this.altChannel.getText();
+        if (altChannel != null && altChannel.length() > 0) {
+            if (Pattern.matches(channelPattern, altChannel)) {
+                thisVideoFileRow.setChannel(altChannel);
+            } else {
+                Utils.showWarning("Channel has to be at least 3 lowercase alphanumeric characters");
+                return false;
+            }
+        } else {
+            String channel = null;
+            if (selectedToggle != null) {
+                channel = ((Channel) selectedToggle.getUserData()).getChannelName();
+            }
+            thisVideoFileRow.setChannel(channel);
+        }
+        if (thisVideoFileRow.getChannel() == null) {
+            Utils.showWarning("No channel specified.");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean validVideoMetadata() {
+        if (txtProcessedManufacturer.getText().trim().isEmpty()) {
+            Utils.showWarning("Manufacturer field is not allowed to be empty");
+            return false;
+        }
+        if (txtProcessedModel.getText().trim().isEmpty()) {
+            Utils.showWarning("Model field is not allowed to be empty");
+            return false;
+        }
+
+        if (txtProcessedSerial.getText().trim().isEmpty()) {
+            Utils.showWarning("Serial number field is not allowed to be empty");
+            return false;
+        }
+
+        if (txtVhsLabel.getText() != null && txtVhsLabel.getText().trim().isEmpty()) {
+            Utils.showWarning("VHS label field is not allowed to be empty");
+            return false;
+        }
+        return true;
     }
 
     /**
