@@ -6,3 +6,7 @@ target
 .project
 .classpath
 .settings
+*.ts
+*.comments
+*.csv
+src/main/config/localVHS.properties

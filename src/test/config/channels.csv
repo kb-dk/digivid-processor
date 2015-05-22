@@ -1,18 +1,25 @@
-dr1,DR1,white,0,0
-dr2,DR2,lightgray,0,1
-tv2d,TV2Danmark,white,0,2
-tv2l,TV2Lorry,lightgray,0,3
-tv2s,TVSyd,white,0,4
-tv2n,TV2Nord,lightgray,1,0
-tvfyn,TVFyn,white,1,1
-tv2mv,TV2Midt/Vest,lightgray,1,2
-tv2born,TV2Bornholm,white,1,3
-tv2oj,TV2Østjylland,lightgray,1,4
-tv3,TV3,white,2,0
-tv3p,TV3+,lightgray,2,1
-tvdk,TVDanmark,white,2,2
-kanal5,Kanal5,lightgray,2,3
-dk4,DK4,white,2,4
-tvsport,TVSport,lightgray,3,0
-tv2zulu,TV2-Zulu,white,3,1
-tv2charlie,TV2-Charlie,lightgray,3,2
+//1. parameter: Channel name which is put in to the json-file
+//2. parameter: What is presented in the GUI's radiobutton, if the last parameter is Radiobutton
+//3. parameter: The color that the radiobutton should have, if the last parameter is Radiobutton
+//4. parameter: The row which the control type should be placed in
+//5. parameter: The column which the control type should be placed in
+//6. parameter: Identifies what control type the item is
+dr1,DR1,white,0,0,Radiobutton
+dr2,DR2,lightgray,0,1,Radiobutton
+tv2d,TV2Danmark,white,0,2,Radiobutton
+tv2l,TV2Lorry,lightgray,0,3,Radiobutton
+tv2s,TVSyd,white,0,4,Radiobutton
+tv2n,TV2Nord,lightgray,1,0,Radiobutton
+tvfyn,TVFyn,white,1,1,Radiobutton
+tv2mv,TV2Midt/Vest,lightgray,1,2,Radiobutton
+tv2born,TV2Bornholm,white,1,3,Radiobutton
+tv2oj,TV2Østjylland,lightgray,1,4,Radiobutton
+tv3,TV3,white,2,0,Radiobutton
+tv3p,TV3+,lightgray,2,1,Radiobutton
+tvdk,TVDanmark,white,2,2,Radiobutton
+kanal5,Kanal5,lightgray,2,3,Radiobutton
+dk4,DK4,white,2,4,Radiobutton
+tvsport,TVSport,lightgray,3,0,Radiobutton
+tv2zulu,TV2-Zulu,white,3,1,Radiobutton
+tv2charlie,TV2-Charlie,lightgray,3,2,Radiobutton
+empty,empty,white,4,0,TextField
