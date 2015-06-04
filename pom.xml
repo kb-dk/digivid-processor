@@ -111,11 +111,23 @@
                 -->
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.5.4</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/main/assembly/digivid-processor_assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>jfx:jar</phase>
+                        <!-- append to the packaging phase. -->
+                        <goals>
+                            <goal>single</goal>
+                            <!-- goals == mojos -->
+                        </goals>
+                        <configuration>
+                            <finalName>digivid-processor</finalName>
+                            <descriptors>
+                                <descriptor>src/main/assembly/digivid-processor_assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
