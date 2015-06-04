@@ -64,8 +64,8 @@ public class VideoFileObject {
 
     public VideoFileObject(Path path) {
         videoFilePath = path;
-        filename = videoFilePath.getFileName().toString();
-        vhsFileMetadataFilePath = path.getParent().resolve(path.getFileName().toString() + ".comments");
+        filename = (videoFilePath.getFileName() != null) ? videoFilePath.getFileName().toString() : "";
+        vhsFileMetadataFilePath = path.getParent().resolve((path.getFileName() != null ? path.getFileName().toString() : "Illegal_parameters") + ".comments");
         if (Files.exists(vhsFileMetadataFilePath)) {
             final byte[] bytes;
             try {
@@ -240,7 +240,8 @@ public class VideoFileObject {
      */
     public void commit() {
         setFilename(buildFilename());
-        Path newPath = videoFilePath.getParent().resolve(Paths.get(filename));
+        Path newPath;
+        newPath = videoFilePath.getParent().resolve(Paths.get(filename));
         try {
             checksum = DigestUtils.md5Hex(Files.newInputStream(videoFilePath));
         } catch (IOException e) {
@@ -270,7 +271,7 @@ public class VideoFileObject {
             Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
-            Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes());
+            Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes("UTF-8"));
         } catch (IOException e) {
             log.error("IO exception happened when writing the file in commit");
             Utils.showErrorDialog(Thread.currentThread(), e);

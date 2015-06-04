@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 public class Controller {
 
     private static final int CHECKMARK = 10003;
-    private static final String hourPattern =  "([01]?[0-9]|2[0-3]):[0-5][0-9]";
+    private static final String hourPattern = "([01]?[0-9]|2[0-3]):[0-5][0-9]";
     private static final String channelPattern = "^[a-z0-9]{3,}$";
     private static Logger log = LoggerFactory.getLogger(Controller.class);
     @FXML public TableView<VideoFileObject> tableView;
@@ -64,7 +64,8 @@ public class Controller {
     private Path dataPath;
     private TextField altChannel;
 
-    @FXML public void handleLocalProperties() {
+    @FXML
+    public void handleLocalProperties() {
         writeLocalProperties();
     }
 
@@ -74,13 +75,13 @@ public class Controller {
         if (lastmodifiedColumn != null) lastmodifiedColumn.setComparator(Date::compareTo);
         try {
             List<List<String>> channels = Utils.getCSV(DigividProcessor.channelCSV);
-            for(List<String> channel : channels) {
+            for (List<String> channel : channels) {
                 if (channel.size() > 4) {
                     if (channel.get(5).equals("Radiobutton")) {
                         addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
                                 Integer.parseInt(channel.get(4)));
                     } else if (channel.get(5).equals("TextField"))
-                        addChannelTextfield(Integer.parseInt(channel.get(3)), Integer.parseInt(channel.get(4)));
+                        addChannelTextfield();
                 }
             }
         } catch (IOException e) {
@@ -111,7 +112,7 @@ public class Controller {
             public LocalDate fromString(String s) {
                 return LocalDate.parse(s, dtf);
             }
-        }) ;
+        });
 
         endDatePicker.setConverter(new StringConverter<LocalDate>() {
             DateTimeFormatter dtf = DateTimeFormatter.ISO_DATE;
@@ -125,7 +126,7 @@ public class Controller {
             public LocalDate fromString(String s) {
                 return LocalDate.parse(s, dtf);
             }
-        }) ;
+        });
 
         readLocalProperties();
 
@@ -196,21 +197,21 @@ public class Controller {
         });
     }
 
-    public Path getDataPath() {
+    private Path getDataPath() {
         return dataPath;
     }
 
-    public void setDataPath(Path dataPath) {
+    protected void setDataPath(Path dataPath) {
         this.dataPath = dataPath;
         try {
             WatchService service = getDataPath().getFileSystem().newWatchService();
             getDataPath().register(service,
                     StandardWatchEventKinds.ENTRY_CREATE,
                     StandardWatchEventKinds.ENTRY_DELETE);
-            new Thread(){
+            new Thread() {
                 @Override
                 public void run() {
-                    while(true) {
+                    while (true) {
                         try {
                             WatchKey key = service.take();
                             if (!key.pollEvents().isEmpty()) {
@@ -220,7 +221,7 @@ public class Controller {
                             if (!valid)
                                 break;
                         } catch (InterruptedException e) {
-                            log.error("Thread error in setDataPath: "+e.getMessage(), e);
+                            log.error("Thread error in setDataPath: " + e.getMessage(), e);
                             Utils.showErrorDialog(Thread.currentThread(), e);
                         }
                     }
@@ -288,7 +289,7 @@ public class Controller {
         GridPane.setRowIndex(rb1, row);
     }
 
-    private void addChannelTextfield(int row, int column) {
+    private void addChannelTextfield() {
         altChannel = new TextField();
         altChannel.setId("altChannel");
         altChannel.setPrefWidth(150.0);
@@ -300,7 +301,7 @@ public class Controller {
     /**
      * The tableview displays an overview of ts-files
      */
-    public void loadFilenames() {
+    protected void loadFilenames() {
         if (tableView != null) {
             ObservableList<VideoFileObject> videoFileObjects = FXCollections.observableList(new ArrayList<>());
             if (getDataPath() != null) {
@@ -322,7 +323,7 @@ public class Controller {
                         Utils.showErrorDialog(Thread.currentThread(), ioe);
                     }
                 }
-                ObservableList<TableColumn<VideoFileObject,?>> sortOrder = tableView.getSortOrder();
+                ObservableList<TableColumn<VideoFileObject, ?>> sortOrder = tableView.getSortOrder();
                 sortOrder.clear();
                 sortOrder.addAll(processedColumn, lastmodifiedColumn);
                 tableView.sort();
@@ -337,6 +338,7 @@ public class Controller {
     /**
      * Reads all the values set by the user and sets them on the current VideoFileObject before calling the commit()
      * method on that object.
+     *
      * @param actionEvent The event that activated commit
      */
     public void commit(ActionEvent actionEvent) {
@@ -357,7 +359,7 @@ public class Controller {
             Utils.showWarning("No Start Date Set.");
             return false;
         }
-        if (startTimeField.getText() == null || (startTimeField.getText() != null && startTimeField.getText().isEmpty())) {
+        if (startTimeField.getText() == null || (startTimeField.getText().isEmpty())) {
             Utils.showWarning("No Start Time Set.");
             return false;
         } else if (!Pattern.matches(hourPattern, startTimeField.getText())) {
@@ -369,7 +371,7 @@ public class Controller {
             return false;
         }
 
-        if (endTimeField.getText() == null || (endTimeField.getText() != null && endTimeField.getText().isEmpty())) {
+        if (endTimeField.getText() == null || (endTimeField.getText().isEmpty())) {
             Utils.showWarning("No End Time Set.");
             return false;
         } else if (!Pattern.matches(hourPattern, endTimeField.getText())) {
@@ -429,21 +431,21 @@ public class Controller {
     }
 
     private boolean setValidVideoMetadata(VideoFileObject thisVideoFileRow) {
-        if (txtProcessedManufacturer.getText() == null || (txtProcessedManufacturer.getText() != null && txtProcessedManufacturer.getText().trim().isEmpty())) {
+        if (txtProcessedManufacturer.getText() == null || (txtProcessedManufacturer.getText().trim().isEmpty())) {
             Utils.showWarning("Manufacturer is not allowed to be empty");
             return false;
         }
-        if (txtProcessedModel.getText() == null || (txtProcessedModel.getText() != null && txtProcessedModel.getText().trim().isEmpty())) {
+        if (txtProcessedModel.getText() == null || (txtProcessedModel.getText().trim().isEmpty())) {
             Utils.showWarning("Model field is not allowed to be empty");
             return false;
         }
 
-        if (txtProcessedSerial.getText() == null || (txtProcessedSerial.getText() != null && txtProcessedSerial.getText().trim().isEmpty())) {
+        if (txtProcessedSerial.getText() == null || (txtProcessedSerial.getText().trim().isEmpty())) {
             Utils.showWarning("Serial number is not allowed to be empty");
             return false;
         }
 
-        if (txtVhsLabel.getText() == null || (txtVhsLabel.getText() != null && txtVhsLabel.getText().trim().isEmpty())) {
+        if (txtVhsLabel.getText() == null || (txtVhsLabel.getText().trim().isEmpty())) {
             Utils.showWarning("Video label is not allowed to be empty");
             return false;
         }
