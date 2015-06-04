@@ -1,10 +1,20 @@
 package dk.statsbiblioteket.digivid.processor;
 
+import javafx.application.Platform;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
+import org.controlsfx.dialog.Dialogs;
 
-public class TextUtils {
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class Utils {
 
     static final Text helper;
     static final double DEFAULT_WRAPPING_WIDTH;
@@ -38,4 +48,28 @@ public class TextUtils {
         helper.setText(DEFAULT_TEXT);
         return d;
     }
+
+    static public void showErrorDialog(Thread t, Throwable e) {
+        Dialogs.create().title("Error").message("An uncaught exception was thrown in thread " + t + ".\n" +
+                "Click below to view the stacktrace, or close this " +
+                "dialog to terminate the application.").showException(e);
+        Platform.exit();
+    }
+
+    static public void showWarning(String informationStr) {
+        Dialogs.create().title("Warning").message(informationStr).showWarning();
+    }
+
+    public static List<List<String>> getCSV(String csvFile) throws IOException {
+        List<List<String>> csvData = new ArrayList<>();
+        List<String> lines = Files.readAllLines(Paths.get(csvFile), Charset.defaultCharset());
+        for (String line : lines) {
+            String[] splitted = line.split(",");
+            List<String> dataLine = new ArrayList<>(splitted.length);
+            Collections.addAll(dataLine, splitted);
+            csvData.add(dataLine);
+        }
+        return csvData;
+    }
+
 }

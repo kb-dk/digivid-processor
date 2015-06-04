@@ -2,6 +2,8 @@ package dk.statsbiblioteket.digivid.processor;
 
 import com.google.gson.Gson;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -9,16 +11,19 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- *
+ * Class which beside the properties about the videfile also has methods for renaming the videofile and
+ * commiting the class which also writes a json-file
  */
 public class VideoFileObject {
 
+    private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
     private Path videoFilePath;
     private Path vhsFileMetadataFilePath;
     private String filename;
@@ -79,15 +84,13 @@ public class VideoFileObject {
                     serialNo = videoFileObject.getSerialNo();
                 }
             } catch (IOException e) {
-                //??
+                log.error("IO exception happened in VideoFileObject(Path path)");
+                Utils.showErrorDialog(Thread.currentThread(), e);
             } catch (NullPointerException nEx) {
-                nEx.printStackTrace();
+                log.error("Null pointer exception happened in VideoFileObject(Path path))");
+                Utils.showErrorDialog(Thread.currentThread(), nEx);
             }
         }
-    }
-
-    public static VideoFileObject fromJson(String json) {
-        return (new Gson()).fromJson(json, VideoFileObject.class);
     }
 
     private static Date toDate(Long l) {
@@ -99,8 +102,8 @@ public class VideoFileObject {
         return date;
     }
 
-    public String toJson() {
-        return (new Gson()).toJson(this);
+    public static VideoFileObject fromJson(String json) {
+        return (new Gson()).fromJson(json, VideoFileObject.class);
     }
 
     public String getFilename() {
@@ -187,6 +190,16 @@ public class VideoFileObject {
         this.serialNo = serialNo;
     }
 
+    //Even though the compiler tells that it can be removed, it cannot because when removing it the processed marks
+    //in the file list overview disappears
+    public Boolean isProcessed() {
+        return Files.exists(vhsFileMetadataFilePath);
+    }
+
+    public String toJson() {
+        return (new Gson()).toJson(this);
+    }
+
     public Date getLastmodified() {
         FileTime lastModifiedTime;
         try {
@@ -199,14 +212,10 @@ public class VideoFileObject {
         return date;
     }
 
-    public Boolean isProcessed() {
-        return Files.exists(vhsFileMetadataFilePath);
-    }
-
     /**
      * Filenames look like:
      * dr1_digivid.1425196800-2015-03-01-09.00.00_1425200400-2015-03-01-10.00.00.ts
-     * @return
+     * @return The new filename
      */
     private String buildFilename() {
         DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd-HH.mm.ss");
@@ -217,18 +226,17 @@ public class VideoFileObject {
         if (getEndDate() == null) {
             setEndDate(new Date().getTime());
         }
-        String e1 = "" + channel;
-        String e2 = "" + getStartDate() / 1000L;
-        String e3 = dateFormat.format(getStartDate());
-        String e4 = "" + getEndDate() / 1000L;
-        String e5 = dateFormat.format(getEndDate());
-        return e1 + "_digivid_" + e2 + "-" +e3 + "_" + e4 + "-" + e5 + ".ts";
-
+        return String.format("%s_digivid_%s-%s_%s-%s.ts",
+                getChannel(),
+                getStartDate() / 1000L,
+                dateFormat.format(getStartDate()),
+                getEndDate() / 1000L,
+                dateFormat.format(getEndDate()));
     }
 
     /**
-     * This is the heart of the processing functionality. It renames the file to correspond to the specified localProperties.
-     *
+     * This is the heart of the processing functionality.
+     * It renames the file to correspond to the specified localProperties and writes a json-file
      */
     public void commit() {
         setFilename(buildFilename());
@@ -236,14 +244,16 @@ public class VideoFileObject {
         try {
             checksum = DigestUtils.md5Hex(Files.newInputStream(videoFilePath));
         } catch (IOException e) {
-            //?
+            log.error("IO exception happened when setting checksum in commit");
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
-                Files.move(videoFilePath, newPath);
+                Files.move(videoFilePath, newPath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
-            //??
+            log.error("IO exception happened when moving the file in commit");
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             this.encoderName = InetAddress.getLocalHost().getHostName();
@@ -253,14 +263,17 @@ public class VideoFileObject {
         String vhsFileMetadata = new VideoFileObject(this).toJson();
         Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
         try {
-            Files.delete(vhsFileMetadataFilePath);
+            if (Files.exists(vhsFileMetadataFilePath))
+                Files.delete(vhsFileMetadataFilePath);
         } catch (IOException e) {
-            //??
+            log.error("IO exception happened when deleting the file in commit");
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes());
         } catch (IOException e) {
-            //?
+            log.error("IO exception happened when writing the file in commit");
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
     }
 }
