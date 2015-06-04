@@ -8,19 +8,30 @@
   <baseDirectory>digivid-processor</baseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/src/main/config</directory>
+      <directory>${project.basedir}/src/main/config/windows</directory>
       <outputDirectory>/config</outputDirectory>
       <includes>
         <include>digivid-processor.properties</include>
-        <include>channels.csv</include>
       </includes>
     </fileSet>
     <fileSet>
+         <directory>${project.basedir}/src/main/config</directory>
+         <outputDirectory>/config</outputDirectory>
+         <includes>
+           <include>channels.csv</include>
+         </includes>
+       </fileSet>
+    <fileSet>
       <directory>${project.basedir}/src/main/bin</directory>
       <outputDirectory>/</outputDirectory>
+      <filtered>true</filtered>
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}/digivid-processor</directory>
+      <includes>
+        <include>*</include>
+        <include>*/*</include>
+      </includes>
       <outputDirectory>/</outputDirectory>
     </fileSet>
   </fileSets>

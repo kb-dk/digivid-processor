@@ -1,1 +1,1 @@
-java -Ddigivid.config=config/digivid-processor.properties -jar digivid-processor-1.0-SNAPSHOT-jfx.jar
+java -Ddigivid.config=config/digivid-processor.properties -jar digivid-processor-${project.version}-jfx.jar

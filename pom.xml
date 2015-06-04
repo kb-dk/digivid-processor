@@ -87,6 +87,14 @@
                     <appName>digivid-processor</appName>
                     <jfxAppOutputDir>target/digivid-processor</jfxAppOutputDir>
                 </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -119,7 +127,7 @@
                 <executions>
                     <execution>
                         <id>make-assembly</id>
-                        <phase>jfx:jar</phase>
+                        <phase>package</phase>
                         <!-- append to the packaging phase. -->
                         <goals>
                             <goal>single</goal>
