@@ -75,7 +75,7 @@ public class Controller {
         try {
             List<List<String>> channels = Utils.getCSV(DigividProcessor.channelCSV);
             for(List<String> channel : channels) {
-                if (channel.size() > 2) {
+                if (channel.size() > 4) {
                     if (channel.get(5).equals("Radiobutton")) {
                         addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
                                 Integer.parseInt(channel.get(4)));
@@ -256,8 +256,8 @@ public class Controller {
      * Reads information from the meatadata.csv file and put it in the fields for Manufacturer, Model and Serialnumber
      */
     private void readLocalProperties() {
-        Path newFilePath = Paths.get(DigividProcessor.localProperties);
         try {
+            Path newFilePath = Paths.get(DigividProcessor.localProperties);
             if (Files.exists(newFilePath)) {
                 List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties), Charset.defaultCharset());
                 String metadataLine = lines.get(0) + " ";
@@ -340,18 +340,13 @@ public class Controller {
      * @param actionEvent The event that activated commit
      */
     public void commit(ActionEvent actionEvent) {
+
         VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
 
+        if (!setValidVideoMetadata(thisVideoFileRow)) return;
         if (!setValidChannel(thisVideoFileRow)) return;
         if (!setValidDate(thisVideoFileRow)) return;
-        if (!validVideoMetadata()) return;
 
-        thisVideoFileRow.setQuality(cmbQuality.getValue());
-        thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
-        thisVideoFileRow.setComment(txtComment.getText());
-        thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
-        thisVideoFileRow.setModel(txtProcessedModel.getText());
-        thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
         detailVHS.setVisible(false);
 
         thisVideoFileRow.commit();
@@ -362,7 +357,7 @@ public class Controller {
             Utils.showWarning("No Start Date Set.");
             return false;
         }
-        if (startTimeField.getText().isEmpty()) {
+        if (startTimeField.getText() == null || (startTimeField.getText() != null && startTimeField.getText().isEmpty())) {
             Utils.showWarning("No Start Time Set.");
             return false;
         } else if (!Pattern.matches(hourPattern, startTimeField.getText())) {
@@ -374,7 +369,7 @@ public class Controller {
             return false;
         }
 
-        if (endTimeField.getText().isEmpty()) {
+        if (endTimeField.getText() == null || (endTimeField.getText() != null && endTimeField.getText().isEmpty())) {
             Utils.showWarning("No End Time Set.");
             return false;
         } else if (!Pattern.matches(hourPattern, endTimeField.getText())) {
@@ -433,25 +428,31 @@ public class Controller {
         return true;
     }
 
-    private boolean validVideoMetadata() {
-        if (txtProcessedManufacturer.getText().trim().isEmpty()) {
-            Utils.showWarning("Manufacturer field is not allowed to be empty");
+    private boolean setValidVideoMetadata(VideoFileObject thisVideoFileRow) {
+        if (txtProcessedManufacturer.getText() == null || (txtProcessedManufacturer.getText() != null && txtProcessedManufacturer.getText().trim().isEmpty())) {
+            Utils.showWarning("Manufacturer is not allowed to be empty");
             return false;
         }
-        if (txtProcessedModel.getText().trim().isEmpty()) {
+        if (txtProcessedModel.getText() == null || (txtProcessedModel.getText() != null && txtProcessedModel.getText().trim().isEmpty())) {
             Utils.showWarning("Model field is not allowed to be empty");
             return false;
         }
 
-        if (txtProcessedSerial.getText().trim().isEmpty()) {
-            Utils.showWarning("Serial number field is not allowed to be empty");
+        if (txtProcessedSerial.getText() == null || (txtProcessedSerial.getText() != null && txtProcessedSerial.getText().trim().isEmpty())) {
+            Utils.showWarning("Serial number is not allowed to be empty");
             return false;
         }
 
-        if (txtVhsLabel.getText() != null && txtVhsLabel.getText().trim().isEmpty()) {
-            Utils.showWarning("VHS label field is not allowed to be empty");
+        if (txtVhsLabel.getText() == null || (txtVhsLabel.getText() != null && txtVhsLabel.getText().trim().isEmpty())) {
+            Utils.showWarning("Video label is not allowed to be empty");
             return false;
         }
+        thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
+        thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
+        thisVideoFileRow.setModel(txtProcessedModel.getText());
+        thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
+        thisVideoFileRow.setQuality(cmbQuality.getValue());
+        thisVideoFileRow.setComment(txtComment.getText());
         return true;
     }
 

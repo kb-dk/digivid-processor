@@ -92,7 +92,7 @@
                 </padding>
             </Label>
         </AnchorPane>
-        <AnchorPane id="detailVHS" fx:id="detailVHS" maxHeight="510.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0"
+        <AnchorPane id="detailVHS" fx:id="detailVHS" minHeight="0.0" minWidth="0.0" prefHeight="160.0"
                     prefWidth="100.0">
             <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0" prefWidth="878.0"
                       AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
@@ -118,7 +118,7 @@
                     <HBox alignment="CENTER_LEFT" prefWidth="40"/>
                     <Button alignment="BOTTOM_CENTER" onAction="#playCurrentFile" text="Play"/>
                 </HBox>
-                <Label text="VHS label" GridPane.rowIndex="2"/>
+                <Label text="Video label" GridPane.rowIndex="2"/>
                 <Label text="Comment" GridPane.rowIndex="3"/>
                 <Label alignment="TOP_LEFT" text="Quality" GridPane.rowIndex="4"/>
                 <Label alignment="TOP_LEFT" text="Start" GridPane.rowIndex="5"/>
