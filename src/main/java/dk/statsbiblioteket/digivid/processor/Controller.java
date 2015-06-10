@@ -16,6 +16,7 @@ import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
@@ -359,13 +360,19 @@ public class Controller {
 
         VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
 
-        if (!setValidVideoMetadata(thisVideoFileRow)) return;
-        if (!setValidChannel(thisVideoFileRow)) return;
-        if (!setValidDate(thisVideoFileRow)) return;
+        File file = thisVideoFileRow.videoFilePath.toFile();
+        boolean fileIsNotLocked = file.renameTo(file);
+        if (fileIsNotLocked) {
+            if (!setValidVideoMetadata(thisVideoFileRow)) return;
+            if (!setValidChannel(thisVideoFileRow)) return;
+            if (!setValidDate(thisVideoFileRow)) return;
 
-        detailVHS.setVisible(false);
+            detailVHS.setVisible(false);
 
-        thisVideoFileRow.commit();
+            thisVideoFileRow.commit();
+        } else {
+            Utils.showWarning("The file is currently locked by another program and cannot be altered.");
+        }
     }
 
     private boolean setValidDate(VideoFileObject thisVideoFileRow) {
@@ -480,7 +487,7 @@ public class Controller {
         VideoFileObject thisRow = tableView.getSelectionModel().getSelectedItem();
         try {
             ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player,
-                    new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
+                    new File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
             pb.start();
         } catch (IOException e) {
             log.error("{} could not be played", thisRow.getFilename());

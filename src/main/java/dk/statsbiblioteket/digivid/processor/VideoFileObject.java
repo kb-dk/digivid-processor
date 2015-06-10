@@ -24,7 +24,7 @@ import java.util.Date;
 public class VideoFileObject {
 
     private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
-    private Path videoFilePath;
+    public Path videoFilePath;
     private Path vhsFileMetadataFilePath;
     private String filename;
     private Long filesize;
