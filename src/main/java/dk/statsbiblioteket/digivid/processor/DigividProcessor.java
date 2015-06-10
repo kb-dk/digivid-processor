@@ -22,7 +22,8 @@ import java.util.Properties;
  */
 public class DigividProcessor extends Application {
 
-	protected static String recordsDir;
+    static public Stage primaryStage;
+    protected static String recordsDir;
     protected static String channelCSV;
     protected static String player;
     protected static String localProperties;
@@ -43,6 +44,7 @@ public class DigividProcessor extends Application {
         } catch (IOException e) {
             throw new RuntimeException("Could not read properties file " + propertiesPath, e);
         }
+
         recordsDir = properties.getProperty("digivid.processor.recordsdir");
         channelCSV = properties.getProperty("digivid.processor.channels");
         player = properties.getProperty("digivid.processor.player");
@@ -51,12 +53,13 @@ public class DigividProcessor extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage stage) throws Exception {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> Platform.runLater(() -> Utils.showErrorDialog(t, e)));
         Thread.currentThread().setUncaughtExceptionHandler(Utils::showErrorDialog);
 
-        primaryStage.setTitle("Video processor");
-        initRootLayout(primaryStage);
+        DigividProcessor.primaryStage = stage;
+        DigividProcessor.primaryStage.setTitle("Video processor");
+        initRootLayout(DigividProcessor.primaryStage);
     }
 
     /**

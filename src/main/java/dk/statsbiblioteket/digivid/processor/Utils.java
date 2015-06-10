@@ -31,9 +31,6 @@ public class Utils {
     }
 
     public static double computeTextWidth(Font font, String text, double help0) {
-        // Toolkit.getToolkit().getFontLoader().computeStringWidth(field.getText(),
-        // field.getFont());
-
         helper.setText(text);
         helper.setFont(font);
 
@@ -49,11 +46,20 @@ public class Utils {
         return d;
     }
 
-    static public void showErrorDialog(Thread t, Throwable e) {
-        Dialogs.create().title("Error").message("An uncaught exception was thrown in thread " + t + ".\n" +
-                "Click below to view the stacktrace, or close this " +
-                "dialog to terminate the application.").showException(e);
+    static public void showErrorDialog(String description, Thread t, Throwable e) {
+        if (e == null)
+            Dialogs.create().title("Error").message(description).showError();
+        else
+            Dialogs.create().title("Error").message(description +
+                    "An uncaught exception was thrown in thread " + t + ".\n" +
+                    "Click below to view the stacktrace, or close this " +
+                    "dialog to terminate the application.").showException(e);
         Platform.exit();
+        System.exit(-1);
+    }
+
+    static public void showErrorDialog(Thread t, Throwable e) {
+        Utils.showErrorDialog("", t, e);
     }
 
     static public void showWarning(String informationStr) {

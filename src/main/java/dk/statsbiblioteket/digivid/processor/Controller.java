@@ -40,6 +40,8 @@ public class Controller {
     @FXML public GridPane channelGridPane;
     @FXML public TableColumn<VideoFileObject, Date> lastmodifiedColumn;
     @FXML public TableColumn<VideoFileObject, Boolean> processedColumn;
+    @FXML
+    public TableColumn<VideoFileObject, Long> filesizeColumn;
     @FXML public TextArea txtComment;
     @FXML public ComboBox<String> cmbQuality;
     @FXML
@@ -60,9 +62,23 @@ public class Controller {
     @FXML public DatePicker endDatePicker;
     @FXML public ToggleGroup channelGroup;
     @FXML public javafx.scene.layout.AnchorPane detailVHS;
-
     private Path dataPath;
     private TextField altChannel;
+
+    private static void checkConfigfile() {
+        try {
+            Path recordsPath = Paths.get(DigividProcessor.recordsDir);
+            Path channelsCSVPath = Paths.get(DigividProcessor.channelCSV);
+            Path playerPath = Paths.get(DigividProcessor.player);
+            Path localPropertiesPath = Paths.get(DigividProcessor.localProperties);
+            boolean pathExist = Files.exists(recordsPath) && Files.exists(channelsCSVPath) && Files.exists(playerPath);
+            if (!pathExist) {
+                Utils.showErrorDialog("Configuration file is invalid. Contact system administrator.", Thread.currentThread(), null);
+            }
+        } catch (Exception ex) {
+            Utils.showErrorDialog("Configuration file is not valid.\n\n", Thread.currentThread(), ex);
+        }
+    }
 
     @FXML
     public void handleLocalProperties() {
@@ -72,6 +88,7 @@ public class Controller {
     @FXML
     void initialize() {
         detailVHS.setVisible(false);
+        checkConfigfile();
         if (lastmodifiedColumn != null) lastmodifiedColumn.setComparator(Date::compareTo);
         try {
             List<List<String>> channels = Utils.getCSV(DigividProcessor.channelCSV);
@@ -86,7 +103,7 @@ public class Controller {
             }
         } catch (IOException e) {
             log.error("Caught exception while reading {}", DigividProcessor.channelCSV, e);
-            Utils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog("Caught exception while reading channels\n\n", Thread.currentThread(), e);
         }
 
         txtFilename.setEditable(false);
@@ -127,8 +144,6 @@ public class Controller {
                 return LocalDate.parse(s, dtf);
             }
         });
-
-        readLocalProperties();
 
         /**
          * Custom rendering of the table cell to have format specified "yyyy-mm-dd hh:mm.
@@ -195,6 +210,7 @@ public class Controller {
                 }
             }
         });
+        readLocalProperties();
     }
 
     private Path getDataPath() {
@@ -242,14 +258,14 @@ public class Controller {
     private void writeLocalProperties() {
         Path newFilePath = Paths.get(DigividProcessor.localProperties);
         try {
-            if (Files.exists(newFilePath)) {
-                Files.delete(newFilePath);
-            }
+            Path parentDir = newFilePath.getParent();
+            if (!Files.exists(parentDir))
+                Files.createDirectories(parentDir);
             String msg = String.format("%s,%s,%s", txtManufacturer.getText(), txtModel.getText(), txtSerial.getText());
-            Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes("UTF-8"));
+            Files.write(newFilePath, msg.getBytes("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
         } catch (IOException ioe) {
             log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
-            Utils.showErrorDialog(Thread.currentThread(), ioe);
+            Utils.showErrorDialog("Caught error while writing local properties\n\n", Thread.currentThread(), ioe);
         }
     }
 
@@ -260,19 +276,23 @@ public class Controller {
         try {
             Path newFilePath = Paths.get(DigividProcessor.localProperties);
             if (Files.exists(newFilePath)) {
-                List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties), Charset.defaultCharset());
+                List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties),
+                        Charset.defaultCharset());
                 String metadataLine = lines.get(0) + " ";
                 List<String> localProperties = Arrays.asList(metadataLine.split(","));
                 txtManufacturer.setText(localProperties.get(0));
                 txtModel.setText(localProperties.get(1));
                 txtSerial.setText(localProperties.get(2).trim());
             } else {
+                Path parentDir = newFilePath.getParent();
+                if (!Files.exists(parentDir))
+                    Files.createDirectories(parentDir);
                 String msg = ",,";
-                Files.write(Paths.get(DigividProcessor.localProperties), msg.getBytes("UTF-8"));
+                Files.write(newFilePath, msg.getBytes("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
             }
         } catch (IOException e) {
             log.warn("Error occured reading {}", DigividProcessor.localProperties);
-            Utils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog("Caught exception while reading channelfile\n\n", Thread.currentThread(), e);
         }
     }
 
@@ -320,7 +340,7 @@ public class Controller {
                             tsFiles.close();
                     } catch (IOException ioe) {
                         log.error("Error occured while loading files", ioe);
-                        Utils.showErrorDialog(Thread.currentThread(), ioe);
+                        Utils.showErrorDialog("Error occured while loading files\n\n", Thread.currentThread(), ioe);
                     }
                 }
                 ObservableList<TableColumn<VideoFileObject, ?>> sortOrder = tableView.getSortOrder();
@@ -330,7 +350,8 @@ public class Controller {
                 tableView.getSelectionModel().select(0);
             } else {
                 log.error("Datapath is not defined when file is loaded");
-                Utils.showErrorDialog(Thread.currentThread(), new Exception("Datapath is not defined when file is loaded"));
+                Utils.showErrorDialog(Thread.currentThread(),
+                        new Exception("Datapath is not defined when file is loaded"));
             }
         }
     }
@@ -366,7 +387,8 @@ public class Controller {
             Utils.showWarning("Start time not valid");
             return false;
         }
-        if ((endDatePicker.getValue() != null && endDatePicker.getValue().toString().isEmpty()) || (endDatePicker.getValue() == null)) {
+        if ((endDatePicker.getValue() != null && endDatePicker.getValue().toString().isEmpty()) ||
+                (endDatePicker.getValue() == null)) {
             Utils.showWarning("No End Date Set.");
             return false;
         }
@@ -464,11 +486,12 @@ public class Controller {
     public void playCurrentFile() {
         VideoFileObject thisRow = tableView.getSelectionModel().getSelectedItem();
         try {
-            ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player, new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
+            ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player,
+                    new java.io.File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
             pb.start();
         } catch (IOException e) {
             log.error("{} could not be played", thisRow.getFilename());
-            Utils.showErrorDialog(Thread.currentThread(), e);
+            Utils.showErrorDialog("The file could not be played\n\n", Thread.currentThread(), e);
         }
     }
 
@@ -481,7 +504,8 @@ public class Controller {
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
         if (currentVideoFile.getStartDate() != null) {
             startCalendar.setTime(new Date(currentVideoFile.getStartDate()));
-            startDatePicker.setValue(new Date(currentVideoFile.getStartDate()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            startDatePicker.setValue(new Date(currentVideoFile.getStartDate()).
+                    toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
             startTimeField.setText(timeFormat.format(startCalendar.getTime()));
         } else {
             startDatePicker.setValue(null);
@@ -490,7 +514,8 @@ public class Controller {
         GregorianCalendar endCalendar = new GregorianCalendar();
         if (currentVideoFile.getEndDate() != null) {
             endCalendar.setTime(new Date(currentVideoFile.getEndDate()));
-            endDatePicker.setValue(new Date(currentVideoFile.getEndDate()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            endDatePicker.setValue(new Date(currentVideoFile.getEndDate()).
+                    toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
             endTimeField.setText(timeFormat.format(endCalendar.getTime()));
         } else {
             endDatePicker.setValue(null);
@@ -544,7 +569,8 @@ public class Controller {
         @Override
         public void handle(MouseEvent mouseEvent) {
             if (mouseEvent.getButton() == MouseButton.PRIMARY) {
-                VideoFileObject thisVideoFile = (VideoFileObject) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
+                VideoFileObject thisVideoFile =
+                        (VideoFileObject) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
                 if (thisVideoFile != null) {
                     loadFile(thisVideoFile);
                     detailVHS.setVisible(true);

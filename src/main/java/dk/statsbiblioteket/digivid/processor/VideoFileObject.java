@@ -8,10 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -27,6 +24,7 @@ public class VideoFileObject {
     private Path videoFilePath;
     private Path vhsFileMetadataFilePath;
     private String filename;
+    private Long filesize;
     private Long startDate;
     private String vhsLabel;
     private String comment;
@@ -65,6 +63,7 @@ public class VideoFileObject {
     public VideoFileObject(Path path) {
         videoFilePath = path;
         filename = (videoFilePath.getFileName() != null) ? videoFilePath.getFileName().toString() : "";
+        filesize = getFilesize();
         vhsFileMetadataFilePath = path.getParent().resolve((path.getFileName() != null ? path.getFileName().toString() : "Illegal_parameters") + ".comments");
         if (Files.exists(vhsFileMetadataFilePath)) {
             final byte[] bytes;
@@ -210,6 +209,17 @@ public class VideoFileObject {
         Date date = new Date();
         date.setTime(lastModifiedTime.toMillis());
         return date;
+    }
+
+    public Long getFilesize() {
+        Long filesize;
+        try {
+            FileStore fileStore = Files.getFileStore(videoFilePath);
+            filesize = fileStore.getTotalSpace();
+        } catch (IOException e) {
+            filesize = 0L;
+        }
+        return filesize;
     }
 
     /**
