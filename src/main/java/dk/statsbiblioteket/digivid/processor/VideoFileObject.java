@@ -8,7 +8,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -39,6 +42,7 @@ public class VideoFileObject {
 
     public VideoFileObject(VideoFileObject videoFileObject) {
         this.filename = videoFileObject.getFilename();
+        this.filesize = videoFileObject.getFilesize();
         this.vhsLabel = videoFileObject.getVhsLabel();
         this.comment = videoFileObject.getComment();
         try {
@@ -63,7 +67,7 @@ public class VideoFileObject {
     public VideoFileObject(Path path) {
         videoFilePath = path;
         filename = (videoFilePath.getFileName() != null) ? videoFilePath.getFileName().toString() : "";
-        filesize = getFilesize();
+        filesize = (this.getFilesize() != null) ? this.getFilesize() : 0L;
         vhsFileMetadataFilePath = path.getParent().resolve((path.getFileName() != null ? path.getFileName().toString() : "Illegal_parameters") + ".comments");
         if (Files.exists(vhsFileMetadataFilePath)) {
             final byte[] bytes;
@@ -212,14 +216,12 @@ public class VideoFileObject {
     }
 
     public Long getFilesize() {
-        Long filesize;
+        final long K = 1024;
         try {
-            FileStore fileStore = Files.getFileStore(videoFilePath);
-            filesize = fileStore.getTotalSpace();
-        } catch (IOException e) {
-            filesize = 0L;
+            return videoFilePath.toFile().length() / K;
+        } catch (Exception e) {
+            return 0L;
         }
-        return filesize;
     }
 
     /**

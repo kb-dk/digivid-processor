@@ -81,9 +81,13 @@
                             <PropertyValueFactory property="filename"/>
                         </cellValueFactory>
                     </TableColumn>
-                    <TableColumn id="filesizeColumn" fx:id="filesizeColumn" maxWidth="500.0"
+                    <TableColumn id="filesizeColumn" fx:id="filesizeColumn" maxWidth="800.0"
                                  prefWidth="75.0"
-                                 text="Filesize"/>
+                                 text="Filesize">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="filesize"/>
+                        </cellValueFactory>
+                    </TableColumn>
                     <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" maxWidth="800.0"
                                  prefWidth="110.0" text="Last Modified">
                         <cellValueFactory>
