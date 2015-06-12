@@ -82,8 +82,7 @@
                         </cellValueFactory>
                     </TableColumn>
                     <TableColumn id="filesizeColumn" fx:id="filesizeColumn" maxWidth="800.0"
-                                 prefWidth="75.0"
-                                 text="Filesize">
+                                 prefWidth="75.0" text="Filesize">
                         <cellValueFactory>
                             <PropertyValueFactory property="filesize"/>
                         </cellValueFactory>
@@ -214,8 +213,26 @@
                                alignment="CENTER_RIGHT"/>
                 </HBox>
             </GridPane>
-            <Button layoutX="530.0" layoutY="520.0" onAction="#commit" text="Process"
-                    AnchorPane.bottomAnchor="0.0"/>
+            <GridPane layoutX="10.0" layoutY="10.0" maxHeight="-Infinity" prefHeight="44.0"
+                      prefWidth="1278.0" AnchorPane.bottomAnchor="0.0">
+                <Button alignment="CENTER" contentDisplay="CENTER" onAction="#commit" text="Postprocess"
+                        GridPane.columnIndex="2"/>
+                <Button id="btnSave" fx:id="btnSave" mnemonicParsing="false" onAction="#preprocess"
+                        text="Temporary save" GridPane.columnIndex="1"/>
+                <columnConstraints>
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0"
+                                       percentWidth="20.0"/>
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0"
+                                       percentWidth="30.0"/>
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0"
+                                       percentWidth="30.0"/>
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0"
+                                       percentWidth="20.0"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
+                </rowConstraints>
+            </GridPane>
         </AnchorPane>
     </SplitPane>
 </AnchorPane>

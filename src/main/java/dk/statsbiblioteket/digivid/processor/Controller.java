@@ -351,8 +351,7 @@ public class Controller {
     }
 
     /**
-     * Reads all the values set by the user and sets them on the current VideoFileObject before calling the commit()
-     * method on that object.
+     * Assigne current VideoFileObject values to GUI values before calling commit()
      *
      * @param actionEvent The event that activated commit
      */
@@ -362,16 +361,46 @@ public class Controller {
 
         File file = thisVideoFileRow.videoFilePath.toFile();
         boolean fileIsNotLocked = file.renameTo(file);
-        if (fileIsNotLocked) {
-            if (!setValidVideoMetadata(thisVideoFileRow)) return;
-            if (!setValidChannel(thisVideoFileRow)) return;
-            if (!setValidDate(thisVideoFileRow)) return;
-
-            detailVHS.setVisible(false);
+        if (fileIsNotLocked && validGUIvalues(thisVideoFileRow, fileIsNotLocked)) {
+            String tmpMetadataFilename = thisVideoFileRow.videoFilePath.getFileName() + ".temporary";
+            Path tmpMetadataPath = thisVideoFileRow.videoFilePath.getParent().resolve(Paths.get(tmpMetadataFilename));
+            try {
+                if (Files.exists(tmpMetadataPath))
+                    Files.delete(tmpMetadataPath);
+            } catch (IOException e) {
+                log.error("IO exception happened when deleting the file in commit");
+                Utils.showErrorDialog(Thread.currentThread(), e);
+            }
 
             thisVideoFileRow.commit();
+        }
+    }
+
+    /**
+     * Assigne current VideoFileObject values to GUI values before calling preprocess()
+     *
+     * @param actionEvent The event that activated preprocess
+     */
+    public void preprocess(ActionEvent actionEvent) {
+
+        VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+
+        File file = thisVideoFileRow.videoFilePath.toFile();
+        boolean fileIsNotLocked = file.renameTo(file);
+        if (fileIsNotLocked && validGUIvalues(thisVideoFileRow, fileIsNotLocked))
+            thisVideoFileRow.preprocess();
+    }
+
+    private boolean validGUIvalues(VideoFileObject thisVideoFileRow, boolean fileIsNotLocked) {
+        if (fileIsNotLocked) {
+            if (!setValidVideoMetadata(thisVideoFileRow)) return false;
+            if (!setValidChannel(thisVideoFileRow)) return false;
+            if (!setValidDate(thisVideoFileRow)) return false;
+            detailVHS.setVisible(false);
+            return true;
         } else {
             Utils.showWarning("The file is currently locked by another program and cannot be altered.");
+            return false;
         }
     }
 
