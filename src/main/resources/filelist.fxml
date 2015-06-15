@@ -76,7 +76,7 @@
                             <PropertyValueFactory property="processed"/>
                         </cellValueFactory>
                     </TableColumn>
-                    <TableColumn prefWidth="200.0" text="Filename">
+                    <TableColumn fx:id="filenameColumn" prefWidth="200.0" text="Filename">
                         <cellValueFactory>
                             <PropertyValueFactory property="filename"/>
                         </cellValueFactory>

@@ -12,6 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,8 @@ public class Controller {
     @FXML public GridPane channelGridPane;
     @FXML public TableColumn<VideoFileObject, Date> lastmodifiedColumn;
     @FXML public TableColumn<VideoFileObject, Boolean> processedColumn;
+    @FXML
+    public TableColumn<VideoFileObject, String> filenameColumn;
     @FXML
     public TableColumn<VideoFileObject, Long> filesizeColumn;
     @FXML public TextArea txtComment;
@@ -166,6 +169,29 @@ public class Controller {
                 }
             };
         });
+
+        /**
+         * The filename is colored blue when it is has a temporary json-file, but is not yet processed.
+         */
+        filenameColumn.setCellFactory(column -> {
+            return new TableCell<VideoFileObject, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (item == null || empty) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        File tmpMetadata = new File(DigividProcessor.recordsDir + "/" + item + ".temporary");
+                        if (tmpMetadata.exists())
+                            setTextFill(Color.BLUE);
+                    }
+                }
+            };
+        });
+
 
         /**
          * Indicate with a checkmark if the file is processed
