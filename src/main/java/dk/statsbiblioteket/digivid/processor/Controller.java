@@ -216,6 +216,24 @@ public class Controller {
         });
 
         /**
+         * Indicate with a checkmark if the file is processed
+         */
+        filesizeColumn.setCellFactory(column -> new TableCell<VideoFileObject, Long>() {
+            @Override
+            protected void updateItem(Long filesize, boolean empty) {
+                super.updateItem(filesize, empty);
+
+                if (filesize == null || empty) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setAlignment(Pos.CENTER_RIGHT);
+                    setText(String.format("%d", filesize));
+                }
+            }
+        });
+
+        /**
          * Enable/disable the channel radiobuttons depending on whether altChannel is empty or not
          */
         altChannel.textProperty().addListener((observableValue, oldValue, newValue) -> {

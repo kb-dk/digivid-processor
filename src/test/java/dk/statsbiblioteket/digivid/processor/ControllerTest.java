@@ -4,6 +4,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 public class ControllerTest {
 
     private DigividProcessor main;
@@ -12,9 +14,9 @@ public class ControllerTest {
     public void beforeEachMethod() throws Exception {
         main = new DigividProcessor();
         DigividProcessor.recordsDir = "src/test/data/sample";
-        DigividProcessor.channelCSV = "src/main/config/channels.csv";
+        DigividProcessor.channelCSV = "src/test/config/channels.csv";
         DigividProcessor.player = "/usr/bin/vlc";
-        DigividProcessor.localProperties = "src/main/config/localProperties.csv";
+        DigividProcessor.localProperties = "src/test/config/localProperties.csv";
     }
 
     @AfterMethod
@@ -24,7 +26,7 @@ public class ControllerTest {
 
     @Test
     public void testHandleLocalProperties() throws Exception {
-
+        Path newFilePath = Paths.get(DigividProcessor.localProperties);
     }
 
     @Test
