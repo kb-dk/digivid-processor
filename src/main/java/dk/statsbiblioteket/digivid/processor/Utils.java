@@ -7,7 +7,7 @@ import javafx.scene.text.TextBoundsType;
 import org.controlsfx.dialog.Dialogs;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -68,7 +68,7 @@ public class Utils {
 
     public static List<List<String>> getCSV(String csvFile) throws IOException {
         List<List<String>> csvData = new ArrayList<>();
-        List<String> lines = Files.readAllLines(Paths.get(csvFile), Charset.defaultCharset());
+        List<String> lines = Files.readAllLines(Paths.get(csvFile), StandardCharsets.UTF_8);
         for (String line : lines) {
             String[] splitted = line.split(",");
             List<String> dataLine = new ArrayList<>(splitted.length);
