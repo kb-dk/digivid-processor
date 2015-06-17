@@ -24,9 +24,10 @@ import java.util.Date;
 public class VideoFileObject {
 
     private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
-    private Path videoFilePath;
+    public Path videoFilePath;
     private Path vhsFileMetadataFilePath;
     private String filename;
+    private Long filesize;
     private Long startDate;
     private String vhsLabel;
     private String comment;
@@ -41,6 +42,7 @@ public class VideoFileObject {
 
     public VideoFileObject(VideoFileObject videoFileObject) {
         this.filename = videoFileObject.getFilename();
+        this.filesize = videoFileObject.getFilesize();
         this.vhsLabel = videoFileObject.getVhsLabel();
         this.comment = videoFileObject.getComment();
         try {
@@ -65,31 +67,13 @@ public class VideoFileObject {
     public VideoFileObject(Path path) {
         videoFilePath = path;
         filename = (videoFilePath.getFileName() != null) ? videoFilePath.getFileName().toString() : "";
+        filesize = (this.getFilesize() != null) ? this.getFilesize() : 0L;
         vhsFileMetadataFilePath = path.getParent().resolve((path.getFileName() != null ? path.getFileName().toString() : "Illegal_parameters") + ".comments");
+        Path tmpMetadataPath = path.getParent().resolve((path.getFileName() != null ? path.getFileName().toString() : "Illegal_parameters") + ".temporary");
         if (Files.exists(vhsFileMetadataFilePath)) {
-            final byte[] bytes;
-            try {
-                bytes = Files.readAllBytes(vhsFileMetadataFilePath);
-                VideoFileObject videoFileObject = VideoFileObject.fromJson(new String(bytes, "UTF-8"));
-                if (videoFileObject != null) {
-                    endDate = videoFileObject.getEndDate();
-                    startDate = videoFileObject.getStartDate();
-                    channel = videoFileObject.getChannel();
-                    checksum = videoFileObject.getChecksum();
-                    vhsLabel = videoFileObject.getVhsLabel();
-                    comment = videoFileObject.getComment();
-                    quality = videoFileObject.getQuality();
-                    manufacturer = videoFileObject.getManufacturer();
-                    model = videoFileObject.getModel();
-                    serialNo = videoFileObject.getSerialNo();
-                }
-            } catch (IOException e) {
-                log.error("IO exception happened in VideoFileObject(Path path)");
-                Utils.showErrorDialog(Thread.currentThread(), e);
-            } catch (NullPointerException nEx) {
-                log.error("Null pointer exception happened in VideoFileObject(Path path))");
-                Utils.showErrorDialog(Thread.currentThread(), nEx);
-            }
+            assignMetadata(vhsFileMetadataFilePath);
+        } else if (Files.exists(tmpMetadataPath)) {
+            assignMetadata(tmpMetadataPath);
         }
     }
 
@@ -104,6 +88,32 @@ public class VideoFileObject {
 
     public static VideoFileObject fromJson(String json) {
         return (new Gson()).fromJson(json, VideoFileObject.class);
+    }
+
+    private void assignMetadata(Path metadataPath) {
+        final byte[] bytes;
+        try {
+            bytes = Files.readAllBytes(metadataPath);
+            VideoFileObject videoFileObject = VideoFileObject.fromJson(new String(bytes, "UTF-8"));
+            if (videoFileObject != null) {
+                endDate = videoFileObject.getEndDate();
+                startDate = videoFileObject.getStartDate();
+                channel = videoFileObject.getChannel();
+                checksum = videoFileObject.getChecksum();
+                vhsLabel = videoFileObject.getVhsLabel();
+                comment = videoFileObject.getComment();
+                quality = videoFileObject.getQuality();
+                manufacturer = videoFileObject.getManufacturer();
+                model = videoFileObject.getModel();
+                serialNo = videoFileObject.getSerialNo();
+            }
+        } catch (IOException e) {
+            log.error("IO exception happened in VideoFileObject(Path path)");
+            Utils.showErrorDialog(Thread.currentThread(), e);
+        } catch (NullPointerException nEx) {
+            log.error("Null pointer exception happened in VideoFileObject(Path path))");
+            Utils.showErrorDialog(Thread.currentThread(), nEx);
+        }
     }
 
     public String getFilename() {
@@ -212,6 +222,15 @@ public class VideoFileObject {
         return date;
     }
 
+    public Long getFilesize() {
+        final long K = 1024;
+        try {
+            return videoFilePath.toFile().length() / K;
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
     /**
      * Filenames look like:
      * dr1_digivid.1425196800-2015-03-01-09.00.00_1425200400-2015-03-01-10.00.00.ts
@@ -263,6 +282,50 @@ public class VideoFileObject {
         }
         String vhsFileMetadata = new VideoFileObject(this).toJson();
         Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
+        try {
+            if (Files.exists(vhsFileMetadataFilePath))
+                Files.delete(vhsFileMetadataFilePath);
+        } catch (IOException e) {
+            log.error("IO exception happened when deleting the file in commit");
+            Utils.showErrorDialog(Thread.currentThread(), e);
+        }
+        try {
+            Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes("UTF-8"));
+        } catch (IOException e) {
+            log.error("IO exception happened when writing the file in commit");
+            Utils.showErrorDialog(Thread.currentThread(), e);
+        }
+    }
+
+    /**
+     * This preprocesses the videofileobject .
+     * It renames the file to correspond to the specified localProperties and writes a temporary json-file
+     */
+    public void preprocess() {
+        //setFilename(buildFilename());
+        Path newPath;
+        newPath = videoFilePath.getParent().resolve(Paths.get(filename));
+        try {
+            checksum = DigestUtils.md5Hex(Files.newInputStream(videoFilePath));
+        } catch (IOException e) {
+            log.error("IO exception happened when setting checksum in commit");
+            Utils.showErrorDialog(Thread.currentThread(), e);
+        }
+        try {
+            if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
+                Files.move(videoFilePath, newPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            log.error("IO exception happened when moving the file in commit");
+            Utils.showErrorDialog(Thread.currentThread(), e);
+        }
+        try {
+            this.encoderName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            this.encoderName = "unknown";
+        }
+        String vhsFileMetadata = new VideoFileObject(this).toJson();
+        Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".temporary");
         try {
             if (Files.exists(vhsFileMetadataFilePath))
                 Files.delete(vhsFileMetadataFilePath);
