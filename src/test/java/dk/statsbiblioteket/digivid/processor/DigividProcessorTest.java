@@ -27,7 +27,7 @@ public class DigividProcessorTest extends ApplicationTest {
         stage.show();
     }
 	
-    @Test
+	//@Test
     public void should_click_on_file() {
         // given:
 
