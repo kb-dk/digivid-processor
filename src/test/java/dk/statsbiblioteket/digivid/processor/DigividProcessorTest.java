@@ -23,7 +23,7 @@ public class DigividProcessorTest extends ApplicationTest {
         stage.show();
     }
 	
-	//@Test
+	/*
     public void should_click_on_file() {
         // given:
 
@@ -33,5 +33,6 @@ public class DigividProcessorTest extends ApplicationTest {
         // then:
         FxAssert.verifyThat("#txtFilename", NodeMatchers.hasText("emptyTestVideoFile.ts"));
     }
+    */
 }
 
