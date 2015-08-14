@@ -16,14 +16,10 @@
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
             <GridPane maxHeight="-Infinity" prefHeight="44.0" prefWidth="1278.0" AnchorPane.topAnchor="0.0">
                 <columnConstraints>
-                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="313.0" minWidth="10.0"
-                                       prefWidth="100.0"/>
-                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="880.0" minWidth="10.0"
-                                       prefWidth="312.0"/>
-                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="550.0" minWidth="10.0"
-                                       prefWidth="277.0"/>
-                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="589.0" minWidth="10.0"
-                                       prefWidth="589.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="313.0" minWidth="10.0" prefWidth="100.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="880.0" minWidth="10.0" prefWidth="312.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="550.0" minWidth="10.0" prefWidth="277.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="589.0" minWidth="10.0" prefWidth="589.0"/>
                 </columnConstraints>
                 <rowConstraints>
                     <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
@@ -34,8 +30,7 @@
                             <Insets top="6.0"/>
                         </HBox.margin>
                     </Label>
-                    <TextField id="txtManufacturer" fx:id="txtManufacturer"
-                               onAction="#handleLocalProperties"
+                    <TextField id="txtManufacturer" fx:id="txtManufacturer" onAction="#handleLocalProperties"
                                onMouseExited="#handleLocalProperties"/>
                     <padding>
                         <Insets top="6.0"/>
@@ -60,16 +55,15 @@
                         </HBox.margin>
                     </Label>
                     <TextField id="txtSerial" fx:id="txtSerial" alignment="CENTER_RIGHT"
-                               onAction="#handleLocalProperties"
-                               onMouseExited="#handleLocalProperties"/>
+                               onAction="#handleLocalProperties" onMouseExited="#handleLocalProperties"/>
                     <GridPane.margin>
                         <Insets top="6.0"/>
                     </GridPane.margin>
                 </HBox>
             </GridPane>
             <TableView id="tableView" fx:id="tableView" layoutY="29.0" prefHeight="368.0" prefWidth="377.0"
-                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
+                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                       AnchorPane.topAnchor="40.0">
                 <columns>
                     <TableColumn fx:id="processedColumn" maxWidth="600.0" prefWidth="30.0" text="Processed">
                         <cellValueFactory>
@@ -81,14 +75,14 @@
                             <PropertyValueFactory property="filename"/>
                         </cellValueFactory>
                     </TableColumn>
-                    <TableColumn id="filesizeColumn" fx:id="filesizeColumn" maxWidth="800.0"
-                                 prefWidth="75.0" text="Filesize">
+                    <TableColumn id="filesizeColumn" fx:id="filesizeColumn" maxWidth="800.0" prefWidth="75.0"
+                                 text="Filesize">
                         <cellValueFactory>
                             <PropertyValueFactory property="filesize"/>
                         </cellValueFactory>
                     </TableColumn>
-                    <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" maxWidth="800.0"
-                                 prefWidth="110.0" text="Last Modified">
+                    <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" maxWidth="800.0" prefWidth="110.0"
+                                 text="Last Modified">
                         <cellValueFactory>
                             <PropertyValueFactory property="lastmodified"/>
                         </cellValueFactory>
@@ -106,13 +100,12 @@
         </AnchorPane>
         <AnchorPane id="detailVHS" fx:id="detailVHS" minHeight="0.0" minWidth="0.0" prefHeight="160.0"
                     prefWidth="100.0">
-            <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0"
-                      prefWidth="878.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="5.0"
-                      AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
+            <GridPane gridLinesVisible="false" layoutY="59.0" maxWidth="500.0" prefHeight="374.0" prefWidth="878.0"
+                      AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
+                      AnchorPane.topAnchor="0.0">
                 <columnConstraints>
                     <ColumnConstraints hgrow="NEVER" maxWidth="5531.0" minWidth="10.0" prefWidth="157.0"/>
-                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="5143.0" minWidth="10.0"
-                                       prefWidth="1111.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="5143.0" minWidth="10.0" prefWidth="1111.0"/>
                 </columnConstraints>
                 <rowConstraints>
                     <RowConstraints maxHeight="44.0" minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
@@ -126,9 +119,8 @@
                 </rowConstraints>
                 <Label alignment="TOP_LEFT" contentDisplay="TOP" text="Filename" GridPane.rowIndex="1"/>
                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
-                    <TextField id="txtFilename" fx:id="txtFilename" alignment="BOTTOM_LEFT"
-                               prefHeight="25.0" prefWidth="0.0"
-                               stylesheets="@Digivid-stylesheet.css"/>
+                    <TextField id="txtFilename" fx:id="txtFilename" alignment="BOTTOM_LEFT" prefHeight="25.0"
+                               prefWidth="0.0" stylesheets="@Digivid-stylesheet.css"/>
                     <HBox alignment="CENTER_LEFT" prefWidth="40"/>
                     <Button alignment="BOTTOM_CENTER" onAction="#playCurrentFile" text="Play"/>
                 </HBox>
@@ -142,12 +134,10 @@
                     </GridPane.margin>
                 </Label>
                 <Label alignment="TOP_LEFT" text="Channel" GridPane.rowIndex="7"/>
-                <TextField id="txtVhsLabel" fx:id="txtVhsLabel" GridPane.columnIndex="1"
-                           GridPane.rowIndex="2"/>
+                <TextField id="txtVhsLabel" fx:id="txtVhsLabel" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                 <TextArea id="txtComment" fx:id="txtComment" prefHeight="200.0" prefWidth="200.0"
                           GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-                <ComboBox id="cmbQuality" fx:id="cmbQuality" GridPane.columnIndex="1"
-                          GridPane.rowIndex="4">
+                <ComboBox id="cmbQuality" fx:id="cmbQuality" GridPane.columnIndex="1" GridPane.rowIndex="4">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="1 (Worst Quality)"/>
@@ -174,8 +164,8 @@
                         </HBox.margin>
                     </DatePicker>
                 </HBox>
-                <HBox alignment="CENTER_LEFT" prefHeight="51.0" prefWidth="1107.0"
-                      GridPane.columnIndex="1" GridPane.rowIndex="6">
+                <HBox alignment="CENTER_LEFT" prefHeight="51.0" prefWidth="1107.0" GridPane.columnIndex="1"
+                      GridPane.rowIndex="6">
                     <TextField id="endTimeField" fx:id="endTimeField"/>
                     <DatePicker id="endDatePicker" fx:id="endDatePicker" showWeekNumbers="true">
                         <HBox.margin>
@@ -184,9 +174,11 @@
                     </DatePicker>
                 </HBox>
                 <GridPane fx:id="channelGridPane" GridPane.columnIndex="1" GridPane.rowIndex="7">
+
                     <fx:define>
                         <ToggleGroup fx:id="channelGroup"/>
                     </fx:define>
+
                 </GridPane>
                 <Label text="Unit information"/>
                 <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1">
@@ -209,25 +201,14 @@
                             <Insets top="6.0"/>
                         </HBox.margin>
                     </Label>
-                    <TextField id="txtProcessedSerial" fx:id="txtProcessedSerial"
-                               alignment="CENTER_RIGHT"/>
+                    <TextField id="txtProcessedSerial" fx:id="txtProcessedSerial" alignment="CENTER_RIGHT"/>
                 </HBox>
             </GridPane>
-            <GridPane layoutX="10.0" layoutY="10.0" maxHeight="-Infinity" prefHeight="44.0"
-                      prefWidth="1278.0" AnchorPane.bottomAnchor="0.0">
-                <Button alignment="CENTER" contentDisplay="CENTER" onAction="#commit" text="Postprocess"
-                        GridPane.columnIndex="2"/>
-                <Button id="btnSave" fx:id="btnSave" mnemonicParsing="false" onAction="#preprocess"
-                        text="Temporary save" GridPane.columnIndex="1"/>
+            <GridPane layoutX="10.0" layoutY="10.0" maxHeight="-Infinity" prefHeight="44.0" prefWidth="1278.0"
+                      AnchorPane.bottomAnchor="0.0">
+                <Button alignment="CENTER" contentDisplay="CENTER" onAction="#commit" text="Postprocess"/>
                 <columnConstraints>
-                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0"
-                                       percentWidth="20.0"/>
-                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0"
-                                       percentWidth="30.0"/>
-                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0"
-                                       percentWidth="30.0"/>
-                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0"
-                                       percentWidth="20.0"/>
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0"/>
                 </columnConstraints>
                 <rowConstraints>
                     <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>

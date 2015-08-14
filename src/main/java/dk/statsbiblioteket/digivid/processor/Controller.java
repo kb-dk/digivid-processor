@@ -66,8 +66,10 @@ public class Controller {
     @FXML public DatePicker endDatePicker;
     @FXML public ToggleGroup channelGroup;
     @FXML public javafx.scene.layout.AnchorPane detailVHS;
+
     private Path dataPath;
     private TextField altChannel;
+    private boolean temporaryFileSave = true;
 
     private static void checkConfigfile() {
         try {
@@ -110,6 +112,88 @@ public class Controller {
             Utils.showErrorDialog("Caught exception while reading channels\n\n", Thread.currentThread(), e);
         }
 
+        //The different items gets saved in a temporary json-file when the control loses focus
+        //Start lost focus eventhandlers
+        txtVhsLabel.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && txtVhsLabel != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
+                thisVideoFileRow.preprocess();
+            }
+        });
+        startTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && startTimeField != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                setStartCalendar(thisVideoFileRow);
+                thisVideoFileRow.preprocess();
+            }
+        });
+        endTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && endTimeField != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                setEndCalendar(thisVideoFileRow);
+                thisVideoFileRow.preprocess();
+            }
+        });
+        txtProcessedManufacturer.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && txtProcessedManufacturer != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
+                thisVideoFileRow.preprocess();
+            }
+        });
+        txtProcessedModel.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && txtProcessedModel != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setModel(txtProcessedModel.getText());
+                thisVideoFileRow.preprocess();
+            }
+        });
+        txtComment.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && txtComment != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setComment(txtComment.getText());
+                thisVideoFileRow.preprocess();
+            }
+        });
+        txtProcessedSerial.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && txtProcessedSerial != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
+                thisVideoFileRow.preprocess();
+            }
+        });
+        altChannel.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && altChannel != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setChannel(altChannel.getText());
+                thisVideoFileRow.preprocess();
+            }
+        });
+        cmbQuality.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && cmbQuality != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setQuality(cmbQuality.getValue());
+                thisVideoFileRow.preprocess();
+            }
+        });
+        startDatePicker.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && startDatePicker != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                setStartCalendar(thisVideoFileRow);
+                thisVideoFileRow.preprocess();
+            }
+        });
+
+        endDatePicker.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && startDatePicker != null) {
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                setEndCalendar(thisVideoFileRow);
+                thisVideoFileRow.preprocess();
+            }
+        });
+        //End lost focus eventhandlers
+
         txtFilename.setEditable(false);
         //Use css-style to make the textfield seem like a label
         txtFilename.getStyleClass().add("copyable-label");
@@ -120,7 +204,7 @@ public class Controller {
                     txtFilename.getText(), 0.0D) + 20);
         });
 
-        startDatePicker.setOnAction(event -> endDatePicker.setValue(startDatePicker.getValue()));
+        startDatePicker.setOnAction((event) -> endDatePicker.setValue(startDatePicker.getValue()));
         startDatePicker.setConverter(new StringConverter<LocalDate>() {
             DateTimeFormatter dtf = DateTimeFormatter.ISO_DATE;
 
@@ -149,6 +233,7 @@ public class Controller {
             }
         });
 
+
         /**
          * Custom rendering of the table cell to have format specified "yyyy-mm-dd hh:mm.
          */
@@ -171,25 +256,25 @@ public class Controller {
         });
 
         /**
-         * The filename is colored blue when it is has a temporary json-file, but is not yet processed.
+         * The filename is colored blue when it has a temporary json-file, but is not yet processed.
          */
-        filenameColumn.setCellFactory(column -> {
-            return new TableCell<VideoFileObject, String>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
+        filenameColumn.setCellFactory(column -> new TableCell<VideoFileObject, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
 
-                    if (item == null || empty) {
-                        setText(null);
-                        setStyle("");
-                    } else {
-                        setText(item);
-                        File tmpMetadata = new File(DigividProcessor.recordsDir + "/" + item + ".temporary");
-                        if (tmpMetadata.exists())
-                            setTextFill(Color.BLUE);
-                    }
+                if (item == null || empty) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    File tmpMetadata = new File(DigividProcessor.recordsDir + "/" + item + ".temporary");
+                    if (tmpMetadata.exists())
+                        setTextFill(Color.BLUE);
+                    else
+                        setTextFill(Color.BLACK);
                 }
-            };
+            }
         });
 
 
@@ -230,6 +315,16 @@ public class Controller {
                     setAlignment(Pos.CENTER_RIGHT);
                     setText(String.format("%d", filesize));
                 }
+            }
+        });
+
+        channelGroup.selectedToggleProperty().addListener((ov, t, t1) -> {
+            if (temporaryFileSave) {
+                final Toggle selectedToggle = channelGroup.getSelectedToggle();
+                RadioButton chk = (RadioButton) t1.getToggleGroup().getSelectedToggle(); // Cast object to radio button
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setChannel(((Channel) selectedToggle.getUserData()).getChannelName());
+                thisVideoFileRow.preprocess();
             }
         });
 
@@ -405,7 +500,7 @@ public class Controller {
 
         File file = thisVideoFileRow.videoFilePath.toFile();
         boolean fileIsNotLocked = file.renameTo(file);
-        if (fileIsNotLocked && validGUIvalues(thisVideoFileRow, fileIsNotLocked)) {
+        if (validGUIvalues(thisVideoFileRow, fileIsNotLocked)) {
             String tmpMetadataFilename = thisVideoFileRow.videoFilePath.getFileName() + ".temporary";
             Path tmpMetadataPath = thisVideoFileRow.videoFilePath.getParent().resolve(Paths.get(tmpMetadataFilename));
             try {
@@ -431,7 +526,7 @@ public class Controller {
 
         File file = thisVideoFileRow.videoFilePath.toFile();
         boolean fileIsNotLocked = file.renameTo(file);
-        if (fileIsNotLocked && validGUIvalues(thisVideoFileRow, fileIsNotLocked))
+        if (validGUIvalues(thisVideoFileRow, fileIsNotLocked))
             thisVideoFileRow.preprocess();
     }
 
@@ -449,13 +544,67 @@ public class Controller {
     }
 
     private boolean setValidDate(VideoFileObject thisVideoFileRow) {
+        if (!validateDate()) return false;
+
+        Calendar startCalendar = setStartCalendar(thisVideoFileRow);
+
+        Calendar endCalendar = setEndCalendar(thisVideoFileRow);
+
+        return validateStartBeforeEnd(startCalendar, endCalendar);
+    }
+
+    private Calendar setEndCalendar(VideoFileObject thisVideoFileRow) {
+        LocalDate localDate = endDatePicker.getValue();
+        if (localDate == null)
+            return null;
+        Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        Calendar endCalendar = Calendar.getInstance();
+        endCalendar.setTime(Date.from(instant));
+
+        String[] timeStr = "00:00".split(":");
+        if (!endTimeField.getText().isEmpty())
+            timeStr = endTimeField.getText().split(":");
+        endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
+        endCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
+        thisVideoFileRow.setEndDate(endCalendar.getTime().getTime());
+        return endCalendar;
+    }
+
+    private Calendar setStartCalendar(VideoFileObject thisVideoFileRow) {
+        LocalDate localDate = startDatePicker.getValue();
+        if (localDate == null)
+            return null;
+        Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        Calendar startCalendar = Calendar.getInstance();
+        startCalendar.setTime(Date.from(instant));
+
+        String[] timeStr;
+        if (!startTimeField.getText().isEmpty())
+            timeStr = startTimeField.getText().split(":");
+        else
+            timeStr = "00:00".split(":");
+        startCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
+        startCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
+        thisVideoFileRow.setStartDate(startCalendar.getTime().getTime());
+        return startCalendar;
+    }
+
+    private boolean validateStartBeforeEnd(Calendar startCalendar, Calendar endCalendar) {
+        if (startCalendar.getTime().after(endCalendar.getTime())) {
+            Utils.showWarning("Start time has to be before end time");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean validateDate() {
         if (startDatePicker.getValue() == null) {
             Utils.showWarning("No Start Date Set.");
             return false;
         }
         if (startTimeField.getText() == null || (startTimeField.getText().isEmpty())) {
             Utils.showWarning("No Start Time Set.");
-            return false;
+            return true;
         } else if (!Pattern.matches(hourPattern, startTimeField.getText())) {
             Utils.showWarning("Start time not valid");
             return false;
@@ -473,44 +622,15 @@ public class Controller {
             Utils.showWarning("End time not valid");
             return false;
         }
-
-        LocalDate localDate = startDatePicker.getValue();
-        Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        Calendar startCalendar = Calendar.getInstance();
-        startCalendar.setTime(Date.from(instant));
-
-        String[] timeStr = startTimeField.getText().split(":");
-        startCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
-        startCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisVideoFileRow.setStartDate(startCalendar.getTime().getTime());
-
-        localDate = endDatePicker.getValue();
-        instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        Calendar endCalendar = Calendar.getInstance();
-        endCalendar.setTime(Date.from(instant));
-
-        timeStr = endTimeField.getText().split(":");
-        endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
-        endCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
-        thisVideoFileRow.setEndDate(endCalendar.getTime().getTime());
-
-        if (startCalendar.getTime().after(endCalendar.getTime())) {
-            Utils.showWarning("Start time has to be before end time");
-            return false;
-        }
         return true;
     }
 
     private boolean setValidChannel(VideoFileObject thisVideoFileRow) {
         final Toggle selectedToggle = channelGroup.getSelectedToggle();
         String altChannel = this.altChannel.getText();
+        if (!validateChannel(altChannel)) return false;
         if (altChannel != null && altChannel.length() > 0) {
-            if (Pattern.matches(channelPattern, altChannel)) {
-                thisVideoFileRow.setChannel(altChannel);
-            } else {
-                Utils.showWarning("Channel has to be at least 3 lowercase alphanumeric characters");
-                return false;
-            }
+            thisVideoFileRow.setChannel(altChannel);
         } else {
             String channel = null;
             if (selectedToggle != null) {
@@ -525,7 +645,26 @@ public class Controller {
         return true;
     }
 
+    private boolean validateChannel(String altChannel) {
+        if ((altChannel != null && altChannel.length() > 0) && (!Pattern.matches(channelPattern, altChannel))) {
+            Utils.showWarning("Channel has to be at least 3 lowercase alphanumeric characters");
+            return false;
+        }
+        return true;
+    }
+
     private boolean setValidVideoMetadata(VideoFileObject thisVideoFileRow) {
+        if (!ValidateVideoMetadata()) return false;
+        thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
+        thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
+        thisVideoFileRow.setModel(txtProcessedModel.getText());
+        thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
+        thisVideoFileRow.setQuality(cmbQuality.getValue());
+        thisVideoFileRow.setComment(txtComment.getText());
+        return true;
+    }
+
+    private boolean ValidateVideoMetadata() {
         if (txtProcessedManufacturer.getText() == null || (txtProcessedManufacturer.getText().trim().isEmpty())) {
             Utils.showWarning("Manufacturer is not allowed to be empty");
             return false;
@@ -544,12 +683,6 @@ public class Controller {
             Utils.showWarning("Video label is not allowed to be empty");
             return false;
         }
-        thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
-        thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
-        thisVideoFileRow.setModel(txtProcessedModel.getText());
-        thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
-        thisVideoFileRow.setQuality(cmbQuality.getValue());
-        thisVideoFileRow.setComment(txtComment.getText());
         return true;
     }
 
@@ -572,6 +705,7 @@ public class Controller {
      * Show the file details for the file (which is found in the files localProperties file), that the user clicked on
      */
     private void loadFile(VideoFileObject currentVideoFile) {
+        temporaryFileSave = false;
         txtFilename.setText(currentVideoFile.getFilename());
         GregorianCalendar startCalendar = new GregorianCalendar();
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
@@ -635,6 +769,7 @@ public class Controller {
         } else {
             altChannel.setText(currentVideoFile.getChannel());
         }
+        temporaryFileSave = true;
     }
 
     public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
