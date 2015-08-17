@@ -123,16 +123,26 @@ public class Controller {
         });
         startTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && startTimeField != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-                setStartCalendar(thisVideoFileRow);
-                thisVideoFileRow.preprocess();
+                if (Pattern.matches(hourPattern, startTimeField.getText()) || startTimeField.getText().isEmpty()) {
+                    VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                    setStartCalendar(thisVideoFileRow);
+                    thisVideoFileRow.preprocess();
+                } else {
+                    Utils.showWarning("Start time is not valid (should be hh:mm)");
+                    startTimeField.requestFocus();
+                }
             }
         });
         endTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && endTimeField != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-                setEndCalendar(thisVideoFileRow);
-                thisVideoFileRow.preprocess();
+                if (Pattern.matches(hourPattern, endTimeField.getText()) || (endTimeField.getText().isEmpty())) {
+                    VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                    setEndCalendar(thisVideoFileRow);
+                    thisVideoFileRow.preprocess();
+                } else {
+                    Utils.showWarning("Start time is not valid (should be hh:mm)");
+                    endTimeField.requestFocus();
+                }
             }
         });
         txtProcessedManufacturer.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -604,9 +614,11 @@ public class Controller {
         }
         if (startTimeField.getText() == null || (startTimeField.getText().isEmpty())) {
             Utils.showWarning("No Start Time Set.");
-            return true;
+            startTimeField.requestFocus();
+            return false;
         } else if (!Pattern.matches(hourPattern, startTimeField.getText())) {
-            Utils.showWarning("Start time not valid");
+            Utils.showWarning("Start time not valid (should be hh:mm)");
+            startTimeField.requestFocus();
             return false;
         }
         if ((endDatePicker.getValue() != null && endDatePicker.getValue().toString().isEmpty()) ||
@@ -617,9 +629,11 @@ public class Controller {
 
         if (endTimeField.getText() == null || (endTimeField.getText().isEmpty())) {
             Utils.showWarning("No End Time Set.");
+            endTimeField.requestFocus();
             return false;
         } else if (!Pattern.matches(hourPattern, endTimeField.getText())) {
-            Utils.showWarning("End time not valid");
+            Utils.showWarning("End time not valid (should be hh:mm)");
+            endTimeField.requestFocus();
             return false;
         }
         return true;
