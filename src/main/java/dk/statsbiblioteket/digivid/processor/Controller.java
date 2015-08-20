@@ -116,9 +116,7 @@ public class Controller {
         //Start lost focus eventhandlers
         txtVhsLabel.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && txtVhsLabel != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-                thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
-                thisVideoFileRow.preprocess();
+                storeTextFieldInformation(txtVhsLabel);
             }
         });
         startTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -147,16 +145,12 @@ public class Controller {
         });
         txtProcessedManufacturer.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && txtProcessedManufacturer != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-                thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
-                thisVideoFileRow.preprocess();
+                storeTextFieldInformation(txtProcessedManufacturer);
             }
         });
         txtProcessedModel.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && txtProcessedModel != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-                thisVideoFileRow.setModel(txtProcessedModel.getText());
-                thisVideoFileRow.preprocess();
+                storeTextFieldInformation(txtProcessedModel);
             }
         });
         txtComment.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -168,16 +162,12 @@ public class Controller {
         });
         txtProcessedSerial.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && txtProcessedSerial != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-                thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
-                thisVideoFileRow.preprocess();
+                storeTextFieldInformation(txtSerial);
             }
         });
         altChannel.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && altChannel != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-                thisVideoFileRow.setChannel(altChannel.getText());
-                thisVideoFileRow.preprocess();
+                storeTextFieldInformation(altChannel);
             }
         });
         cmbQuality.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -354,6 +344,12 @@ public class Controller {
             }
         });
         readLocalProperties();
+    }
+
+    private void storeTextFieldInformation(TextField txtField) {
+        VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+        thisVideoFileRow.setVhsLabel(txtField.getText());
+        thisVideoFileRow.preprocess();
     }
 
     private Path getDataPath() {
@@ -571,9 +567,11 @@ public class Controller {
         Calendar endCalendar = Calendar.getInstance();
         endCalendar.setTime(Date.from(instant));
 
-        String[] timeStr = "00:00".split(":");
+        String[] timeStr;
         if (!endTimeField.getText().isEmpty())
             timeStr = endTimeField.getText().split(":");
+        else
+            timeStr = "00:00".split(":");
         endCalendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr[0]));
         endCalendar.set(Calendar.MINUTE, Integer.parseInt(timeStr[1]));
         thisVideoFileRow.setEndDate(endCalendar.getTime().getTime());

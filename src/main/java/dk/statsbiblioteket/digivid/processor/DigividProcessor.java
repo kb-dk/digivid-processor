@@ -79,9 +79,14 @@ public class DigividProcessor extends Application {
             Scene scene = new Scene(rootLayout, screenBounds.getWidth(), screenBounds.getHeight());
             primaryStage.setScene(scene);
             primaryStage.show();
+            primaryStage.setOnCloseRequest(t -> {
+                Platform.exit();
+                System.exit(0);
+            });
         } catch (IOException ioe) {
             log.error("Error occured while loading file in initRootLayout", ioe);
             Utils.showErrorDialog(Thread.currentThread(), ioe);
         }
     }
+
 }
