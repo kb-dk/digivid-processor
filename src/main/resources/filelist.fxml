@@ -206,7 +206,7 @@
             </GridPane>
             <GridPane layoutX="10.0" layoutY="10.0" maxHeight="-Infinity" prefHeight="44.0" prefWidth="1278.0"
                       AnchorPane.bottomAnchor="0.0">
-                <Button alignment="CENTER" contentDisplay="CENTER" onAction="#commit" text="Postprocess"/>
+                <Button alignment="CENTER" contentDisplay="CENTER" onAction="#commit" text="Process"/>
                 <columnConstraints>
                     <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0"/>
                 </columnConstraints>

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -259,54 +260,23 @@ public class VideoFileObject {
      */
     public void commit() {
         setFilename(buildFilename());
-        Path newPath;
-        newPath = videoFilePath.getParent().resolve(Paths.get(filename));
-        try {
-            checksum = DigestUtils.md5Hex(Files.newInputStream(videoFilePath));
-        } catch (IOException e) {
-            log.error("IO exception happened when setting checksum in commit");
-            Utils.showErrorDialog(Thread.currentThread(), e);
-        }
-        try {
-            if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
-                Files.move(videoFilePath, newPath, StandardCopyOption.REPLACE_EXISTING);
-            }
-        } catch (IOException e) {
-            log.error("IO exception happened when moving the file in commit");
-            Utils.showErrorDialog(Thread.currentThread(), e);
-        }
-        try {
-            this.encoderName = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            this.encoderName = "unknown";
-        }
-        String vhsFileMetadata = new VideoFileObject(this).toJson();
-        Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
-        try {
-            if (Files.exists(vhsFileMetadataFilePath))
-                Files.delete(vhsFileMetadataFilePath);
-        } catch (IOException e) {
-            log.error("IO exception happened when deleting the file in commit");
-            Utils.showErrorDialog(Thread.currentThread(), e);
-        }
-        try {
-            Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes("UTF-8"));
-        } catch (IOException e) {
-            log.error("IO exception happened when writing the file in commit");
-            Utils.showErrorDialog(Thread.currentThread(), e);
-        }
+        generateJson(".comments");
     }
 
     /**
      * This preprocesses the videofileobject .
-     * It renames the file to correspond to the specified localProperties and writes a temporary json-file
      */
     public void preprocess() {
-        //setFilename(buildFilename());
+        generateJson(".temporary");
+    }
+
+    private void generateJson(String jsonType) {
         Path newPath;
         newPath = videoFilePath.getParent().resolve(Paths.get(filename));
         try {
-            checksum = DigestUtils.md5Hex(Files.newInputStream(videoFilePath));
+            InputStream checksumInputStream = Files.newInputStream(videoFilePath);
+            checksum = DigestUtils.md5Hex(checksumInputStream);
+            checksumInputStream.close();
         } catch (IOException e) {
             log.error("IO exception happened when setting checksum in commit");
             Utils.showErrorDialog(Thread.currentThread(), e);
@@ -325,7 +295,7 @@ public class VideoFileObject {
             this.encoderName = "unknown";
         }
         String vhsFileMetadata = new VideoFileObject(this).toJson();
-        Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + ".temporary");
+        Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + jsonType);
         try {
             if (Files.exists(vhsFileMetadataFilePath))
                 Files.delete(vhsFileMetadataFilePath);
