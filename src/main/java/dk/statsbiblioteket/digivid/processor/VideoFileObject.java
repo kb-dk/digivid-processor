@@ -25,8 +25,6 @@ import java.util.Date;
 public class VideoFileObject {
 
     private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
-    private final String processed = ".comments";
-    private final String temporary = ".temporary";
     public Path videoFilePath;
     private Path vhsFileMetadataFilePath;
     private String filename;
@@ -262,28 +260,26 @@ public class VideoFileObject {
      */
     public void commit() {
         setFilename(buildFilename());
-        generateJson(processed);
+        generateJson(".comments");
     }
 
     /**
      * This preprocesses the videofileobject .
      */
     public void preprocess() {
-        generateJson(temporary);
+        generateJson(".temporary");
     }
 
     private void generateJson(String jsonType) {
         Path newPath;
         newPath = videoFilePath.getParent().resolve(Paths.get(filename));
-        if (jsonType.equals(processed)) {
-            try {
-                InputStream checksumInputStream = Files.newInputStream(videoFilePath);
-                checksum = DigestUtils.md5Hex(checksumInputStream);
-                checksumInputStream.close();
-            } catch (IOException e) {
-                log.error("IO exception happened when setting checksum in commit");
-                Utils.showErrorDialog(Thread.currentThread(), e);
-            }
+        try {
+            InputStream checksumInputStream = Files.newInputStream(videoFilePath);
+            checksum = DigestUtils.md5Hex(checksumInputStream);
+            checksumInputStream.close();
+        } catch (IOException e) {
+            log.error("IO exception happened when setting checksum in commit");
+            Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
