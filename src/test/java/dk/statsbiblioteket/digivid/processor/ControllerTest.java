@@ -4,8 +4,12 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
 public class ControllerTest {
 
     private DigividProcessor main;
@@ -27,6 +31,16 @@ public class ControllerTest {
     @Test
     public void testHandleLocalProperties() throws Exception {
         Path newFilePath = Paths.get(DigividProcessor.localProperties);
+        try {
+            Path parentDir = newFilePath.getParent();
+            if (!Files.exists(parentDir))
+                Files.createDirectories(parentDir);
+            String msg = String.format("%s,%s,%s", "Panasonic", "VHS-3421", "345123-235412");
+            Files.write(newFilePath, msg.getBytes("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+
+        } catch (IOException ioe) {
+            Utils.showErrorDialog("Caught error while writing local properties\n\n", Thread.currentThread(), ioe);
+        }
     }
 
     @Test

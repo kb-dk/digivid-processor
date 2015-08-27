@@ -116,7 +116,9 @@ public class Controller {
         //Start lost focus eventhandlers
         txtVhsLabel.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && txtVhsLabel != null) {
-                storeTextFieldInformation(txtVhsLabel);
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setVhsLabel(txtVhsLabel.getText());
+                thisVideoFileRow.preprocess();
             }
         });
         startTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -145,12 +147,16 @@ public class Controller {
         });
         txtProcessedManufacturer.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && txtProcessedManufacturer != null) {
-                storeTextFieldInformation(txtProcessedManufacturer);
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setManufacturer(txtProcessedManufacturer.getText());
+                thisVideoFileRow.preprocess();
             }
         });
         txtProcessedModel.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && txtProcessedModel != null) {
-                storeTextFieldInformation(txtProcessedModel);
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setModel(txtProcessedModel.getText());
+                thisVideoFileRow.preprocess();
             }
         });
         txtComment.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -162,12 +168,16 @@ public class Controller {
         });
         txtProcessedSerial.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && txtProcessedSerial != null) {
-                storeTextFieldInformation(txtSerial);
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setSerialNo(txtProcessedSerial.getText());
+                thisVideoFileRow.preprocess();
             }
         });
         altChannel.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && altChannel != null) {
-                storeTextFieldInformation(altChannel);
+                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+                thisVideoFileRow.setChannel(altChannel.getText());
+                thisVideoFileRow.preprocess();
             }
         });
         cmbQuality.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -321,9 +331,13 @@ public class Controller {
         channelGroup.selectedToggleProperty().addListener((ov, t, t1) -> {
             if (temporaryFileSave) {
                 final Toggle selectedToggle = channelGroup.getSelectedToggle();
-                RadioButton chk = (RadioButton) t1.getToggleGroup().getSelectedToggle(); // Cast object to radio button
+                if (t1 != null) {
+                    RadioButton chk = (RadioButton) t1.getToggleGroup().getSelectedToggle(); // Cast object to radio button
+                }
                 VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-                thisVideoFileRow.setChannel(((Channel) selectedToggle.getUserData()).getChannelName());
+                if (selectedToggle != null) {
+                    thisVideoFileRow.setChannel(((Channel) selectedToggle.getUserData()).getChannelName());
+                }
                 thisVideoFileRow.preprocess();
             }
         });
@@ -344,12 +358,6 @@ public class Controller {
             }
         });
         readLocalProperties();
-    }
-
-    private void storeTextFieldInformation(TextField txtField) {
-        VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-        thisVideoFileRow.setVhsLabel(txtField.getText());
-        thisVideoFileRow.preprocess();
     }
 
     private Path getDataPath() {
