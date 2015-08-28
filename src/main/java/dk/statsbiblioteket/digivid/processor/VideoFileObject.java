@@ -276,13 +276,20 @@ public class VideoFileObject {
         Path newPath;
         newPath = videoFilePath.getParent().resolve(Paths.get(filename));
         if (jsonType.equals(processed)) {
+            InputStream checksumInputStream = null;
             try {
-                InputStream checksumInputStream = Files.newInputStream(videoFilePath);
+                checksumInputStream = Files.newInputStream(videoFilePath);
                 checksum = DigestUtils.md5Hex(checksumInputStream);
-                checksumInputStream.close();
             } catch (IOException e) {
                 log.error("IO exception happened when setting checksum in commit");
                 Utils.showErrorDialog(Thread.currentThread(), e);
+            } finally {
+                try {
+                    if (checksumInputStream != null)
+                        checksumInputStream.close();
+                } catch (Exception ex) {
+                    Utils.showWarning("An error happened while attempting to find the checksum for " + filename);
+                }
             }
         }
         try {
