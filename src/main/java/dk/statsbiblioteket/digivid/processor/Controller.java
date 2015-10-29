@@ -36,7 +36,7 @@ public class Controller {
 
     private static final int CHECKMARK = 10003;
     private static final String hourPattern = "([01]?[0-9]|2[0-3]):[0-5][0-9]";
-    private static final String channelPattern = "^[a-z0-9]{3,}$";
+    private static final String channelPattern = "^[a-zæøå0-9]{3,}$";
     private static Logger log = LoggerFactory.getLogger(Controller.class);
     @FXML public TableView<VideoFileObject> tableView;
     @FXML public GridPane channelGridPane;
@@ -210,7 +210,15 @@ public class Controller {
 
             @Override
             public String toString(LocalDate localDate) {
-                return dtf.format(localDate);
+                try {
+                    if (localDate != null)
+                        return dtf.format(localDate);
+                    return dtf.format(LocalDate.now());
+                } catch (Exception e) {
+                    return dtf.format(LocalDate.now());
+                }
+
+
             }
 
             @Override
@@ -224,7 +232,9 @@ public class Controller {
 
             @Override
             public String toString(LocalDate localDate) {
-                return dtf.format(localDate);
+                if (localDate != null)
+                    return dtf.format(localDate);
+                return dtf.format(LocalDate.now());
             }
 
             @Override
