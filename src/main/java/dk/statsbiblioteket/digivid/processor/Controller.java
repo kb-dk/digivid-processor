@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -70,6 +71,7 @@ public class Controller {
     private Path dataPath;
     private TextField altChannel;
     private boolean temporaryFileSave = true;
+    private boolean changedField = false;
 
     private static void checkConfigfile() {
         try {
@@ -112,15 +114,24 @@ public class Controller {
             Utils.showErrorDialog("Caught exception while reading channels\n\n", Thread.currentThread(), e);
         }
 
+        detailVHS.setOnKeyReleased(new EventHandler<KeyEvent>() {
+
+            @Override
+            public void handle(KeyEvent t) {
+                changedField = true;
+            }
+        });
+
         //The different items gets saved in a temporary json-file when the control loses focus
         //Start lost focus eventhandlers
         txtVhsLabel.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtVhsLabel != null) {
+            if (!newValue && changedField && txtVhsLabel != null) {
                 storeTextFieldInformation(txtVhsLabel);
+                changedField = false;
             }
         });
         startTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && startTimeField != null) {
+            if (!newValue && changedField && startTimeField != null) {
                 if (Pattern.matches(hourPattern, startTimeField.getText()) || startTimeField.getText().isEmpty()) {
                     VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
                     setStartCalendar(thisVideoFileRow);
@@ -129,10 +140,11 @@ public class Controller {
                     Utils.showWarning("Start time is not valid (should be hh:mm)");
                     startTimeField.requestFocus();
                 }
+                changedField = false;
             }
         });
         endTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && endTimeField != null) {
+            if (!newValue && changedField && endTimeField != null) {
                 if (Pattern.matches(hourPattern, endTimeField.getText()) || (endTimeField.getText().isEmpty())) {
                     VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
                     setEndCalendar(thisVideoFileRow);
@@ -141,55 +153,64 @@ public class Controller {
                     Utils.showWarning("Start time is not valid (should be hh:mm)");
                     endTimeField.requestFocus();
                 }
+                changedField = false;
             }
         });
         txtProcessedManufacturer.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtProcessedManufacturer != null) {
+            if (!newValue && changedField && txtProcessedManufacturer != null) {
                 storeTextFieldInformation(txtProcessedManufacturer);
+                changedField = false;
             }
         });
         txtProcessedModel.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtProcessedModel != null) {
+            if (!newValue && changedField && txtProcessedModel != null) {
                 storeTextFieldInformation(txtProcessedModel);
+                changedField = false;
             }
         });
         txtComment.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtComment != null) {
+            if (!newValue && changedField && txtComment != null) {
                 VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
                 thisVideoFileRow.setComment(txtComment.getText());
                 thisVideoFileRow.preprocess();
+                changedField = false;
             }
         });
         txtProcessedSerial.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtProcessedSerial != null) {
+            if (!newValue && changedField && txtProcessedSerial != null) {
                 storeTextFieldInformation(txtSerial);
+                changedField = false;
             }
         });
         altChannel.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && altChannel != null) {
+            if (!newValue && changedField && altChannel != null) {
                 storeTextFieldInformation(altChannel);
+                changedField = false;
             }
         });
         cmbQuality.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && cmbQuality != null) {
+            if (!newValue && changedField && cmbQuality != null) {
                 VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
                 thisVideoFileRow.setQuality(cmbQuality.getValue());
                 thisVideoFileRow.preprocess();
+                changedField = false;
             }
         });
         startDatePicker.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && startDatePicker != null) {
+            if (!newValue && changedField && startDatePicker != null) {
                 VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
                 setStartCalendar(thisVideoFileRow);
                 thisVideoFileRow.preprocess();
+                changedField = false;
             }
         });
 
         endDatePicker.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && startDatePicker != null) {
+            if (!newValue && changedField && startDatePicker != null) {
                 VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
                 setEndCalendar(thisVideoFileRow);
                 thisVideoFileRow.preprocess();
+                changedField = false;
             }
         });
         //End lost focus eventhandlers
