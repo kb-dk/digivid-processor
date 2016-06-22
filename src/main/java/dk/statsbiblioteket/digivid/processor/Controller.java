@@ -494,14 +494,9 @@ public class Controller {
                     tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts");
                     for (Path tsFile : tsFiles) {
                         if (!(tsFile.getFileName().toString().startsWith("temp"))) //Skip files that start with "temp"
-<<<<<<< HEAD
-                            videoFileObjects.add(new VideoFileObject(tsFile));
-=======
                         {
                             videoFileObjects.add(new VideoFileObject(tsFile));
                         }
-                        
->>>>>>> dd535c939cefca9d4d91d54f5aad51c86833befd
                     }
                     tableView.setItems(videoFileObjects);
                 } catch (IOException e) {
