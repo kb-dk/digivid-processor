@@ -10,3 +10,7 @@ target
 *.comments
 *.csv
 src/main/config/localVHS.properties
+src/test/config/localVHS.properties
+*.ts
+*.ts.temporary
+

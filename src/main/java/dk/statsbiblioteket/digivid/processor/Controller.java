@@ -3,12 +3,14 @@ package dk.statsbiblioteket.digivid.processor;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -70,6 +72,8 @@ public class Controller {
     private Path dataPath;
     private TextField altChannel;
     private boolean temporaryFileSave = true;
+    private boolean changedField = false;
+    private VideoFileObject thisVideoFileRow;
 
     private static void checkConfigfile() {
         try {
@@ -112,84 +116,96 @@ public class Controller {
             Utils.showErrorDialog("Caught exception while reading channels\n\n", Thread.currentThread(), e);
         }
 
+        detailVHS.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent t) {
+                changedField = true;
+            }
+        });
+
         //The different items gets saved in a temporary json-file when the control loses focus
         //Start lost focus eventhandlers
         txtVhsLabel.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtVhsLabel != null) {
+            if (!newValue && changedField && txtVhsLabel != null) {
                 storeTextFieldInformation(txtVhsLabel);
+                changedField = false;
             }
         });
         startTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && startTimeField != null) {
+            if (!newValue && changedField && startTimeField != null) {
                 if (Pattern.matches(hourPattern, startTimeField.getText()) || startTimeField.getText().isEmpty()) {
-                    VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
                     setStartCalendar(thisVideoFileRow);
                     thisVideoFileRow.preprocess();
                 } else {
                     Utils.showWarning("Start time is not valid (should be hh:mm)");
                     startTimeField.requestFocus();
                 }
+                changedField = false;
             }
         });
         endTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && endTimeField != null) {
+            if (!newValue && changedField && endTimeField != null) {
                 if (Pattern.matches(hourPattern, endTimeField.getText()) || (endTimeField.getText().isEmpty())) {
-                    VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
                     setEndCalendar(thisVideoFileRow);
                     thisVideoFileRow.preprocess();
                 } else {
                     Utils.showWarning("Start time is not valid (should be hh:mm)");
                     endTimeField.requestFocus();
                 }
+                changedField = false;
             }
         });
         txtProcessedManufacturer.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtProcessedManufacturer != null) {
+            if (!newValue && changedField && txtProcessedManufacturer != null) {
                 storeTextFieldInformation(txtProcessedManufacturer);
+                changedField = false;
             }
         });
         txtProcessedModel.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtProcessedModel != null) {
+            if (!newValue && changedField && txtProcessedModel != null) {
                 storeTextFieldInformation(txtProcessedModel);
+                changedField = false;
             }
         });
         txtComment.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtComment != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+            if (!newValue && changedField && txtComment != null) {
                 thisVideoFileRow.setComment(txtComment.getText());
                 thisVideoFileRow.preprocess();
+                changedField = false;
             }
         });
         txtProcessedSerial.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && txtProcessedSerial != null) {
+            if (!newValue && changedField && txtProcessedSerial != null) {
                 storeTextFieldInformation(txtSerial);
+                changedField = false;
             }
         });
         altChannel.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && altChannel != null) {
+            if (!newValue && changedField && altChannel != null) {
                 storeTextFieldInformation(altChannel);
+                changedField = false;
             }
         });
         cmbQuality.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && cmbQuality != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+            if (!newValue && changedField && cmbQuality != null) {
                 thisVideoFileRow.setQuality(cmbQuality.getValue());
                 thisVideoFileRow.preprocess();
+                changedField = false;
             }
         });
         startDatePicker.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && startDatePicker != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+            if (!newValue && changedField && startDatePicker != null) {
                 setStartCalendar(thisVideoFileRow);
                 thisVideoFileRow.preprocess();
+                changedField = false;
             }
         });
 
         endDatePicker.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && startDatePicker != null) {
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
+            if (!newValue && changedField && startDatePicker != null) {
                 setEndCalendar(thisVideoFileRow);
                 thisVideoFileRow.preprocess();
+                changedField = false;
             }
         });
         //End lost focus eventhandlers
@@ -282,7 +298,7 @@ public class Controller {
                     if (tmpMetadata.exists())
                         setTextFill(Color.BLUE);
                     else
-                        setTextFill(Color.BLACK);
+                        setTextFill(Color.GREEN);
                 }
             }
         });
@@ -332,7 +348,6 @@ public class Controller {
             if (temporaryFileSave) {
                 final Toggle selectedToggle = channelGroup.getSelectedToggle();
                 RadioButton chk = (RadioButton) t1.getToggleGroup().getSelectedToggle(); // Cast object to radio button
-                VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
                 thisVideoFileRow.setChannel(((Channel) selectedToggle.getUserData()).getChannelName());
                 thisVideoFileRow.preprocess();
             }
@@ -357,7 +372,6 @@ public class Controller {
     }
 
     private void storeTextFieldInformation(TextField txtField) {
-        VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
         thisVideoFileRow.setVhsLabel(txtField.getText());
         thisVideoFileRow.preprocess();
     }
@@ -471,15 +485,23 @@ public class Controller {
      * The tableview displays an overview of ts-files
      */
     protected void loadFilenames() {
+        ObservableList<VideoFileObject> videoFileObjects = FXCollections.observableList(new ArrayList<>());
         if (tableView != null) {
-            ObservableList<VideoFileObject> videoFileObjects = FXCollections.observableList(new ArrayList<>());
+            videoFileObjects.clear();
             if (getDataPath() != null) {
                 DirectoryStream<Path> tsFiles = null;
                 try {
                     tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts");
                     for (Path tsFile : tsFiles) {
                         if (!(tsFile.getFileName().toString().startsWith("temp"))) //Skip files that start with "temp"
+<<<<<<< HEAD
                             videoFileObjects.add(new VideoFileObject(tsFile));
+=======
+                        {
+                            videoFileObjects.add(new VideoFileObject(tsFile));
+                        }
+                        
+>>>>>>> dd535c939cefca9d4d91d54f5aad51c86833befd
                     }
                     tableView.setItems(videoFileObjects);
                 } catch (IOException e) {
@@ -497,7 +519,19 @@ public class Controller {
                 sortOrder.clear();
                 sortOrder.addAll(processedColumn, lastmodifiedColumn);
                 tableView.sort();
-                tableView.getSelectionModel().select(0);
+                SortedList<VideoFileObject> sortedVideoFileList = new SortedList<>(videoFileObjects);
+                Object[] fileObjectAsArray = sortedVideoFileList.toArray();
+                int currentIndexInGrid = -1;
+                if (thisVideoFileRow != null) {
+                    VideoFileObject loopVideoFileObject;
+                    for (int i = 0; i < sortedVideoFileList.size(); i++) {
+                        loopVideoFileObject = ((VideoFileObject) fileObjectAsArray[i]);
+                        if (thisVideoFileRow.equals(loopVideoFileObject))
+                            currentIndexInGrid = i;
+                    }
+                    tableView.getSelectionModel().select(currentIndexInGrid);
+                } else
+                    tableView.getSelectionModel().select(0);
             } else {
                 log.error("Datapath is not defined when file is loaded");
                 Utils.showErrorDialog(Thread.currentThread(),
@@ -512,9 +546,6 @@ public class Controller {
      * @param actionEvent The event that activated commit
      */
     public void commit(ActionEvent actionEvent) {
-
-        VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-
         File file = thisVideoFileRow.videoFilePath.toFile();
         boolean fileIsNotLocked = file.renameTo(file);
         if (validGUIvalues(thisVideoFileRow, fileIsNotLocked)) {
@@ -538,9 +569,6 @@ public class Controller {
      * @param actionEvent The event that activated preprocess
      */
     public void preprocess(ActionEvent actionEvent) {
-
-        VideoFileObject thisVideoFileRow = tableView.getSelectionModel().getSelectedItem();
-
         File file = thisVideoFileRow.videoFilePath.toFile();
         boolean fileIsNotLocked = file.renameTo(file);
         if (validGUIvalues(thisVideoFileRow, fileIsNotLocked))
@@ -713,13 +741,12 @@ public class Controller {
      * Show the video file in the player
      */
     public void playCurrentFile() {
-        VideoFileObject thisRow = tableView.getSelectionModel().getSelectedItem();
         try {
             ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player,
-                    new File(DigividProcessor.recordsDir, thisRow.getFilename()).getAbsolutePath());
+                    new File(DigividProcessor.recordsDir, thisVideoFileRow.getFilename()).getAbsolutePath());
             pb.start();
         } catch (IOException e) {
-            log.error("{} could not be played", thisRow.getFilename());
+            log.error("{} could not be played", thisVideoFileRow.getFilename());
             Utils.showErrorDialog("The file could not be played\n\n", Thread.currentThread(), e);
         }
     }
@@ -728,6 +755,7 @@ public class Controller {
      * Show the file details for the file (which is found in the files localProperties file), that the user clicked on
      */
     private void loadFile(VideoFileObject currentVideoFile) {
+        thisVideoFileRow = currentVideoFile;
         temporaryFileSave = false;
         txtFilename.setText(currentVideoFile.getFilename());
         GregorianCalendar startCalendar = new GregorianCalendar();

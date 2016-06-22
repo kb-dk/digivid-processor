@@ -93,6 +93,33 @@ public class VideoFileObject {
         return (new Gson()).fromJson(json, VideoFileObject.class);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        try {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            VideoFileObject that = (VideoFileObject) o;
+
+            if (temporary != null ? !temporary.equals(that.temporary) : that.temporary != null) return false;
+            if (filename != null ? !filename.equals(that.filename) : that.filename != null) return false;
+            if (filesize != null ? !filesize.equals(that.filesize) : that.filesize != null) return false;
+            if (startDate != null ? !startDate.equals(that.startDate) : that.startDate != null) return false;
+            if (vhsLabel != null ? !vhsLabel.equals(that.vhsLabel) : that.vhsLabel != null) return false;
+            if (comment != null ? !comment.equals(that.comment) : that.comment != null) return false;
+            if (quality != null ? !quality.equals(that.quality) : that.quality != null) return false;
+            if (channel != null ? !channel.equals(that.channel) : that.channel != null) return false;
+            if (endDate != null ? !endDate.equals(that.endDate) : that.endDate != null) return false;
+            if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
+            if (manufacturer != null ? !manufacturer.equals(that.manufacturer) : that.manufacturer != null)
+                return false;
+            if (model != null ? !model.equals(that.model) : that.model != null) return false;
+            return serialNo != null ? serialNo.equals(that.serialNo) : that.serialNo == null;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     private void assignMetadata(Path metadataPath) {
         final byte[] bytes;
         try {
