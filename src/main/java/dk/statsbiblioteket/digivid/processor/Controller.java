@@ -29,7 +29,10 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
+import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
  * Shows GUI and requests videofiles to be renamed and a JSON-file to be generated according to the GUI-users choices.
@@ -73,6 +76,27 @@ public class Controller {
     private TextField altChannel;
     private boolean temporaryFileSave = true;
     private boolean changedField = false;
+    private WatchService watchFiles = new WatchService() {
+        @Override
+        public void close() throws IOException {
+
+        }
+
+        @Override
+        public WatchKey poll() {
+            return null;
+        }
+
+        @Override
+        public WatchKey poll(long timeout, TimeUnit unit) throws InterruptedException {
+            return null;
+        }
+
+        @Override
+        public WatchKey take() throws InterruptedException {
+            return null;
+        }
+    };
     private VideoFileObject thisVideoFileRow;
 
     private static void checkConfigfile() {
@@ -393,12 +417,24 @@ public class Controller {
                     while (true) {
                         try {
                             WatchKey key = service.take();
+                            // Dequeueing events
+                            WatchEvent.Kind<?> kind = null;
+                            for (WatchEvent<?> watchEvent : key.pollEvents()) {
+                                // Get the type of the event
+                                kind = watchEvent.kind();
+                                if (OVERFLOW == kind) {
+                                    continue; // loop
+                                } else if (ENTRY_CREATE == kind || ENTRY_MODIFY == kind || ENTRY_DELETE == kind) {
+                                    Platform.runLater(Controller.this::loadFilenames);
+                                }
+                            }
                             if (!key.pollEvents().isEmpty()) {
                                 Platform.runLater(Controller.this::loadFilenames);
                             }
                             boolean valid = key.reset();
                             if (!valid)
                                 break;
+
                         } catch (InterruptedException e) {
                             log.error("Thread error in setDataPath: " + e.getMessage(), e);
                             Utils.showErrorDialog(Thread.currentThread(), e);
