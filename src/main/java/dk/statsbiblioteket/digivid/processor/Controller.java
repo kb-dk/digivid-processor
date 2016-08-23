@@ -29,7 +29,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static java.nio.file.StandardWatchEventKinds.*;
@@ -76,27 +75,6 @@ public class Controller {
     private TextField altChannel;
     private boolean temporaryFileSave = true;
     private boolean changedField = false;
-    private WatchService watchFiles = new WatchService() {
-        @Override
-        public void close() throws IOException {
-
-        }
-
-        @Override
-        public WatchKey poll() {
-            return null;
-        }
-
-        @Override
-        public WatchKey poll(long timeout, TimeUnit unit) throws InterruptedException {
-            return null;
-        }
-
-        @Override
-        public WatchKey take() throws InterruptedException {
-            return null;
-        }
-    };
     private VideoFileObject thisVideoFileRow;
 
     private static void checkConfigfile() {
@@ -306,7 +284,7 @@ public class Controller {
         });
 
         /**
-         * The filename is colored blue when it has a temporary json-file, but is not yet processed.
+         * The filename is colored greeen when it is processed - otherwise blue.
          */
         filenameColumn.setCellFactory(column -> new TableCell<VideoFileObject, String>() {
             @Override
@@ -318,11 +296,10 @@ public class Controller {
                     setStyle("");
                 } else {
                     setText(item);
-                    File tmpMetadata = new File(DigividProcessor.recordsDir + "/" + item + ".temporary");
-                    if (tmpMetadata.exists())
-                        setTextFill(Color.BLUE);
-                    else
+                    if (((VideoFileObject) this.getTableRow().getItem()).isProcessed())
                         setTextFill(Color.GREEN);
+                    else
+                        setTextFill(Color.BLUE);
                 }
             }
         });
@@ -351,7 +328,7 @@ public class Controller {
         });
 
         /**
-         * Indicate with a checkmark if the file is processed
+         * Filesize is given, when possible
          */
         filesizeColumn.setCellFactory(column -> new TableCell<VideoFileObject, Long>() {
             @Override
@@ -425,7 +402,7 @@ public class Controller {
                                 if (OVERFLOW == kind) {
                                     continue; // loop
                                 } else if (ENTRY_CREATE == kind || ENTRY_MODIFY == kind || ENTRY_DELETE == kind) {
-                                    Platform.runLater(Controller.this::loadFilenames);
+                                    loadFilenames();
                                 }
                             }
                             if (!key.pollEvents().isEmpty()) {
