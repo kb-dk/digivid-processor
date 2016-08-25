@@ -1,10 +1,10 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
-import org.controlsfx.dialog.Dialogs;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -47,13 +47,20 @@ public class Utils {
     }
 
     static public void showErrorDialog(String description, Thread t, Throwable e) {
-        if (e == null)
-            Dialogs.create().title("Error").message(description).showError();
-        else
-            Dialogs.create().title("Error").message(description +
+        if (e == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText(description);
+            alert.show();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText(description +
                     "An uncaught exception was thrown in thread " + t + ".\n" +
                     "Click below to view the stacktrace, or close this " +
-                    "dialog to terminate the application.").showException(e);
+                    "dialog to terminate the application.");
+            alert.show();
+        }
         Platform.exit();
         System.exit(-1);
     }
@@ -63,7 +70,10 @@ public class Utils {
     }
 
     static public void showWarning(String informationStr) {
-        Dialogs.create().title("Warning").message(informationStr).showWarning();
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
+        alert.setContentText(informationStr);
+        alert.show();
     }
 
     public static List<List<String>> getCSV(String csvFile) throws IOException {

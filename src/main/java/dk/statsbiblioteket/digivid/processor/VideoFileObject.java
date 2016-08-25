@@ -1,6 +1,10 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import com.google.gson.Gson;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +31,7 @@ public class VideoFileObject {
     private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
     private final String processed = ".comments";
     private final String temporary = ".temporary";
+    private final MonitoredSimpleStringProperty vhsLabelProperty;
     public Path videoFilePath;
     private Path vhsFileMetadataFilePath;
     private String filename;
@@ -44,9 +49,10 @@ public class VideoFileObject {
     private String encoderName;
 
     public VideoFileObject(VideoFileObject videoFileObject) {
+        vhsLabelProperty = new MonitoredSimpleStringProperty(this, "title");
         this.filename = videoFileObject.getFilename();
         this.filesize = videoFileObject.getFilesize();
-        this.vhsLabel = videoFileObject.getVhsLabel();
+        this.vhsLabelProperty.setValue(videoFileObject.getVhsLabel());
         this.comment = videoFileObject.getComment();
         try {
             this.encoderName = InetAddress.getLocalHost().getHostName();
@@ -68,6 +74,7 @@ public class VideoFileObject {
     }
 
     public VideoFileObject(Path path) {
+        vhsLabelProperty = new MonitoredSimpleStringProperty(this, "title");
         videoFilePath = path;
         filename = (videoFilePath.getFileName() != null) ? videoFilePath.getFileName().toString() : "";
         filesize = (this.getFilesize() != null) ? this.getFilesize() : 0L;
@@ -105,7 +112,8 @@ public class VideoFileObject {
             if (filename != null ? !filename.equals(that.filename) : that.filename != null) return false;
             if (filesize != null ? !filesize.equals(that.filesize) : that.filesize != null) return false;
             if (startDate != null ? !startDate.equals(that.startDate) : that.startDate != null) return false;
-            if (vhsLabel != null ? !vhsLabel.equals(that.vhsLabel) : that.vhsLabel != null) return false;
+            if (getVhsLabel() != null ? !getVhsLabel().equals(that.getVhsLabel()) : that.getVhsLabel() != null)
+                return false;
             if (comment != null ? !comment.equals(that.comment) : that.comment != null) return false;
             if (quality != null ? !quality.equals(that.quality) : that.quality != null) return false;
             if (channel != null ? !channel.equals(that.channel) : that.channel != null) return false;
@@ -130,7 +138,7 @@ public class VideoFileObject {
                 startDate = videoFileObject.getStartDate();
                 channel = videoFileObject.getChannel();
                 checksum = videoFileObject.getChecksum();
-                vhsLabel = videoFileObject.getVhsLabel();
+                vhsLabelProperty.setValue(videoFileObject.vhsLabel);
                 comment = videoFileObject.getComment();
                 quality = videoFileObject.getQuality();
                 manufacturer = videoFileObject.getManufacturer();
@@ -154,6 +162,7 @@ public class VideoFileObject {
         this.filename = filename;
     }
 
+
     public Long getStartDate() {
         return startDate;
     }
@@ -163,11 +172,15 @@ public class VideoFileObject {
     }
 
     public String getVhsLabel() {
-        return vhsLabel;
+        return vhsLabelProperty.getValue();
     }
 
     public void setVhsLabel(String vhsLabel) {
-        this.vhsLabel = vhsLabel;
+        this.vhsLabelProperty.set(vhsLabel);
+    }
+
+    public MonitoredSimpleStringProperty vhsLabelProperty() {
+        return this.vhsLabelProperty;
     }
 
     public String getComment() {
@@ -346,6 +359,42 @@ public class VideoFileObject {
         } catch (IOException e) {
             log.error("IO exception happened when writing the file in commit");
             Utils.showErrorDialog(Thread.currentThread(), e);
+        }
+    }
+
+    public class MonitoredSimpleStringProperty extends SimpleStringProperty {
+
+        SimpleBooleanProperty dirty;
+
+        public MonitoredSimpleStringProperty(Object bean, String name, String initValue) {
+            super(bean, name, initValue);
+            dirty = new SimpleBooleanProperty(false);
+            this.addListener(new InvalidationListener() {
+                @Override
+                public void invalidated(Observable observable) {
+                    dirty.set(true);
+                }
+            });
+        }
+
+        public MonitoredSimpleStringProperty(Object bean, String name) {
+            this(bean, name, "");
+        }
+
+        public MonitoredSimpleStringProperty(String initialValue) {
+            this(null, "");
+        }
+
+        public MonitoredSimpleStringProperty() {
+            this(null, "", "");
+        }
+
+        public boolean isDirty() {
+            return dirty.get();
+        }
+
+        public void setDirty(boolean newValue) {
+            dirty.set(newValue);
         }
     }
 }

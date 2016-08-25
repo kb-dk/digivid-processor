@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -38,7 +39,7 @@
         <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
-            <version>8.20.8</version>
+            <version>8.40.11</version>
         </dependency>
         <dependency>
         	<groupId>com.google.code.gson</groupId>
@@ -59,12 +60,12 @@
         <dependency>
             <groupId>org.jfxtras</groupId>
             <artifactId>jfxtras-all</artifactId>
-            <version>8.0-r3</version>
+            <version>8.0-r5</version>
         </dependency>
         <dependency>
             <groupId>org.jfxtras</groupId>
             <artifactId>jfxtras-labs</artifactId>
-            <version>8.0-r3</version>
+            <version>8.0-r5</version>
         </dependency>
         
         <dependency>

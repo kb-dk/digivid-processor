@@ -5,14 +5,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
@@ -116,21 +113,16 @@ public class Controller {
             Utils.showErrorDialog("Caught exception while reading channels\n\n", Thread.currentThread(), e);
         }
 
-        detailVHS.setOnKeyReleased(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent t) {
-                changedField = true;
-            }
-        });
+        detailVHS.setOnKeyReleased(keyEvent -> changedField = true);
 
         //The different items gets saved in a temporary json-file when the control loses focus
         //Start lost focus eventhandlers
-        txtVhsLabel.focusedProperty().addListener((observable, oldValue, newValue) -> {
+     /*   txtVhsLabel.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && changedField && txtVhsLabel != null) {
                 storeTextFieldInformation(txtVhsLabel);
                 changedField = false;
             }
-        });
+        });*/
         startTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && changedField && startTimeField != null) {
                 if (Pattern.matches(hourPattern, startTimeField.getText()) || startTimeField.getText().isEmpty()) {
@@ -411,7 +403,31 @@ public class Controller {
             log.error("Error in setDataPath: " + e.getMessage(), e);
             Utils.showErrorDialog(Thread.currentThread(), e);
         }
-        tableView.setOnMouseClicked(new FileclickMouseEventHandler());
+        tableView.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldFile, newFile) -> {
+                    System.out.println("Changing selected row");
+                    if (oldFile != null) {
+                        //Unbind the old propertes
+                        txtVhsLabel.textProperty().unbindBidirectional(oldFile.vhsLabelProperty());
+                        //notesArea.textProperty().unbindBidirectional(oldFile.notesProperty());
+
+                        //save the old values
+                        oldFile.preprocess();
+                    }
+                    if (newFile != null) {
+                        //load the newly selected file
+                        loadFile(newFile);
+                        detailVHS.setVisible(true);
+                        //bind it's properties
+                        txtVhsLabel.textProperty().bindBidirectional(newFile.vhsLabelProperty());
+                        //newFile.notesProperty().bindBidirectional(notesArea.textProperty());
+                    }
+                });
+        tableView.setOnMouseClicked(mouseEvent -> {
+            if (mouseEvent.getButton() == MouseButton.SECONDARY) {
+                playCurrentFile();
+            }
+        });
     }
 
     /**
@@ -506,8 +522,8 @@ public class Controller {
                         if (tsFiles != null)
                             tsFiles.close();
                     } catch (IOException ioe) {
-                        log.error("Error occured while loading files", ioe);
-                        Utils.showErrorDialog("Error occured while loading files\n\n", Thread.currentThread(), ioe);
+                        log.error("Error occurred while loading files", ioe);
+                        Utils.showErrorDialog("Error occurred while loading files\n\n", Thread.currentThread(), ioe);
                     }
                 }
                 ObservableList<TableColumn<VideoFileObject, ?>> sortOrder = tableView.getSortOrder();
@@ -711,7 +727,8 @@ public class Controller {
     }
 
     private boolean ValidateVideoMetadata() {
-        if (txtProcessedManufacturer.getText() == null || (txtProcessedManufacturer.getText().trim().isEmpty())) {
+        String txtProcessedManufacturerText = txtProcessedManufacturer.getText();
+        if (txtProcessedManufacturerText == null || (txtProcessedManufacturerText.trim().isEmpty())) {
             Utils.showWarning("Manufacturer is not allowed to be empty");
             return false;
         }
@@ -818,20 +835,4 @@ public class Controller {
         temporaryFileSave = true;
     }
 
-    public class FileclickMouseEventHandler implements EventHandler<MouseEvent> {
-
-        @Override
-        public void handle(MouseEvent mouseEvent) {
-            if (mouseEvent.getButton() == MouseButton.PRIMARY) {
-                VideoFileObject thisVideoFile =
-                        (VideoFileObject) ((TableView) mouseEvent.getSource()).getSelectionModel().getSelectedItem();
-                if (thisVideoFile != null) {
-                    loadFile(thisVideoFile);
-                    detailVHS.setVisible(true);
-                }
-            } else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
-                playCurrentFile();
-            }
-        }
-    }
 }
