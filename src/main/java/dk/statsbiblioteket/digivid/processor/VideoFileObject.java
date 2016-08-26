@@ -31,17 +31,18 @@ public class VideoFileObject {
     private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
     private final String processed = ".comments";
     private final String temporary = ".temporary";
-    private final MonitoredSimpleStringProperty vhsLabelProperty;
+    private final transient MonitoredSimpleStringProperty viewVhsLabel;
+    private final transient MonitoredSimpleStringProperty viewComment;
     public Path videoFilePath;
+    private String vhsLabel;
     private Path vhsFileMetadataFilePath;
     private String filename;
     private Long filesize;
     private Long startDate;
-    private String vhsLabel;
+    private Long endDate;
     private String comment;
     private String quality;
     private String channel;
-    private Long endDate;
     private String checksum;
     private String manufacturer;
     private String model;
@@ -49,10 +50,12 @@ public class VideoFileObject {
     private String encoderName;
 
     public VideoFileObject(VideoFileObject videoFileObject) {
-        vhsLabelProperty = new MonitoredSimpleStringProperty(this, "title");
+        viewVhsLabel = new MonitoredSimpleStringProperty(this, "title");
+        viewComment = new MonitoredSimpleStringProperty(this, "title");
         this.filename = videoFileObject.getFilename();
         this.filesize = videoFileObject.getFilesize();
-        this.vhsLabelProperty.setValue(videoFileObject.getVhsLabel());
+        this.viewVhsLabel.setValue(videoFileObject.getVhsLabel());
+        this.viewComment.setValue(videoFileObject.getFilename());
         this.comment = videoFileObject.getComment();
         try {
             this.encoderName = InetAddress.getLocalHost().getHostName();
@@ -74,7 +77,8 @@ public class VideoFileObject {
     }
 
     public VideoFileObject(Path path) {
-        vhsLabelProperty = new MonitoredSimpleStringProperty(this, "title");
+        viewVhsLabel = new MonitoredSimpleStringProperty(this, "title");
+        viewComment = new MonitoredSimpleStringProperty(this, "title");
         videoFilePath = path;
         filename = (videoFilePath.getFileName() != null) ? videoFilePath.getFileName().toString() : "";
         filesize = (this.getFilesize() != null) ? this.getFilesize() : 0L;
@@ -138,8 +142,9 @@ public class VideoFileObject {
                 startDate = videoFileObject.getStartDate();
                 channel = videoFileObject.getChannel();
                 checksum = videoFileObject.getChecksum();
-                vhsLabelProperty.setValue(videoFileObject.vhsLabel);
-                comment = videoFileObject.getComment();
+                viewVhsLabel.setValue(videoFileObject.vhsLabel);
+                viewComment.setValue(videoFileObject.comment);
+                //comment = videoFileObject.getComment();
                 quality = videoFileObject.getQuality();
                 manufacturer = videoFileObject.getManufacturer();
                 model = videoFileObject.getModel();
@@ -172,15 +177,17 @@ public class VideoFileObject {
     }
 
     public String getVhsLabel() {
-        return vhsLabelProperty.getValue();
+        return vhsLabel;
+        //return vhsLabelProperty.getValue();
     }
 
     public void setVhsLabel(String vhsLabel) {
-        this.vhsLabelProperty.set(vhsLabel);
+        this.vhsLabel = vhsLabel;
+        this.viewVhsLabel.set(vhsLabel);
     }
 
     public MonitoredSimpleStringProperty vhsLabelProperty() {
-        return this.vhsLabelProperty;
+        return this.viewVhsLabel;
     }
 
     public String getComment() {
@@ -188,7 +195,14 @@ public class VideoFileObject {
     }
 
     public void setComment(String comment) {
+
         this.comment = comment;
+        this.viewComment.set(comment);
+
+    }
+
+    public MonitoredSimpleStringProperty commentProperty() {
+        return this.viewComment;
     }
 
     public String getQuality() {

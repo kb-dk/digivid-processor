@@ -405,10 +405,10 @@ public class Controller {
         }
         tableView.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldFile, newFile) -> {
-                    System.out.println("Changing selected row");
                     if (oldFile != null) {
                         //Unbind the old propertes
                         txtVhsLabel.textProperty().unbindBidirectional(oldFile.vhsLabelProperty());
+                        txtComment.textProperty().unbindBidirectional(oldFile.commentProperty());
                         //notesArea.textProperty().unbindBidirectional(oldFile.notesProperty());
 
                         //save the old values
@@ -420,6 +420,7 @@ public class Controller {
                         detailVHS.setVisible(true);
                         //bind it's properties
                         txtVhsLabel.textProperty().bindBidirectional(newFile.vhsLabelProperty());
+                        txtComment.textProperty().bindBidirectional(newFile.commentProperty());
                         //newFile.notesProperty().bindBidirectional(notesArea.textProperty());
                     }
                 });
