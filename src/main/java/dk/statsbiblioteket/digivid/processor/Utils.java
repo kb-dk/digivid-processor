@@ -61,6 +61,7 @@ public class Utils {
                     "dialog to terminate the application.");
             alert.show();
         }
+        e.printStackTrace();
         Platform.exit();
         System.exit(-1);
     }

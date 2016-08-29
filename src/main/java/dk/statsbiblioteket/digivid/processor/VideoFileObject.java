@@ -1,7 +1,6 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk7.Jdk7Module;
@@ -31,7 +30,7 @@ import java.util.Date;
 public class VideoFileObject {
 
     private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
-    private static final String processed = ".comments";
+    private static final String COMMENTS = ".comments";
     private static final String temporary = ".temporary";
 
 
@@ -85,6 +84,7 @@ public class VideoFileObject {
         this.serialNo = new MonitoredProperty<>(this, "serialNo", serialNo);
 
         this.encoderName = new MonitoredProperty<>(this, "encoderName", encoderName);
+
     }
 
     public static VideoFileObject createFromPath(Path path) throws IOException {
@@ -347,8 +347,6 @@ public class VideoFileObject {
         this.encoderName.set(encoderName);
     }
 
-    //Even though the compiler tells that it can be removed, it cannot because when removing it the processed marks
-    //in the file list overview disappears
     @JsonIgnore
     public Boolean isProcessed() {
         return Files.exists(getVhsFileMetadataFilePath());
@@ -366,9 +364,6 @@ public class VideoFileObject {
         date.setTime(lastModifiedTime.toMillis());
         return date;
     }
-
-    //TODO
-
 
     /**
      * Filenames look like:
@@ -397,77 +392,111 @@ public class VideoFileObject {
      * It renames the file to correspond to the specified localProperties and writes a json-file
      */
     public void commit() {
+        Path oldPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
+        //TODO delete temporary comments file
+
+        //Create filename to match metadata
         setFilename(buildFilename());
-        try {
-            generateJson(processed);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+
+        //Checksum
+        try (InputStream checksumInputStream = Files.newInputStream(getVideoFilePath())) {
+            setChecksum(DigestUtils.md5Hex(checksumInputStream));
+        } catch (IOException e) {
+            log.error("IO exception happened when setting checksum in commit", e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
+            return;
         }
 
-    }
-
-    /**
-     * This preprocesses the videofileobject .
-     */
-    public void preprocess()  {
-        try {
-            generateJson(temporary);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void generateJson(String jsonType) throws JsonProcessingException {
-        Path newPath;
-        newPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
-        if (jsonType.equals(processed)) {
-            InputStream checksumInputStream = null;
-            try {
-                checksumInputStream = Files.newInputStream(getVideoFilePath());
-                setChecksum(DigestUtils.md5Hex(checksumInputStream));
-            } catch (IOException e) {
-                log.error("IO exception happened when setting checksum in commit",e);
-                Utils.showErrorDialog(Thread.currentThread(), e);
-            } finally {
-                try {
-                    if (checksumInputStream != null)
-                        checksumInputStream.close();
-                } catch (Exception ex) {
-                    Utils.showWarning("An error happened while attempting to find the checksum for " + filename);
-                }
-            }
-        }
+        //This is the path to where the new file should be
+        Path newPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
+        //Move
         try {
             if (!(Files.exists(newPath) && Files.isSameFile(getVideoFilePath(), newPath))) {
                 Files.move(getVideoFilePath(), newPath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
-            log.error("IO exception happened when moving the file in commit",e);
+            log.error("IO exception happened when moving the file in commit", e);
             Utils.showErrorDialog(Thread.currentThread(), e);
+            return;
         }
+        //Update VideoFilePath to point to the moved file
+        setVideoFilePath(newPath);
+
+
+        //Encoder
         try {
             setEncoderName(InetAddress.getLocalHost().getHostName());
         } catch (UnknownHostException e) {
             setEncoderName("unknown");
         }
-        String vhsFileMetadata = toJson();
-        Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + jsonType);
+
+        //Make comments metadata
+        String vhsFileMetadata = null;
+        try {
+            vhsFileMetadata = toJson();
+        } catch (JsonProcessingException e) {
+            log.error("JSON exception happened when generating the file in commit", e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
+            return;
+        }
+
+        //Clean existing comments file
+        Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + COMMENTS);
+        writeFile(vhsFileMetadata, newVHSFileMetadataPath);
+
+
+    }
+
+    private void writeFile(String vhsFileMetadata, Path newVHSFileMetadataPath) {
         try {
             if (Files.exists(getVhsFileMetadataFilePath()))
                 Files.delete(getVhsFileMetadataFilePath());
         } catch (IOException e) {
-            log.error("IO exception happened when deleting the file in commit",e);
+            log.error("IO exception happened when deleting the file in commit", e);
             Utils.showErrorDialog(Thread.currentThread(), e);
+            return;
         }
+
+        //Write new comments file
         try {
             Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes("UTF-8"));
         } catch (IOException e) {
-            log.error("IO exception happened when writing the file in commit",e);
+            log.error("IO exception happened when writing the file in commit", e);
             Utils.showErrorDialog(Thread.currentThread(), e);
+            return;
         }
     }
 
+    /**
+     * This preprocesses the videofileobject .
+     */
+    public void preprocess() {
+        Path newPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
 
+        //Encoder
+        try {
+            setEncoderName(InetAddress.getLocalHost().getHostName());
+        } catch (UnknownHostException e) {
+            setEncoderName("unknown");
+        }
+
+        //Make comments metadata
+        String vhsFileMetadata = null;
+        try {
+            vhsFileMetadata = toJson();
+        } catch (JsonProcessingException e) {
+            log.error("JSON exception happened when generating the file in commit", e);
+            Utils.showErrorDialog(Thread.currentThread(), e);
+            return;
+        }
+
+        Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + temporary);
+        writeFile(vhsFileMetadata, newVHSFileMetadataPath);
+
+    }
+
+
+    //TODO make use of Dirty somewhere
     public class MonitoredProperty<T> extends SimpleObjectProperty<T> {
 
         SimpleBooleanProperty dirty;

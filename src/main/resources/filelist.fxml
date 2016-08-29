@@ -6,6 +6,7 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.*?>
+<?import jfxtras.scene.control.LocalDateTimeTextField?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
             minWidth="-Infinity"
             prefHeight="800.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8"
@@ -156,22 +157,14 @@
                         <String fx:value="5 (Average Quality)"/>
                     </value>
                 </ComboBox>
-                <HBox alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="5">
-                    <TextField id="startTimeField" fx:id="startTimeField"/>
-                    <DatePicker id="startDatePicker" fx:id="startDatePicker" showWeekNumbers="true">
-                        <HBox.margin>
-                            <Insets left="70.0"/>
-                        </HBox.margin>
-                    </DatePicker>
+                <HBox alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="5" >
+                    <LocalDateTimeTextField id="startDatePicker" fx:id="startDatePicker" prefWidth="200">
+                    </LocalDateTimeTextField>
                 </HBox>
-                <HBox alignment="CENTER_LEFT" prefHeight="51.0" prefWidth="1107.0" GridPane.columnIndex="1"
+                <HBox alignment="CENTER_LEFT" prefHeight="51.0"  GridPane.columnIndex="1"
                       GridPane.rowIndex="6">
-                    <TextField id="endTimeField" fx:id="endTimeField"/>
-                    <DatePicker id="endDatePicker" fx:id="endDatePicker" showWeekNumbers="true">
-                        <HBox.margin>
-                            <Insets left="70.0"/>
-                        </HBox.margin>
-                    </DatePicker>
+                    <LocalDateTimeTextField id="endDatePicker" fx:id="endDatePicker" prefWidth="200">
+                    </LocalDateTimeTextField>
                 </HBox>
                 <GridPane fx:id="channelGridPane" GridPane.columnIndex="1" GridPane.rowIndex="7">
 

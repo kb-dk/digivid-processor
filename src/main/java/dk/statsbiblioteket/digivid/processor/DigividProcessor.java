@@ -73,6 +73,8 @@ public class DigividProcessor extends Application {
             AnchorPane rootLayout = rootLoader.load();
             final Controller controller = rootLoader.getController();
             controller.setDataPath(Paths.get(recordsDir));
+            controller.setupFolderWatcher();
+            controller.setupTableView();
             controller.loadFilenames();
             // Show the scene containing the root layout.
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
