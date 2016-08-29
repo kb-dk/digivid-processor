@@ -426,7 +426,7 @@ public class VideoFileObject {
                 checksumInputStream = Files.newInputStream(getVideoFilePath());
                 setChecksum(DigestUtils.md5Hex(checksumInputStream));
             } catch (IOException e) {
-                log.error("IO exception happened when setting checksum in commit");
+                log.error("IO exception happened when setting checksum in commit",e);
                 Utils.showErrorDialog(Thread.currentThread(), e);
             } finally {
                 try {
@@ -442,7 +442,7 @@ public class VideoFileObject {
                 Files.move(getVideoFilePath(), newPath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
-            log.error("IO exception happened when moving the file in commit");
+            log.error("IO exception happened when moving the file in commit",e);
             Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
@@ -456,13 +456,13 @@ public class VideoFileObject {
             if (Files.exists(getVhsFileMetadataFilePath()))
                 Files.delete(getVhsFileMetadataFilePath());
         } catch (IOException e) {
-            log.error("IO exception happened when deleting the file in commit");
+            log.error("IO exception happened when deleting the file in commit",e);
             Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
             Files.write(newVHSFileMetadataPath, vhsFileMetadata.getBytes("UTF-8"));
         } catch (IOException e) {
-            log.error("IO exception happened when writing the file in commit");
+            log.error("IO exception happened when writing the file in commit",e);
             Utils.showErrorDialog(Thread.currentThread(), e);
         }
     }

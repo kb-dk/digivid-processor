@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
@@ -72,18 +73,19 @@ public class Controller {
     private boolean changedField = false;
     private VideoFileObject thisVideoFileRow;
 
-    private static void checkConfigfile() {
-        try {
+    private static void checkConfigfile() throws FileNotFoundException {
             Path recordsPath = Paths.get(DigividProcessor.recordsDir);
             Path channelsCSVPath = Paths.get(DigividProcessor.channelCSV);
             Path playerPath = Paths.get(DigividProcessor.player);
             Path localPropertiesPath = Paths.get(DigividProcessor.localProperties);
-            boolean pathExist = Files.exists(recordsPath) && Files.exists(channelsCSVPath) && Files.exists(playerPath);
-            if (!pathExist) {
-                Utils.showErrorDialog("Configuration file is invalid. Contact system administrator.", Thread.currentThread(), null);
-            }
-        } catch (Exception ex) {
-            Utils.showErrorDialog("Configuration file is not valid.\n\n", Thread.currentThread(), ex);
+            exists(recordsPath);
+            exists(channelsCSVPath);
+            exists(playerPath);
+    }
+
+    private static void exists(Path recordsPath) throws FileNotFoundException {
+        if (!Files.exists(recordsPath)){
+            throw new FileNotFoundException("File "+recordsPath + " is not found");
         }
     }
 
@@ -93,7 +95,7 @@ public class Controller {
     }
 
     @FXML
-    void initialize() {
+    void initialize() throws FileNotFoundException {
         detailVHS.setVisible(false);
         checkConfigfile();
         if (lastmodifiedColumn != null) lastmodifiedColumn.setComparator(Date::compareTo);
@@ -115,14 +117,7 @@ public class Controller {
 
         detailVHS.setOnKeyReleased(keyEvent -> changedField = true);
 
-        //The different items gets saved in a temporary json-file when the control loses focus
-        //Start lost focus eventhandlers
-     /*   txtVhsLabel.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && changedField && txtVhsLabel != null) {
-                storeTextFieldInformation(txtVhsLabel);
-                changedField = false;
-            }
-        });*/
+
         startTimeField.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && changedField && startTimeField != null) {
                 if (Pattern.matches(hourPattern, startTimeField.getText()) || startTimeField.getText().isEmpty()) {
@@ -147,31 +142,8 @@ public class Controller {
                 changedField = false;
             }
         });
-        txtProcessedManufacturer.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && changedField && txtProcessedManufacturer != null) {
-                storeTextFieldInformation(txtProcessedManufacturer);
-                changedField = false;
-            }
-        });
-        txtProcessedModel.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && changedField && txtProcessedModel != null) {
-                storeTextFieldInformation(txtProcessedModel);
-                changedField = false;
-            }
-        });
-        txtComment.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && changedField && txtComment != null) {
-                thisVideoFileRow.setComment(txtComment.getText());
-                thisVideoFileRow.preprocess();
-                changedField = false;
-            }
-        });
-        txtProcessedSerial.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && changedField && txtProcessedSerial != null) {
-                storeTextFieldInformation(txtSerial);
-                changedField = false;
-            }
-        });
+
+
         altChannel.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue && changedField && altChannel != null) {
                 storeTextFieldInformation(altChannel);
@@ -409,14 +381,18 @@ public class Controller {
                         //Unbind the old propertes
                         txtVhsLabel.textProperty().unbindBidirectional(oldFile.vhsLabelProperty());
                         txtComment.textProperty().unbindBidirectional(oldFile.commentProperty());
-                        txtComment.textProperty().unbindBidirectional(oldFile.commentProperty());
                         txtFilename.textProperty().unbindBidirectional(oldFile.filenameProperty());
-                        txtManufacturer.textProperty().unbindBidirectional(oldFile.manufacturerProperty());
-                        txtModel.textProperty().unbindBidirectional(oldFile.modelProperty());
-                        //notesArea.textProperty().unbindBidirectional(oldFile.notesProperty());
+                        txtProcessedManufacturer.textProperty().unbindBidirectional(oldFile.manufacturerProperty());
+                        txtProcessedModel.textProperty().unbindBidirectional(oldFile.modelProperty());
+//                        startTimeField.textProperty().unbindBidirectional(oldFile.startDateProperty());
+//                        endTimeField.textProperty().unbindBidirectional(oldFile.endDateProperty());
+                        txtProcessedSerial.textProperty().unbindBidirectional(oldFile.serialNoProperty());
 
                         //save the old values
-                        oldFile.preprocess();
+                        if (!oldFile.isProcessed()) {
+                            oldFile.preprocess();
+                        }
+
                     }
                     if (newFile != null) {
                         //load the newly selected file
@@ -425,7 +401,11 @@ public class Controller {
                         //bind it's properties
                         txtVhsLabel.textProperty().bindBidirectional(newFile.vhsLabelProperty());
                         txtComment.textProperty().bindBidirectional(newFile.commentProperty());
-                        //newFile.notesProperty().bindBidirectional(notesArea.textProperty());
+                        txtFilename.textProperty().bindBidirectional(newFile.filenameProperty());
+                        txtProcessedManufacturer.textProperty().bindBidirectional(newFile.manufacturerProperty());
+                        txtProcessedModel.textProperty().bindBidirectional(newFile.modelProperty());
+                        txtProcessedSerial.textProperty().bindBidirectional(newFile.serialNoProperty());
+
                     }
                 });
         tableView.setOnMouseClicked(mouseEvent -> {
@@ -571,24 +551,12 @@ public class Controller {
                 if (Files.exists(tmpMetadataPath))
                     Files.delete(tmpMetadataPath);
             } catch (IOException e) {
-                log.error("IO exception happened when deleting the file in commit");
+                log.error("IO exception happened when deleting the file in commit",e);
                 Utils.showErrorDialog(Thread.currentThread(), e);
             }
 
             thisVideoFileRow.commit();
         }
-    }
-
-    /**
-     * Assigne current VideoFileObject values to GUI values before calling preprocess()
-     *
-     * @param actionEvent The event that activated preprocess
-     */
-    public void preprocess(ActionEvent actionEvent) {
-        File file = thisVideoFileRow.getVideoFilePath().toFile();
-        boolean fileIsNotLocked = file.renameTo(file);
-        if (validGUIvalues(thisVideoFileRow, fileIsNotLocked))
-            thisVideoFileRow.preprocess();
     }
 
     private boolean validGUIvalues(VideoFileObject thisVideoFileRow, boolean fileIsNotLocked) {
@@ -772,6 +740,7 @@ public class Controller {
      * Show the file details for the file (which is found in the files localProperties file), that the user clicked on
      */
     private void loadFile(VideoFileObject currentVideoFile) {
+        //TODO a lot of this is not nessesary
         thisVideoFileRow = currentVideoFile;
         temporaryFileSave = false;
         txtFilename.setText(currentVideoFile.getFilename());
