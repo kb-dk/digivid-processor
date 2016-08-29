@@ -1,10 +1,12 @@
 package dk.statsbiblioteket.digivid.processor;
 
-import com.google.gson.Gson;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk7.Jdk7Module;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,79 +31,104 @@ import java.util.Date;
 public class VideoFileObject {
 
     private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
-    private final String processed = ".comments";
-    private final String temporary = ".temporary";
-    private final transient MonitoredSimpleStringProperty viewVhsLabel;
-    private final transient MonitoredSimpleStringProperty viewComment;
-    public Path videoFilePath;
-    private String vhsLabel;
-    private Path vhsFileMetadataFilePath;
-    private String filename;
-    private Long filesize;
-    private Long startDate;
-    private Long endDate;
-    private String comment;
-    private String quality;
-    private String channel;
-    private String checksum;
-    private String manufacturer;
-    private String model;
-    private String serialNo;
-    private String encoderName;
+    private static final String processed = ".comments";
+    private static final String temporary = ".temporary";
 
-    public VideoFileObject(VideoFileObject videoFileObject) {
-        viewVhsLabel = new MonitoredSimpleStringProperty(this, "title");
-        viewComment = new MonitoredSimpleStringProperty(this, "title");
-        this.filename = videoFileObject.getFilename();
-        this.filesize = videoFileObject.getFilesize();
-        this.viewVhsLabel.setValue(videoFileObject.getVhsLabel());
-        this.viewComment.setValue(videoFileObject.getFilename());
-        this.comment = videoFileObject.getComment();
-        try {
-            this.encoderName = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            this.encoderName = "unknown";
-        }
-        if (videoFileObject.getStartDate() != null) {
-            this.startDate = videoFileObject.getStartDate();
-        }
-        if (videoFileObject.getEndDate() != null) {
-            this.endDate = videoFileObject.getEndDate();
-        }
-        this.channel = videoFileObject.getChannel();
-        this.checksum = videoFileObject.getChecksum();
-        this.quality = videoFileObject.getQuality();
-        this.manufacturer = videoFileObject.getManufacturer();
-        this.model = videoFileObject.getModel();
-        this.serialNo = videoFileObject.getSerialNo();
+
+    private final MonitoredProperty<Long> filesize;
+    private final MonitoredProperty<Path> videoFilePath;
+    private final MonitoredProperty<Path> vhsFileMetadataFilePath;
+    private final MonitoredProperty<String> filename;
+    private final MonitoredProperty<Long> startDate;
+    private final MonitoredProperty<String> vhsLabel;
+    private final MonitoredProperty<String> comment;
+    private final MonitoredProperty<String> quality;
+    private final MonitoredProperty<String> channel;
+    private final MonitoredProperty<Long> endDate;
+    private final MonitoredProperty<String> checksum;
+    private final MonitoredProperty<String> manufacturer;
+    private final MonitoredProperty<String> model;
+    private final MonitoredProperty<String> serialNo;
+    private final MonitoredProperty<String> encoderName;
+
+
+    public VideoFileObject() {
+        this(null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
     }
 
-    public VideoFileObject(Path path) {
-        viewVhsLabel = new MonitoredSimpleStringProperty(this, "title");
-        viewComment = new MonitoredSimpleStringProperty(this, "title");
-        videoFilePath = path;
-        filename = (videoFilePath.getFileName() != null) ? videoFilePath.getFileName().toString() : "";
-        filesize = (this.getFilesize() != null) ? this.getFilesize() : 0L;
-        vhsFileMetadataFilePath = path.getParent().resolve((path.getFileName() != null ? path.getFileName().toString() : "Illegal_parameters") + ".comments");
+    public VideoFileObject(String vhsLabel, Path videoFilePath, Path vhsFileMetadataFilePath, String filename, Long filesize, Long startDate, String comment, String quality, String channel, Long endDate, String checksum, String manufacturer, String model, String serialNo, String encoderName) {
+        this.vhsLabel = new MonitoredProperty<>(this, "vhsLabel", vhsLabel);
+        this.videoFilePath = new MonitoredProperty<>(this, "videoFilePath", videoFilePath);
+        this.vhsFileMetadataFilePath = new MonitoredProperty<>(this, "vhsFileMetadataFilePath",
+                                                                  vhsFileMetadataFilePath);
+
+        this.filename = new MonitoredProperty<>(this, "filename", filename);
+
+        this.filesize = new MonitoredProperty<>(this, "filesize", filesize);
+
+        this.startDate = new MonitoredProperty<>(this, "startDate", startDate);
+
+        this.comment = new MonitoredProperty<>(this, "comment", comment);
+
+        this.quality = new MonitoredProperty<>(this, "quality", quality);
+
+        this.channel = new MonitoredProperty<>(this, "channel", channel);
+
+        this.endDate = new MonitoredProperty<>(this, "endDate", endDate);
+
+        this.checksum = new MonitoredProperty<>(this, "checksum", checksum);
+
+        this.manufacturer = new MonitoredProperty<>(this, "manufacturer", manufacturer);
+
+        this.model = new MonitoredProperty<>(this, "model", model);
+
+        this.serialNo = new MonitoredProperty<>(this, "serialNo", serialNo);
+
+        this.encoderName = new MonitoredProperty<>(this, "encoderName", encoderName);
+    }
+
+    public static VideoFileObject createFromPath(Path path) throws IOException {
+        Path vhsFileMetadataFilePath = path.getParent().resolve((path.getFileName() != null ? path.getFileName().toString() : "Illegal_parameters") + ".comments");
         Path tmpMetadataPath = path.getParent().resolve((path.getFileName() != null ? path.getFileName().toString() : "Illegal_parameters") + ".temporary");
+
+        VideoFileObject videoFileObject = null;
         if (Files.exists(vhsFileMetadataFilePath)) {
-            assignMetadata(vhsFileMetadataFilePath);
+            byte[] bytes = Files.readAllBytes(vhsFileMetadataFilePath);
+            videoFileObject = VideoFileObject.fromJson(new String(bytes,"UTF-8"));
+
         } else if (Files.exists(tmpMetadataPath)) {
-            assignMetadata(tmpMetadataPath);
+            byte[] bytes = Files.readAllBytes(tmpMetadataPath);
+            videoFileObject = VideoFileObject.fromJson(new String(bytes,"UTF-8"));
+        } else {
+            videoFileObject = new VideoFileObject();
         }
+
+        videoFileObject.videoFilePath.set(path);
+
+        String filename = (path.getFileName() != null) ? path.getFileName().toString() : "";
+        videoFileObject.setFilename(filename);
+
+        videoFileObject.setFilesize(path.toFile().length());
+        videoFileObject.setVhsFileMetadataFilePath(vhsFileMetadataFilePath);
+
+
+        return videoFileObject;
     }
 
-    private static Date toDate(Long l) {
-        if (l == null) {
-            return null;
-        }
-        Date date = new Date();
-        date.setTime(l);
-        return date;
+    public static VideoFileObject fromJson(String json) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new Jdk7Module());
+        VideoFileObject obj = mapper.readValue(json, VideoFileObject.class);
+        return obj;
     }
 
-    public static VideoFileObject fromJson(String json) {
-        return (new Gson()).fromJson(json, VideoFileObject.class);
+    public String toJson() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new Jdk7Module());
+
+        //Object to JSON in String
+        String jsonInString = mapper.writeValueAsString(this);
+        return jsonInString;
     }
 
     @Override
@@ -112,165 +139,226 @@ public class VideoFileObject {
 
             VideoFileObject that = (VideoFileObject) o;
 
-            if (temporary != null ? !temporary.equals(that.temporary) : that.temporary != null) return false;
-            if (filename != null ? !filename.equals(that.filename) : that.filename != null) return false;
-            if (filesize != null ? !filesize.equals(that.filesize) : that.filesize != null) return false;
-            if (startDate != null ? !startDate.equals(that.startDate) : that.startDate != null) return false;
+            if (getFilename() != null ? !getFilename().equals(that.getFilename()) : that.getFilename() != null) return false;
+            if (getFilesize() != null ? !getFilesize().equals(that.getFilesize()) : that.getFilesize() != null) return false;
+            if (getStartDate() != null ? !getStartDate().equals(that.getStartDate()) : that.getStartDate() != null) return false;
             if (getVhsLabel() != null ? !getVhsLabel().equals(that.getVhsLabel()) : that.getVhsLabel() != null)
                 return false;
-            if (comment != null ? !comment.equals(that.comment) : that.comment != null) return false;
-            if (quality != null ? !quality.equals(that.quality) : that.quality != null) return false;
-            if (channel != null ? !channel.equals(that.channel) : that.channel != null) return false;
-            if (endDate != null ? !endDate.equals(that.endDate) : that.endDate != null) return false;
-            if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
-            if (manufacturer != null ? !manufacturer.equals(that.manufacturer) : that.manufacturer != null)
+            if (getComment() != null ? !getComment().equals(that.getComment()) : that.getComment() != null) return false;
+            if (getQuality() != null ? !getQuality().equals(that.getQuality()) : that.getQuality() != null) return false;
+            if (getChannel() != null ? !getChannel().equals(that.getChannel()) : that.getChannel() != null) return false;
+            if (getEndDate() != null ? !getEndDate().equals(that.getEndDate()) : that.getEndDate() != null) return false;
+            if (getChecksum() != null ? !getChecksum().equals(that.getChecksum()) : that.getChecksum() != null) return false;
+            if (getManufacturer() != null ? !getManufacturer().equals(that.getManufacturer()) : that.getManufacturer() != null)
                 return false;
-            if (model != null ? !model.equals(that.model) : that.model != null) return false;
-            return serialNo != null ? serialNo.equals(that.serialNo) : that.serialNo == null;
+            if (getModel() != null ? !getModel().equals(that.getModel()) : that.getModel() != null) return false;
+            return getSerialNo() != null ? getSerialNo().equals(that.getSerialNo()) : that.getSerialNo() == null;
         } catch (Exception ex) {
             return false;
         }
     }
 
-    private void assignMetadata(Path metadataPath) {
-        final byte[] bytes;
+    public Long getFilesize() {
+        final long K = 1024;
+        long size;
         try {
-            bytes = Files.readAllBytes(metadataPath);
-            VideoFileObject videoFileObject = VideoFileObject.fromJson(new String(bytes, "UTF-8"));
-            if (videoFileObject != null) {
-                endDate = videoFileObject.getEndDate();
-                startDate = videoFileObject.getStartDate();
-                channel = videoFileObject.getChannel();
-                checksum = videoFileObject.getChecksum();
-                viewVhsLabel.setValue(videoFileObject.vhsLabel);
-                viewComment.setValue(videoFileObject.comment);
-                //comment = videoFileObject.getComment();
-                quality = videoFileObject.getQuality();
-                manufacturer = videoFileObject.getManufacturer();
-                model = videoFileObject.getModel();
-                serialNo = videoFileObject.getSerialNo();
-            }
-        } catch (IOException e) {
-            log.error("IO exception happened in VideoFileObject(Path path)");
-            Utils.showErrorDialog(Thread.currentThread(), e);
-        } catch (NullPointerException nEx) {
-            log.error("Null pointer exception happened in VideoFileObject(Path path))");
-            Utils.showErrorDialog(Thread.currentThread(), nEx);
+            size = getVideoFilePath().toFile().length() / K;
+        } catch (Exception e) {
+            size = 0L;
         }
+        setFilesize(size);
+        return size;
+    }
+    public MonitoredProperty<Long> filesizeProperty() {
+        return filesize;
+    }
+
+    public void setFilesize(Long filesize) {
+        this.filesize.set(filesize);
+    }
+
+    public Path getVideoFilePath() {
+        return videoFilePath.get();
+    }
+
+    public MonitoredProperty<Path> videoFilePathProperty() {
+        return videoFilePath;
+    }
+
+    public void setVideoFilePath(Path videoFilePath) {
+        this.videoFilePath.set(videoFilePath);
+    }
+
+    public Path getVhsFileMetadataFilePath() {
+        return vhsFileMetadataFilePath.get();
+    }
+
+    public MonitoredProperty<Path> vhsFileMetadataFilePathProperty() {
+        return vhsFileMetadataFilePath;
+    }
+
+    public void setVhsFileMetadataFilePath(Path vhsFileMetadataFilePath) {
+        this.vhsFileMetadataFilePath.set(vhsFileMetadataFilePath);
     }
 
     public String getFilename() {
+        return filename.get();
+    }
+
+    public MonitoredProperty<String> filenameProperty() {
         return filename;
     }
 
     public void setFilename(String filename) {
-        this.filename = filename;
+        this.filename.set(filename);
     }
 
 
     public Long getStartDate() {
+        return startDate.get();
+    }
+
+    public MonitoredProperty<Long> startDateProperty() {
         return startDate;
     }
 
     public void setStartDate(Long startDate) {
-        this.startDate = startDate;
+        this.startDate.set(startDate);
     }
 
     public String getVhsLabel() {
+        return vhsLabel.get();
+    }
+
+    public MonitoredProperty<String> vhsLabelProperty() {
         return vhsLabel;
-        //return vhsLabelProperty.getValue();
     }
 
     public void setVhsLabel(String vhsLabel) {
-        this.vhsLabel = vhsLabel;
-        this.viewVhsLabel.set(vhsLabel);
-    }
-
-    public MonitoredSimpleStringProperty vhsLabelProperty() {
-        return this.viewVhsLabel;
+        this.vhsLabel.set(vhsLabel);
     }
 
     public String getComment() {
+        return comment.get();
+    }
+
+    public MonitoredProperty<String> commentProperty() {
         return comment;
     }
 
     public void setComment(String comment) {
-
-        this.comment = comment;
-        this.viewComment.set(comment);
-
-    }
-
-    public MonitoredSimpleStringProperty commentProperty() {
-        return this.viewComment;
+        this.comment.set(comment);
     }
 
     public String getQuality() {
+        return quality.get();
+    }
+
+    public MonitoredProperty<String> qualityProperty() {
         return quality;
     }
 
     public void setQuality(String quality) {
-        this.quality = quality;
+        this.quality.set(quality);
     }
 
     public String getChannel() {
+        return channel.get();
+    }
+
+    public MonitoredProperty<String> channelProperty() {
         return channel;
     }
 
     public void setChannel(String channel) {
-        this.channel = channel;
+        this.channel.set(channel);
     }
 
     public Long getEndDate() {
+        return endDate.get();
+    }
+
+    public MonitoredProperty<Long> endDateProperty() {
         return endDate;
     }
 
     public void setEndDate(Long endDate) {
-        this.endDate = endDate;
+        this.endDate.set(endDate);
     }
 
     public String getChecksum() {
+        return checksum.get();
+    }
+
+    public MonitoredProperty<String> checksumProperty() {
         return checksum;
     }
 
+    public void setChecksum(String checksum) {
+        this.checksum.set(checksum);
+    }
+
+    //@ExposeMethodResult("manufacturer")
     public String getManufacturer() {
+        return manufacturer.get();
+    }
+
+    public MonitoredProperty<String> manufacturerProperty() {
         return manufacturer;
     }
 
     public void setManufacturer(String manufacturer) {
-        this.manufacturer = manufacturer;
+        this.manufacturer.set(manufacturer);
     }
 
     public String getModel() {
+        return model.get();
+    }
+
+    public MonitoredProperty<String> modelProperty() {
         return model;
     }
 
     public void setModel(String model) {
-        this.model = model;
+        this.model.set(model);
     }
 
     public String getSerialNo() {
+        return serialNo.get();
+    }
+
+    public MonitoredProperty<String> serialNoProperty() {
         return serialNo;
     }
 
     public void setSerialNo(String serialNo) {
-        this.serialNo = serialNo;
+        this.serialNo.set(serialNo);
+    }
+
+    public String getEncoderName() {
+        return encoderName.get();
+    }
+
+    public MonitoredProperty<String> encoderNameProperty() {
+        return encoderName;
+    }
+
+    public void setEncoderName(String encoderName) {
+        this.encoderName.set(encoderName);
     }
 
     //Even though the compiler tells that it can be removed, it cannot because when removing it the processed marks
     //in the file list overview disappears
+    @JsonIgnore
     public Boolean isProcessed() {
-        return Files.exists(vhsFileMetadataFilePath);
+        return Files.exists(getVhsFileMetadataFilePath());
     }
 
-    public String toJson() {
-        return (new Gson()).toJson(this);
-    }
-
+    @JsonIgnore
     public Date getLastmodified() {
         FileTime lastModifiedTime;
         try {
-            lastModifiedTime = Files.getLastModifiedTime(videoFilePath);
+            lastModifiedTime = Files.getLastModifiedTime(getVideoFilePath());
         } catch (IOException e) {
             lastModifiedTime = FileTime.fromMillis(0L);
         }
@@ -279,14 +367,8 @@ public class VideoFileObject {
         return date;
     }
 
-    public Long getFilesize() {
-        final long K = 1024;
-        try {
-            return videoFilePath.toFile().length() / K;
-        } catch (Exception e) {
-            return 0L;
-        }
-    }
+    //TODO
+
 
     /**
      * Filenames look like:
@@ -316,24 +398,33 @@ public class VideoFileObject {
      */
     public void commit() {
         setFilename(buildFilename());
-        generateJson(processed);
+        try {
+            generateJson(processed);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     /**
      * This preprocesses the videofileobject .
      */
-    public void preprocess() {
-        generateJson(temporary);
+    public void preprocess()  {
+        try {
+            generateJson(temporary);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void generateJson(String jsonType) {
+    private void generateJson(String jsonType) throws JsonProcessingException {
         Path newPath;
-        newPath = videoFilePath.getParent().resolve(Paths.get(filename));
+        newPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
         if (jsonType.equals(processed)) {
             InputStream checksumInputStream = null;
             try {
-                checksumInputStream = Files.newInputStream(videoFilePath);
-                checksum = DigestUtils.md5Hex(checksumInputStream);
+                checksumInputStream = Files.newInputStream(getVideoFilePath());
+                setChecksum(DigestUtils.md5Hex(checksumInputStream));
             } catch (IOException e) {
                 log.error("IO exception happened when setting checksum in commit");
                 Utils.showErrorDialog(Thread.currentThread(), e);
@@ -347,23 +438,23 @@ public class VideoFileObject {
             }
         }
         try {
-            if (!(Files.exists(newPath) && Files.isSameFile(videoFilePath, newPath))) {
-                Files.move(videoFilePath, newPath, StandardCopyOption.REPLACE_EXISTING);
+            if (!(Files.exists(newPath) && Files.isSameFile(getVideoFilePath(), newPath))) {
+                Files.move(getVideoFilePath(), newPath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
             log.error("IO exception happened when moving the file in commit");
             Utils.showErrorDialog(Thread.currentThread(), e);
         }
         try {
-            this.encoderName = InetAddress.getLocalHost().getHostName();
+            setEncoderName(InetAddress.getLocalHost().getHostName());
         } catch (UnknownHostException e) {
-            this.encoderName = "unknown";
+            setEncoderName("unknown");
         }
-        String vhsFileMetadata = new VideoFileObject(this).toJson();
+        String vhsFileMetadata = toJson();
         Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + jsonType);
         try {
-            if (Files.exists(vhsFileMetadataFilePath))
-                Files.delete(vhsFileMetadataFilePath);
+            if (Files.exists(getVhsFileMetadataFilePath()))
+                Files.delete(getVhsFileMetadataFilePath());
         } catch (IOException e) {
             log.error("IO exception happened when deleting the file in commit");
             Utils.showErrorDialog(Thread.currentThread(), e);
@@ -376,31 +467,27 @@ public class VideoFileObject {
         }
     }
 
-    public class MonitoredSimpleStringProperty extends SimpleStringProperty {
+
+    public class MonitoredProperty<T> extends SimpleObjectProperty<T> {
 
         SimpleBooleanProperty dirty;
 
-        public MonitoredSimpleStringProperty(Object bean, String name, String initValue) {
+        public MonitoredProperty(Object bean, String name, T initValue) {
             super(bean, name, initValue);
             dirty = new SimpleBooleanProperty(false);
-            this.addListener(new InvalidationListener() {
-                @Override
-                public void invalidated(Observable observable) {
-                    dirty.set(true);
-                }
-            });
+            this.addListener(observable -> dirty.set(true));
         }
 
-        public MonitoredSimpleStringProperty(Object bean, String name) {
-            this(bean, name, "");
+        public MonitoredProperty(Object bean, String name) {
+            this(bean, name, null);
         }
 
-        public MonitoredSimpleStringProperty(String initialValue) {
+        public MonitoredProperty(String initialValue) {
             this(null, "");
         }
 
-        public MonitoredSimpleStringProperty() {
-            this(null, "", "");
+        public MonitoredProperty() {
+            this(null, "", null);
         }
 
         public boolean isDirty() {
@@ -410,5 +497,26 @@ public class VideoFileObject {
         public void setDirty(boolean newValue) {
             dirty.set(newValue);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "VideoFileObject{" +
+               "filesize=" + getFilesize() +
+               ", videoFilePath=" + getVideoFilePath() +
+               ", vhsFileMetadataFilePath=" + getVhsFileMetadataFilePath() +
+               ", filename=" + getFilename() +
+               ", startDate=" + getStartDate() +
+               ", vhsLabel=" + getVhsLabel() +
+               ", comment=" + getComment() +
+               ", quality=" + getQuality() +
+               ", channel=" + getChannel() +
+               ", endDate=" + getEndDate() +
+               ", checksum=" + getChecksum() +
+               ", manufacturer=" + getManufacturer() +
+               ", model=" + getModel() +
+               ", serialNo=" + getSerialNo() +
+               ", encoderName=" + getEncoderName() +
+               '}';
     }
 }

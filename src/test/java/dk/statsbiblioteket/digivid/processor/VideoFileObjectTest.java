@@ -52,30 +52,32 @@ public class VideoFileObjectTest {
             Files.createDirectories(dir);
             Files.createFile(path);
         }
-        VideoFileObject videoFileObject = new VideoFileObject(path);
-        videoFileObject.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime().getTime());
-        videoFileObject.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime().getTime());
-        videoFileObject.setChannel("dr5");
-        videoFileObject.commit();
+        VideoFileObject o1 = VideoFileObject.createFromPath(path);
+        o1.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime().getTime());
+        o1.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime().getTime());
+        o1.setChannel("dr5");
+        o1.commit();
+
         DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir, "dr5_*.ts");
         Path tsPath = directoryStream.iterator().next();
         Path commentsPath = tsPath.getParent().resolve(tsPath.getFileName().toString() + ".comments");
         assertTrue(Files.exists(commentsPath));
-        VideoFileObject videoFileObject1 = new VideoFileObject(tsPath);
-        assertEquals(videoFileObject.getStartDate(), videoFileObject1.getStartDate(), "Expect to persist startDate.");
-        videoFileObject1.setChannel("tv2");
-        videoFileObject1.setVhsLabel("What a fine tape you are.");
-        videoFileObject1.setQuality("9: amazing!");
-        videoFileObject1.commit();
+
+        VideoFileObject o2 = VideoFileObject.createFromPath(tsPath);
+        assertEquals(o1.getStartDate(), o2.getStartDate(), "Expect to persist startDate.");
+
+        o2.setChannel("tv2");
+        o2.setVhsLabel("What a fine tape you are.");
+        o2.setQuality("9: amazing!");
+        o2.commit();
         Path newPath = tsPath.getParent().resolve(tsPath.getFileName().toString().replace("dr5", "tv2"));
         assertTrue(Files.exists(newPath));
         Path newComments = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
         assertTrue(Files.exists(newComments));
         assertFalse(Files.exists(tsPath));
         assertFalse(Files.exists(commentsPath));
-        VideoFileObject videoFileObject2 = new VideoFileObject(videoFileObject1);
-        System.out.println(videoFileObject2.toJson());
-        videoFileObject2 = VideoFileObject.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
-        System.out.println(videoFileObject2.toJson());
+        System.out.println(o1.toJson());
+        o1 = VideoFileObject.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
+        System.out.println(o1.toJson());
     }
 }

@@ -409,6 +409,10 @@ public class Controller {
                         //Unbind the old propertes
                         txtVhsLabel.textProperty().unbindBidirectional(oldFile.vhsLabelProperty());
                         txtComment.textProperty().unbindBidirectional(oldFile.commentProperty());
+                        txtComment.textProperty().unbindBidirectional(oldFile.commentProperty());
+                        txtFilename.textProperty().unbindBidirectional(oldFile.filenameProperty());
+                        txtManufacturer.textProperty().unbindBidirectional(oldFile.manufacturerProperty());
+                        txtModel.textProperty().unbindBidirectional(oldFile.modelProperty());
                         //notesArea.textProperty().unbindBidirectional(oldFile.notesProperty());
 
                         //save the old values
@@ -512,7 +516,7 @@ public class Controller {
                     for (Path tsFile : tsFiles) {
                         if (!(tsFile.getFileName().toString().startsWith("temp"))) //Skip files that start with "temp"
                         {
-                            videoFileObjects.add(new VideoFileObject(tsFile));
+                            videoFileObjects.add(VideoFileObject.createFromPath(tsFile));
                         }
                     }
                     tableView.setItems(videoFileObjects);
@@ -558,11 +562,11 @@ public class Controller {
      * @param actionEvent The event that activated commit
      */
     public void commit(ActionEvent actionEvent) {
-        File file = thisVideoFileRow.videoFilePath.toFile();
+        File file = thisVideoFileRow.getVideoFilePath().toFile();
         boolean fileIsNotLocked = file.renameTo(file);
         if (validGUIvalues(thisVideoFileRow, fileIsNotLocked)) {
-            String tmpMetadataFilename = thisVideoFileRow.videoFilePath.getFileName() + ".temporary";
-            Path tmpMetadataPath = thisVideoFileRow.videoFilePath.getParent().resolve(Paths.get(tmpMetadataFilename));
+            String tmpMetadataFilename = thisVideoFileRow.getVideoFilePath().getFileName() + ".temporary";
+            Path tmpMetadataPath = thisVideoFileRow.getVideoFilePath().getParent().resolve(Paths.get(tmpMetadataFilename));
             try {
                 if (Files.exists(tmpMetadataPath))
                     Files.delete(tmpMetadataPath);
@@ -581,7 +585,7 @@ public class Controller {
      * @param actionEvent The event that activated preprocess
      */
     public void preprocess(ActionEvent actionEvent) {
-        File file = thisVideoFileRow.videoFilePath.toFile();
+        File file = thisVideoFileRow.getVideoFilePath().toFile();
         boolean fileIsNotLocked = file.renameTo(file);
         if (validGUIvalues(thisVideoFileRow, fileIsNotLocked))
             thisVideoFileRow.preprocess();
