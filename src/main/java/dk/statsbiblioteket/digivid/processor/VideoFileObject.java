@@ -392,11 +392,13 @@ public class VideoFileObject {
      * It renames the file to correspond to the specified localProperties and writes a json-file
      */
     public void commit() {
-        Path oldPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
         //TODO delete temporary comments file
 
+        Path oldPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
         //Create filename to match metadata
         setFilename(buildFilename());
+        //This is the path to where the new file should be
+        Path newPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
 
         //Checksum
         try (InputStream checksumInputStream = Files.newInputStream(getVideoFilePath())) {
@@ -407,11 +409,9 @@ public class VideoFileObject {
             return;
         }
 
-        //This is the path to where the new file should be
-        Path newPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
         //Move
         try {
-            if (!(Files.exists(newPath) && Files.isSameFile(getVideoFilePath(), newPath))) {
+            if (!(Files.exists(newPath) && Files.isSameFile(oldPath, newPath))) {
                 Files.move(getVideoFilePath(), newPath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {

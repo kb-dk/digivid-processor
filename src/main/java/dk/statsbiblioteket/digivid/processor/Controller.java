@@ -358,11 +358,9 @@ public class Controller {
                             if (!valid) {
                                 break;
                             }
-                        } catch (InterruptedException e) {
+                        } catch (InterruptedException | IOException e) {
                             log.error("Thread error in setDataPath: " + e.getMessage(), e);
                             Utils.showErrorDialog(Thread.currentThread(), e);
-                        } catch (IOException e) {
-                            e.printStackTrace();
                         }
                     }
                 }
