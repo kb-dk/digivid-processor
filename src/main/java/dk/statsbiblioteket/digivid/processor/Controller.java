@@ -123,6 +123,12 @@ public class Controller {
             });
         }
 
+        startDatePicker.setDateTimeFormatter(dtf);
+        startDatePicker.withLocale(Locale.GERMAN); //This makes it use 24h days.
+
+        endDatePicker.setDateTimeFormatter(dtf);
+        endDatePicker.withLocale(Locale.GERMAN);
+
         txtFilename.setEditable(false);
         //Use css-style to make the textfield seem like a label
         txtFilename.getStyleClass().add("copyable-label");
@@ -132,9 +138,6 @@ public class Controller {
             txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(),
                     txtFilename.getText(), 0.0D) + 20);
         });
-
-        startDatePicker.setDateTimeFormatter(dtf);
-        endDatePicker.setDateTimeFormatter(dtf);
 
         readLocalProperties();
     }
@@ -252,7 +255,7 @@ public class Controller {
 
                         //This one has to happen in inverse order
                         oldFile.qualityProperty().unbindBidirectional(cmbQuality.valueProperty());
-                        Bindings.unbindBidirectional(startDatePicker.textProperty(), oldFile.startDateProperty());
+                        Bindings.unbindBidirectional(startDatePicker.localDateTimeProperty(), oldFile.startDateProperty());
                         Bindings.unbindBidirectional(endDatePicker.textProperty(),oldFile.endDateProperty());
 
                         //save the old values
