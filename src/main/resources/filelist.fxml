@@ -164,7 +164,7 @@
                 <Label alignment="TOP_LEFT" contentDisplay="TOP" text="Filename" GridPane.rowIndex="1"/>
                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <TextField id="txtFilename" fx:id="txtFilename" alignment="BOTTOM_LEFT" prefHeight="25.0"
-                               prefWidth="0.0" stylesheets="@Digivid-stylesheet.css"/>
+                               prefWidth="0.0" styleClass="copyable-label" stylesheets="@Digivid-stylesheet.css" editable="false"/>
                     <HBox alignment="CENTER_LEFT" prefWidth="40"/>
                     <Button alignment="BOTTOM_CENTER" onAction="#playCurrentFile" text="Play"/>
                 </HBox>

@@ -52,7 +52,7 @@ public class VideoFileObjectTest {
             Files.createDirectories(dir);
             Files.createFile(path);
         }
-        VideoFileObject o1 = VideoFileObject.createFromPath(path);
+        VideoFileObject o1 = VideoFileObject.createFromTS(path);
         o1.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime().getTime());
         o1.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime().getTime());
         o1.setChannel("dr5");
@@ -63,7 +63,7 @@ public class VideoFileObjectTest {
         Path commentsPath = tsPath.getParent().resolve(tsPath.getFileName().toString() + ".comments");
         assertTrue(Files.exists(commentsPath));
 
-        VideoFileObject o2 = VideoFileObject.createFromPath(tsPath);
+        VideoFileObject o2 = VideoFileObject.createFromTS(tsPath);
         assertEquals(o1.getStartDate(), o2.getStartDate(), "Expect to persist startDate.");
 
         o2.setChannel("tv2");
@@ -77,7 +77,7 @@ public class VideoFileObjectTest {
         assertFalse(Files.exists(tsPath));
         assertFalse(Files.exists(commentsPath));
         System.out.println(o1.toJson());
-        o1 = VideoFileObject.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
-        System.out.println(o1.toJson());
+//        o1 = VideoFileObject.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
+//        System.out.println(o1.toJson());
     }
 }
