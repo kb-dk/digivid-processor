@@ -1,16 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
-<?import javafx.scene.layout.*?>
-<?import java.lang.*?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import jfxtras.scene.control.LocalDateTimeTextField?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
-            minWidth="-Infinity"
-            prefHeight="800.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8"
+
+<?import javafx.scene.control.ToggleGroup?>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0"
+            prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="dk.statsbiblioteket.digivid.processor.Controller">
+
     <SplitPane dividerPositions="0.30203442879499215" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0"
                AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                AnchorPane.topAnchor="0.0">
@@ -107,74 +120,24 @@
                 <columnConstraints>
                     <ColumnConstraints hgrow="NEVER" maxWidth="5531.0" minWidth="10.0" prefWidth="157.0"/>
                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="5143.0" minWidth="10.0" prefWidth="1111.0"/>
+                    <ColumnConstraints/>
+                    <ColumnConstraints/>
+                    <ColumnConstraints/>
+                    <ColumnConstraints/>
                 </columnConstraints>
                 <rowConstraints>
-                    <RowConstraints maxHeight="44.0" minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
-                    <RowConstraints maxHeight="44.0" minHeight="10.0" prefHeight="27.0" vgrow="NEVER"/>
-                    <RowConstraints maxHeight="86.0" minHeight="50.0" prefHeight="73.0" vgrow="NEVER"/>
-                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                    <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="NEVER"/>
-                    <RowConstraints maxHeight="74.0" minHeight="10.0" prefHeight="49.0" vgrow="NEVER"/>
-                    <RowConstraints maxHeight="110.0" minHeight="10.0" prefHeight="53.0" vgrow="NEVER"/>
-                    <RowConstraints maxHeight="100.0" minHeight="26.0" prefHeight="99.0" vgrow="SOMETIMES"/>
+                    <RowConstraints maxHeight="44.0" minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/> <!--Unit Info-->
+                    <RowConstraints maxHeight="44.0" minHeight="10.0" prefHeight="27.0" vgrow="NEVER"/> <!--Filename-->
+                    <RowConstraints maxHeight="86.0" minHeight="50.0" prefHeight="73.0" vgrow="NEVER"/> <!--Label-->
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/> <!--Comments-->
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/> <!--Quality, start, stop-->
+                    <RowConstraints maxHeight="100.0" minHeight="26.0" prefHeight="99.0"
+                                    vgrow="SOMETIMES"/> <!--Channell-->
                 </rowConstraints>
-                <Label alignment="TOP_LEFT" contentDisplay="TOP" text="Filename" GridPane.rowIndex="1"/>
-                <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
-                    <TextField id="txtFilename" fx:id="txtFilename" alignment="BOTTOM_LEFT" prefHeight="25.0"
-                               prefWidth="0.0" stylesheets="@Digivid-stylesheet.css"/>
-                    <HBox alignment="CENTER_LEFT" prefWidth="40"/>
-                    <Button alignment="BOTTOM_CENTER" onAction="#playCurrentFile" text="Play"/>
-                </HBox>
-                <Label text="Video label" GridPane.rowIndex="2"/>
-                <Label text="Comment" GridPane.rowIndex="3"/>
-                <Label alignment="TOP_LEFT" text="Quality" GridPane.rowIndex="4"/>
-                <Label alignment="TOP_LEFT" text="Start" GridPane.rowIndex="5"/>
-                <Label alignment="TOP_LEFT" text="End" GridPane.rowIndex="6">
-                    <GridPane.margin>
-                        <Insets/>
-                    </GridPane.margin>
-                </Label>
-                <Label alignment="TOP_LEFT" text="Channel" GridPane.rowIndex="7"/>
-                <TextField id="txtVhsLabel" fx:id="txtVhsLabel" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                <TextArea id="txtComment" fx:id="txtComment" prefHeight="200.0" prefWidth="200.0"
-                          GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-                <ComboBox id="cmbQuality" fx:id="cmbQuality" GridPane.columnIndex="1" GridPane.rowIndex="4">
-                    <items>
-                        <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="1 (Worst Quality)"/>
-                            <String fx:value="2"/>
-                            <String fx:value="3"/>
-                            <String fx:value="4"/>
-                            <String fx:value="5 (Average Quality)"/>
-                            <String fx:value="6"/>
-                            <String fx:value="7"/>
-                            <String fx:value="8"/>
-                            <String fx:value="9"/>
-                            <String fx:value="10 (Best Quality)"/>
-                        </FXCollections>
-                    </items>
-                    <value>
-                        <String fx:value="5 (Average Quality)"/>
-                    </value>
-                </ComboBox>
-                <HBox alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="5" >
-                    <LocalDateTimeTextField id="startDatePicker" fx:id="startDatePicker" prefWidth="200">
-                    </LocalDateTimeTextField>
-                </HBox>
-                <HBox alignment="CENTER_LEFT" prefHeight="51.0"  GridPane.columnIndex="1"
-                      GridPane.rowIndex="6">
-                    <LocalDateTimeTextField id="endDatePicker" fx:id="endDatePicker" prefWidth="200">
-                    </LocalDateTimeTextField>
-                </HBox>
-                <GridPane fx:id="channelGridPane" GridPane.columnIndex="1" GridPane.rowIndex="7">
 
-                    <fx:define>
-                        <ToggleGroup fx:id="channelGroup"/>
-                    </fx:define>
-
-                </GridPane>
-                <Label text="Unit information"/>
-                <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1">
+                <!--Row 0, Unit Information-->
+                <Label text="Unit information" GridPane.rowIndex="0"/>
+                <HBox prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.valignment="CENTER">
                     <Label text="Manufacturer">
                         <HBox.margin>
                             <Insets top="6.0"/>
@@ -196,6 +159,67 @@
                     </Label>
                     <TextField id="txtProcessedSerial" fx:id="txtProcessedSerial" alignment="CENTER_RIGHT"/>
                 </HBox>
+
+                <!--Row 1, Filename-->
+                <Label alignment="TOP_LEFT" contentDisplay="TOP" text="Filename" GridPane.rowIndex="1"/>
+                <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <TextField id="txtFilename" fx:id="txtFilename" alignment="BOTTOM_LEFT" prefHeight="25.0"
+                               prefWidth="0.0" stylesheets="@Digivid-stylesheet.css"/>
+                    <HBox alignment="CENTER_LEFT" prefWidth="40"/>
+                    <Button alignment="BOTTOM_CENTER" onAction="#playCurrentFile" text="Play"/>
+                </HBox>
+
+                <!--Row 2, Label-->
+                <Label text="Video label" GridPane.rowIndex="2"/>
+                <TextField id="txtVhsLabel" fx:id="txtVhsLabel" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                <!--Row 3, Comments-->
+                <Label text="Comment" GridPane.rowIndex="3"/>
+                <TextArea id="txtComment" fx:id="txtComment" prefHeight="200.0" prefWidth="200.0"
+                          GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                <!--Row 4, Quality, Start and Stop-->
+                <Label text="Quality" GridPane.rowIndex="4"/>
+                <HBox GridPane.columnIndex="1" GridPane.rowIndex="4" alignment="CENTER_LEFT">
+                    <ComboBox id="cmbQuality" fx:id="cmbQuality" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="1 (Worst Quality)"/>
+                                <String fx:value="2"/>
+                                <String fx:value="3"/>
+                                <String fx:value="4"/>
+                                <String fx:value="5 (Average Quality)"/>
+                                <String fx:value="6"/>
+                                <String fx:value="7"/>
+                                <String fx:value="8"/>
+                                <String fx:value="9"/>
+                                <String fx:value="10 (Best Quality)"/>
+                            </FXCollections>
+                        </items>
+                        <value>
+                            <String fx:value="5 (Average Quality)"/>
+                        </value>
+                    </ComboBox>
+                    <HBox alignment="CENTER_LEFT" prefWidth="40"/>
+                    <Label text="Start">
+>
+                    </Label>
+                    <LocalDateTimeTextField id="startDatePicker" fx:id="startDatePicker" prefWidth="200" />
+                    <HBox alignment="CENTER_LEFT" prefWidth="40"/>
+                    <Label text="End" >
+                    </Label>
+                    <LocalDateTimeTextField id="endDatePicker" fx:id="endDatePicker" prefWidth="200"/>
+                </HBox>
+
+                <!--Row 5, Channels-->
+                <Label alignment="TOP_LEFT" text="Channel" GridPane.rowIndex="5"/>
+                <GridPane fx:id="channelGridPane" prefHeight="49.0" prefWidth="924.0" GridPane.columnIndex="1"
+                          GridPane.rowIndex="5">
+                    <fx:define>
+                        <ToggleGroup fx:id="channelGroup"/>
+                    </fx:define>
+                </GridPane>
+
             </GridPane>
             <GridPane layoutX="10.0" layoutY="10.0" maxHeight="-Infinity" prefHeight="44.0" prefWidth="1278.0"
                       AnchorPane.bottomAnchor="0.0">
