@@ -26,7 +26,10 @@ import java.nio.file.*;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Shows GUI and requests videofiles to be renamed and a JSON-file to be generated according to the GUI-users choices.
@@ -34,9 +37,7 @@ import java.util.*;
 public class Controller {
 
     public static final String CHECKMARK = Character.toString((char) 10003);
-    private static final String hourPattern = "([01]?[0-9]|2[0-3]):[0-5][0-9]";
-    private static final String channelPattern = "^[a-zæøå0-9]{3,}$";
-    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
 
     private static Logger log = LoggerFactory.getLogger(Controller.class);
     @FXML public TableView<VideoFileObject> tableView;
@@ -71,13 +72,13 @@ public class Controller {
     private VideoFileObject thisVideoFileRow;
 
     private static void checkConfigfile() throws FileNotFoundException {
-            Path recordsPath = Paths.get(DigividProcessor.recordsDir);
-            Path channelsCSVPath = Paths.get(DigividProcessor.channelCSV);
-            Path playerPath = Paths.get(DigividProcessor.player);
-            Path localPropertiesPath = Paths.get(DigividProcessor.localProperties);
-            exists(recordsPath);
-            exists(channelsCSVPath);
-            exists(playerPath);
+        Path recordsPath = Paths.get(DigividProcessor.recordsDir);
+        Path channelsCSVPath = Paths.get(DigividProcessor.channelCSV);
+        Path playerPath = Paths.get(DigividProcessor.player);
+        Path localPropertiesPath = Paths.get(DigividProcessor.localProperties);
+        exists(recordsPath);
+        exists(channelsCSVPath);
+        exists(playerPath);
     }
 
     private static void exists(Path recordsPath) throws FileNotFoundException {
@@ -237,8 +238,6 @@ public class Controller {
         sortOrder.clear();
         sortOrder.addAll(processedColumn, lastmodifiedColumn);
 
-
-
         tableView.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldFile, newFile) -> {
                     if (oldFile != null) {
@@ -260,7 +259,6 @@ public class Controller {
 
                         //save the old values
                         oldFile.preprocess();
-
                     }
                     if (newFile != null) {
                         //load the newly selected file
@@ -279,8 +277,9 @@ public class Controller {
                                 }
                             }
                         }
+                        if (txtProcessedManufacturer.textProperty().getValue().isEmpty())
+                            txtProcessedManufacturer.textProperty().setValue(txtManufacturer.textProperty().getValue());
                         altChannel.textProperty().bindBidirectional(newFile.channelProperty());
-
 
                         //bind it's properties
                         txtVhsLabel.textProperty().bindBidirectional(newFile.vhsLabelProperty());
@@ -300,8 +299,6 @@ public class Controller {
                         Bindings.bindBidirectional(endDatePicker.textProperty(),
                                                    newFile.endDateProperty(),
                                                    getConverter());
-
-
                     }
                 });
         tableView.setOnMouseClicked(mouseEvent -> {
@@ -478,7 +475,7 @@ public class Controller {
         ObservableList<VideoFileObject> videoFileObjects = FXCollections.observableList(new ArrayList<>());
 
         //Initial setup of files in table
-        try(DirectoryStream<Path> tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts");){
+        try (DirectoryStream<Path> tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts")) {
             for (Path tsFile : tsFiles) {
                 videoFileObjects.add(VideoFileObject.createFromTS(tsFile));
             }
