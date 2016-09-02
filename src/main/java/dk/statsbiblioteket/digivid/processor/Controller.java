@@ -284,7 +284,7 @@ public class Controller {
                         Bindings.unbindBidirectional(endDatePicker.textProperty(),oldFile.endDateProperty());
 
                         //save the old values
-                        oldFile.preprocess();
+                        //oldFile.preprocess();
                     }
                     if (newFile != null) {
                         //load the newly selected file
