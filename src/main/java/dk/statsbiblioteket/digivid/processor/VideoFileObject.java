@@ -120,7 +120,6 @@ public class VideoFileObject {
         return vhsFileMetadataFilePath;
     }
 
-
     public void setVhsFileMetadataFilePath(Path vhsFileMetadataFilePath) {
         this.vhsFileMetadataFilePath = (vhsFileMetadataFilePath);
     }
@@ -131,8 +130,8 @@ public class VideoFileObject {
     }
 
 
-    public void setTmpFileMetadataFilePath(Path vhsFileMetadataFilePath) {
-        this.tmpFileMetadataFilePath = (tmpFileMetadataFilePath);
+    public void setTmpFileMetadataFilePath(Path tmpFileMetadataFilePath) {
+        this.tmpFileMetadataFilePath = (this.tmpFileMetadataFilePath);
     }
 
 
@@ -361,6 +360,10 @@ public class VideoFileObject {
         Path newPath = oldPath.getParent().resolve(newName);
         //Move
         try {
+            if (getVhsFileMetadataFilePath() != null)
+                Files.deleteIfExists(getVhsFileMetadataFilePath());
+            if (getTmpFileMetadataFilePath() != null)
+                Files.deleteIfExists(getTmpFileMetadataFilePath());
             if (!(Files.exists(newPath) && Files.isSameFile(oldPath, newPath))) {
                 Files.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
 
@@ -430,7 +433,19 @@ public class VideoFileObject {
      */
     public synchronized void preprocess() {
         Path newPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
+        Path oldPath = getVideoFilePath();
 
+        try {
+            if (getVhsFileMetadataFilePath() != null)
+                Files.deleteIfExists(getVhsFileMetadataFilePath());
+            if (getTmpFileMetadataFilePath() != null)
+                Files.deleteIfExists(getTmpFileMetadataFilePath());
+            if (!(Files.exists(newPath) && Files.isSameFile(oldPath, newPath))) {
+                Files.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            Utils.errorDialog("IO exception happened when moving the file in commit", e);
+        }
         //Encoder
         try {
             setEncoderName(InetAddress.getLocalHost().getHostName());
@@ -439,6 +454,13 @@ public class VideoFileObject {
         }
 
         if (isDirty()) {//Only update temp file is anything actually changed
+
+            Path oldTempFile = oldPath.getParent().resolve(oldPath.getFileName().toString() + TEMPORARY);
+            try {
+                Files.deleteIfExists(oldTempFile);
+            } catch (IOException e) {
+                Utils.errorDialog("IO exception happened when deleting old file", e);
+            }
 
             String vhsFileMetadata = null;
             try {

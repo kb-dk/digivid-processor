@@ -216,8 +216,6 @@ public class Controller {
                         setTextFill(Color.GREEN);
                     else
                         setTextFill(Color.BLUE);
-
-
                 }
             }
         });
@@ -282,7 +280,7 @@ public class Controller {
                         oldFile.qualityProperty().unbindBidirectional(cmbQuality.valueProperty());
 
                         Bindings.unbindBidirectional(startDatePicker.textProperty(), oldFile.startDateProperty());
-                        Bindings.unbindBidirectional(endDatePicker.textProperty(), oldFile.endDateProperty());
+                        Bindings.unbindBidirectional(endDatePicker.textProperty(),oldFile.endDateProperty());
 
                         //save the old values
                         oldFile.preprocess();
@@ -304,10 +302,6 @@ public class Controller {
                                 }
                             }
                         }
-                        if (txtProcessedManufacturer.textProperty().getValue().isEmpty()) {
-                            txtProcessedManufacturer.textProperty().setValue(txtManufacturer.textProperty().getValue());
-                        }
-
                         altChannel.textProperty().bindBidirectional(newFile.channelProperty());
 
                         //bind it's properties
@@ -317,6 +311,13 @@ public class Controller {
                         txtProcessedManufacturer.textProperty().bindBidirectional(newFile.manufacturerProperty());
                         txtProcessedModel.textProperty().bindBidirectional(newFile.modelProperty());
                         txtProcessedSerial.textProperty().bindBidirectional(newFile.serialNoProperty());
+
+                        if (txtProcessedManufacturer.textProperty().getValue() == null)
+                            txtProcessedManufacturer.textProperty().setValue(txtManufacturer.textProperty().getValue());
+                        if (txtProcessedModel.textProperty().getValue() == null)
+                            txtProcessedModel.textProperty().setValue(txtModel.textProperty().getValue());
+                        if (txtProcessedSerial.textProperty().getValue() == null)
+                            txtProcessedSerial.textProperty().setValue(txtSerial.textProperty().getValue());
 
                         //This one has to happen in inverse order
                         newFile.qualityProperty().bindBidirectional(cmbQuality.valueProperty());
