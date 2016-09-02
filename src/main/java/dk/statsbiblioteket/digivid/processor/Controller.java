@@ -97,30 +97,7 @@ public class Controller {
         detailVHS.setVisible(false);
         checkConfigfile();
 
-        try {
-            List<List<String>> channels = Utils.getCSV(DigividProcessor.channelCSV);
-            for (List<String> channel : channels) {
-                if (channel.size() > 4) {
-                    if (channel.get(5).equals("Radiobutton")) {
-                        addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
-                                Integer.parseInt(channel.get(4)));
-                    } else if (channel.get(5).equals("TextField"))
-                        addChannelTextfield();
-                }
-            }
-        } catch (IOException e) {
-            log.error("Caught exception while reading {}", DigividProcessor.channelCSV, e);
-            Utils.showErrorDialog("Caught exception while reading channels\n\n", Thread.currentThread(), e);
-        }
-
-        //Bind changes to channelGroup to update the altChannel field
-        for (Toggle toggle : channelGroup.getToggles()) {
-            toggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
-               if (newValue){
-                   altChannel.setText(((Channel) toggle.getUserData()).getChannelName());
-               }
-            });
-        }
+        setupChannelButtons();
 
         startDatePicker.setDateTimeFormatter(dtf);
         startDatePicker.withLocale(Locale.GERMAN); //This makes it use 24h days.
@@ -136,6 +113,55 @@ public class Controller {
 
         readLocalProperties();
     }
+
+    private void setupChannelButtons() {
+        try {
+            List<List<String>> channels = Utils.getCSV(DigividProcessor.channelCSV);
+            for (List<String> channel : channels) {
+                if (channel.size() > 4) {
+                    if (channel.get(5).equals("Radiobutton")) {
+                        addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
+                                Integer.parseInt(channel.get(4)));
+                    } else if (channel.get(5).equals("TextField"))
+                        addChannelTextfield();
+                }
+            }
+        } catch (IOException e) {
+            Utils.errorDialog("Caught exception while reading channels", e);
+        }
+
+        //Bind changes to channelGroup to update the altChannel field
+        for (Toggle toggle : channelGroup.getToggles()) {
+            toggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
+               if (newValue){
+                   altChannel.setText(((Channel) toggle.getUserData()).getChannelName());
+               }
+            });
+        }
+    }
+
+    private void addChannelButton(String channelName, String displayName, String color, int row, int column) {
+        Channel ch1 = new Channel(channelName, displayName, color);
+        RadioButton rb1 = new RadioButton();
+        rb1.setText(ch1.displayName);
+        rb1.setUserData(ch1);
+        rb1.setStyle("-fx-background-color:" + ch1.colour);
+        rb1.setToggleGroup(channelGroup);
+        rb1.setPrefWidth(150.0);
+        channelGridPane.getChildren().add(rb1);
+        GridPane.setColumnIndex(rb1, column);
+        GridPane.setRowIndex(rb1, row);
+    }
+
+    private void addChannelTextfield() {
+        altChannel = new TextField();
+        altChannel.setId("altChannel");
+        altChannel.setPrefWidth(150.0);
+        channelGridPane.getChildren().add(altChannel);
+        GridPane.setRowIndex(altChannel, 4);
+        GridPane.setColumnIndex(altChannel, 0);
+    }
+
 
     protected Path getDataPath() {
         return dataPath;
@@ -372,16 +398,14 @@ public class Controller {
                                 break;
                             }
                         } catch (InterruptedException | IOException e) {
-                            log.error("Thread error in setDataPath: " + e.getMessage(), e);
-                            Utils.showErrorDialog(Thread.currentThread(), e);
+                            Utils.errorDialog("Folder watcher for " + getDataPath() + " failed.", e);
                         }
                     }
                 }
             }.start();
 
         } catch (IOException e) {
-            log.error("Error in setDataPath: " + e.getMessage(), e);
-            Utils.showErrorDialog(Thread.currentThread(), e);
+            Utils.errorDialog("Failed to set up folder watcher for " + getDataPath(), e);
         }
     }
 
@@ -419,7 +443,7 @@ public class Controller {
             Files.write(newFilePath, msg.getBytes("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
         } catch (IOException ioe) {
             log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
-            Utils.showErrorDialog("Caught error while writing local properties\n\n", Thread.currentThread(), ioe);
+            Utils.errorDialog("Caught error while writing local properties\n\n", ioe);
         }
     }
 
@@ -446,30 +470,8 @@ public class Controller {
             }
         } catch (IOException e) {
             log.warn("Error occured reading {}", DigividProcessor.localProperties);
-            Utils.showErrorDialog("Caught exception while reading channelfile\n\n", Thread.currentThread(), e);
+            Utils.errorDialog("Caught exception while reading channelfile\n\n", e);
         }
-    }
-
-    private void addChannelButton(String channelName, String displayName, String color, int row, int column) {
-        Channel ch1 = new Channel(channelName, displayName, color);
-        RadioButton rb1 = new RadioButton();
-        rb1.setText(ch1.displayName);
-        rb1.setUserData(ch1);
-        rb1.setStyle("-fx-background-color:" + ch1.colour);
-        rb1.setToggleGroup(channelGroup);
-        rb1.setPrefWidth(150.0);
-        channelGridPane.getChildren().add(rb1);
-        GridPane.setColumnIndex(rb1, column);
-        GridPane.setRowIndex(rb1, row);
-    }
-
-    private void addChannelTextfield() {
-        altChannel = new TextField();
-        altChannel.setId("altChannel");
-        altChannel.setPrefWidth(150.0);
-        channelGridPane.getChildren().add(altChannel);
-        GridPane.setRowIndex(altChannel, 4);
-        GridPane.setColumnIndex(altChannel, 0);
     }
 
     /**
@@ -521,8 +523,7 @@ public class Controller {
                 if (Files.exists(tmpMetadataPath))
                     Files.delete(tmpMetadataPath);
             } catch (IOException e) {
-                log.error("IO exception happened when deleting the file in commit",e);
-                Utils.showErrorDialog(Thread.currentThread(), e);
+                Utils.errorDialog("IO exception happened when deleting the file in commit", e);
             }
             thisVideoFileRow.commit();
         }
@@ -535,7 +536,7 @@ public class Controller {
             detailVHS.setVisible(false);
             return true;
         } else {
-            Utils.showWarning("The file is currently locked by another program and cannot be altered.");
+            Utils.warningDialog("The file is currently locked by another program and cannot be altered.");
             return false;
         }
     }
@@ -543,21 +544,21 @@ public class Controller {
     private boolean ValidateVideoMetadata() {
         String txtProcessedManufacturerText = txtProcessedManufacturer.getText();
         if (txtProcessedManufacturerText == null || (txtProcessedManufacturerText.trim().isEmpty())) {
-            Utils.showWarning("Manufacturer is not allowed to be empty");
+            Utils.warningDialog("Manufacturer is not allowed to be empty");
             return false;
         }
         if (txtProcessedModel.getText() == null || (txtProcessedModel.getText().trim().isEmpty())) {
-            Utils.showWarning("Model field is not allowed to be empty");
+            Utils.warningDialog("Model field is not allowed to be empty");
             return false;
         }
 
         if (txtProcessedSerial.getText() == null || (txtProcessedSerial.getText().trim().isEmpty())) {
-            Utils.showWarning("Serial number is not allowed to be empty");
+            Utils.warningDialog("Serial number is not allowed to be empty");
             return false;
         }
 
         if (txtVhsLabel.getText() == null || (txtVhsLabel.getText().trim().isEmpty())) {
-            Utils.showWarning("Video label is not allowed to be empty");
+            Utils.warningDialog("Video label is not allowed to be empty");
             return false;
         }
         return true;
@@ -572,8 +573,8 @@ public class Controller {
                     new File(DigividProcessor.recordsDir, thisVideoFileRow.getFilename()).getAbsolutePath());
             pb.start();
         } catch (IOException e) {
-            log.error("{} could not be played", thisVideoFileRow.getFilename());
-            Utils.showErrorDialog("The file could not be played\n\n", Thread.currentThread(), e);
+            log.error("{} could not be played", thisVideoFileRow.getFilename(), e);
+            Utils.errorDialog("The file could not be played\n\n", e);
         }
     }
 

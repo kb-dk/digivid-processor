@@ -358,9 +358,7 @@ public class VideoFileObject {
                 setVideoFilePath(newPath);
             }
         } catch (IOException e) {
-            log.error("IO exception happened when moving the file in commit", e);
-            Utils.showErrorDialog(Thread.currentThread(), e);
-            return;
+            Utils.errorDialog("IO exception happened when moving the file in commit", e);
         }
 
 
@@ -368,9 +366,7 @@ public class VideoFileObject {
         try (InputStream checksumInputStream = Files.newInputStream(newPath)) {
             setChecksum(DigestUtils.md5Hex(checksumInputStream));
         } catch (IOException e) {
-            log.error("IO exception happened when setting checksum in commit", e);
-            Utils.showErrorDialog(Thread.currentThread(), e);
-            return;
+            Utils.errorDialog("IO exception happened when setting checksum in commit", e);
         }
 
         //Encoder
@@ -385,9 +381,7 @@ public class VideoFileObject {
         try {
             vhsFileMetadata = toJson();
         } catch (JsonProcessingException e) {
-            log.error("JSON exception happened when generating the file in commit", e);
-            Utils.showErrorDialog(Thread.currentThread(), e);
-            return;
+            Utils.errorDialog("JSON exception happened when generating the file in commit", e);
         }
 
         //Clean existing comments file
@@ -398,8 +392,7 @@ public class VideoFileObject {
         try {
             Files.deleteIfExists(oldTempFile);
         } catch (IOException e) {
-            log.error("IO exception happened when deleting old file", e);
-            return;
+            Utils.errorDialog("IO exception happened when deleting old file", e);
         }
     }
 
@@ -407,18 +400,14 @@ public class VideoFileObject {
         try {
             Files.deleteIfExists(location);
         } catch (IOException e) {
-            log.error("IO exception happened when deleting the file in commit", e);
-            Utils.showErrorDialog(Thread.currentThread(), e);
-            return;
+            Utils.errorDialog("IO exception happened when deleting the file in commit", e);
         }
 
         //Write new comments file
         try {
             Files.write(location, contents.getBytes("UTF-8"));
         } catch (IOException e) {
-            log.error("IO exception happened when writing the file in commit", e);
-            Utils.showErrorDialog(Thread.currentThread(), e);
-            return;
+            Utils.errorDialog("IO exception happened when writing the file in commit", e);
         }
     }
 
@@ -441,9 +430,7 @@ public class VideoFileObject {
             try {
                 vhsFileMetadata = toJson();
             } catch (JsonProcessingException e) {
-                log.error("JSON exception happened when generating the file in commit", e);
-                Utils.showErrorDialog(Thread.currentThread(), e);
-                return;
+                Utils.errorDialog("JSON exception happened when generating the file in commit", e);
             }
 
             Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + TEMPORARY);

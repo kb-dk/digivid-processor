@@ -54,41 +54,55 @@ public class DigividProcessor extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Thread.setDefaultUncaughtExceptionHandler((t, e) -> Platform.runLater(() -> Utils.showErrorDialog(t, e)));
-        Thread.currentThread().setUncaughtExceptionHandler(Utils::showErrorDialog);
 
         DigividProcessor.primaryStage = stage;
         DigividProcessor.primaryStage.setTitle("Video processor");
-        initRootLayout(DigividProcessor.primaryStage);
+
+
+        // Load root layout from fxml file.
+        FXMLLoader rootLoader = new FXMLLoader();
+        rootLoader.setLocation(getClass().getClassLoader().getResource("filelist.fxml"));
+        AnchorPane rootLayout = rootLoader.load();
+
+        //Setup the controller
+        final Controller controller = rootLoader.getController();
+        controller.setDataPath(Paths.get(recordsDir));
+        controller.setupFolderWatcher();
+        controller.setupTableView();
+        controller.loadFilenames();
+
+        // Set the scene containing the root layout.
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        Scene scene = new Scene(rootLayout, screenBounds.getWidth(), screenBounds.getHeight());
+        DigividProcessor.primaryStage.setScene(scene);
+
+        //Show the scene, blocks until closed
+        DigividProcessor.primaryStage.show();
+
     }
 
-    /**
-     * Initializes the root layout.
-     */
-    private void initRootLayout(Stage primaryStage) {
-        try {
-            // Load root layout from fxml file.
-            FXMLLoader rootLoader = new FXMLLoader();
-            rootLoader.setLocation(getClass().getClassLoader().getResource("filelist.fxml"));
-            AnchorPane rootLayout = rootLoader.load();
-            final Controller controller = rootLoader.getController();
-            controller.setDataPath(Paths.get(recordsDir));
-            controller.setupFolderWatcher();
-            controller.setupTableView();
-            controller.loadFilenames();
-            // Show the scene containing the root layout.
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(rootLayout, screenBounds.getWidth(), screenBounds.getHeight());
-            primaryStage.setScene(scene);
-            primaryStage.show();
-            primaryStage.setOnCloseRequest(t -> {
-                Platform.exit();
-                System.exit(0);
-            });
-        } catch (IOException ioe) {
-            log.error("Error occured while loading file in initRootLayout", ioe);
-            Utils.showErrorDialog(Thread.currentThread(), ioe);
-        }
+    @Override
+    public void init() throws Exception {
+        super.init();
+        //Uncaught exceptions should become error dialogs
+        Thread.setDefaultUncaughtExceptionHandler(
+                (Thread t, Throwable e) -> {
+                    Platform.runLater(
+                            () -> {
+                                Utils.errorDialog("Caught Exception " + e + " in thread " + t.toString(), e);
+                            });
+                });
+        Thread.currentThread().setUncaughtExceptionHandler(
+                (Thread t, Throwable e) -> {
+                    Utils.errorDialog("Caught Exception " + e + " in thread " + t.toString(), e);
+                });
     }
 
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        //Window closed, so kill the app
+        Platform.exit();
+        //System.exit(0);
+    }
 }
