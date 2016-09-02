@@ -47,37 +47,53 @@ public class VideoFileObjectTest {
      */
     @Test
     public void testCommit() throws IOException {
-        Path path = dir.resolve("f1.ts");
-        if (!Files.exists(path)) {
-            Files.createDirectories(dir);
-            Files.createFile(path);
-        }
-        VideoFileObject o1 = VideoFileObject.createFromTS(path);
-        o1.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime().getTime());
-        o1.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime().getTime());
-        o1.setChannel("dr5");
-        o1.commit();
 
+        //Create test file
+        Path testFile = dir.resolve("f1.ts");
+        if (!Files.exists(testFile)) {
+            Files.createDirectories(dir);
+            Files.createFile(testFile);
+        }
+
+        //Create videoFile videoFileObject and commit it, so it should rename
+        VideoFileObject videoFileObject = VideoFileObject.createFromTS(testFile);
+        videoFileObject.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime().getTime());
+        videoFileObject.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime().getTime());
+        videoFileObject.setChannel("dr5");
+        videoFileObject.commit();
+
+        //Assert that the new filename exists and it has a comments file
         DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir, "dr5_*.ts");
         Path tsPath = directoryStream.iterator().next();
-        Path commentsPath = tsPath.getParent().resolve(tsPath.getFileName().toString() + ".comments");
+        Path commentsPath = dir.resolve(tsPath.getFileName().toString() + ".comments");
         assertTrue(Files.exists(commentsPath));
 
-        VideoFileObject o2 = VideoFileObject.createFromTS(tsPath);
-        assertEquals(o1.getStartDate(), o2.getStartDate(), "Expect to persist startDate.");
+        //Create a new videoObject from the new path, to test that the metadata is read correctly
+        VideoFileObject reParsedVideoFileObject = VideoFileObject.createFromTS(tsPath);
+        assertEquals(videoFileObject.getStartDate(), reParsedVideoFileObject.getStartDate(), "Expected startDate to be saved");
 
-        o2.setChannel("tv2");
-        o2.setVhsLabel("What a fine tape you are.");
-        o2.setQuality("9: amazing!");
-        o2.commit();
-        Path newPath = tsPath.getParent().resolve(tsPath.getFileName().toString().replace("dr5", "tv2"));
+        //Set new metadata on new reparsedVideoFileObject
+        reParsedVideoFileObject.setChannel("tv2");
+        reParsedVideoFileObject.setVhsLabel("What a fine tape you are.");
+        reParsedVideoFileObject.setQuality("9: amazing!");
+        //And commit it, so it renames. The only metadata that changes the filename was the channel set
+        reParsedVideoFileObject.commit();
+
+
+        //This is the new name for the reparsedVideoFileObject
+        Path newPath = dir.resolve(tsPath.getFileName().toString().replace("dr5", "tv2"));
         assertTrue(Files.exists(newPath));
-        Path newComments = newPath.getParent().resolve(newPath.getFileName().toString() + ".comments");
+
+        //And the associated comments file
+        Path newComments = dir.resolve(newPath.getFileName().toString() + ".comments");
         assertTrue(Files.exists(newComments));
+
+        //The old names should no longer exist
         assertFalse(Files.exists(tsPath));
         assertFalse(Files.exists(commentsPath));
-        System.out.println(o1.toJson());
-//        o1 = VideoFileObject.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
-//        System.out.println(o1.toJson());
+
+        System.out.println(videoFileObject.toJson());
+//        videoFileObject = VideoFileObject.fromJson(new String(Files.readAllBytes(newComments), "UTF-8"));
+//        System.out.println(videoFileObject.toJson());
     }
 }
