@@ -3,6 +3,7 @@ package dk.statsbiblioteket.digivid.processor.json;
 import dk.statsbiblioteket.digivid.processor.VideoFileObject;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.GregorianCalendar;
@@ -14,8 +15,9 @@ public class VideoFileMetadataTest {
 
     @Test
     public void testToJson() throws Exception {
-        Path path = Paths.get("/a/b/foobar.ts");
-        VideoFileObject videoFileObject = VideoFileObject.createFromTS(path);
+
+        Path transportStreamFile = new File(Thread.currentThread().getContextClassLoader().getResource("empty.ts").getFile()).toPath();
+        VideoFileObject videoFileObject = VideoFileObject.createFromTS(transportStreamFile);
         videoFileObject.setStartDate(new GregorianCalendar(1992, 01, 23, 18, 00).getTime().getTime());
         videoFileObject.setEndDate(new GregorianCalendar(1992, 01, 23, 21, 30).getTime().getTime());
         videoFileObject.setChannel("tv2");
