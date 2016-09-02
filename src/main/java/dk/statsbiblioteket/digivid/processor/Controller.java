@@ -82,8 +82,8 @@ public class Controller {
     }
 
     private static void exists(Path recordsPath) throws FileNotFoundException {
-        if (!Files.exists(recordsPath)){
-            throw new FileNotFoundException("File "+recordsPath + " is not found");
+        if (!Files.exists(recordsPath)) {
+            throw new FileNotFoundException("File " + recordsPath + " is not found");
         }
     }
 
@@ -108,8 +108,8 @@ public class Controller {
         txtFilename.textProperty().addListener((ObservableValue<? extends String> observableValue, String oldValue, String newValue) ->
         {
             // expand the textfield
-            txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(),newValue, 0.0D) + 20);
-        });
+                    txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(), newValue, 0.0D) + 20);
+                });
 
         readLocalProperties();
     }
@@ -121,7 +121,7 @@ public class Controller {
                 if (channel.size() > 4) {
                     if (channel.get(5).equals("Radiobutton")) {
                         addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
-                                Integer.parseInt(channel.get(4)));
+                                         Integer.parseInt(channel.get(4)));
                     } else if (channel.get(5).equals("TextField"))
                         addChannelTextfield();
                 }
@@ -133,9 +133,9 @@ public class Controller {
         //Bind changes to channelGroup to update the altChannel field
         for (Toggle toggle : channelGroup.getToggles()) {
             toggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
-               if (newValue){
-                   altChannel.setText(((Channel) toggle.getUserData()).getChannelName());
-               }
+                if (newValue) {
+                    altChannel.setText(((Channel) toggle.getUserData()).getChannelName());
+                }
             });
         }
     }
@@ -215,7 +215,7 @@ public class Controller {
                             setTextFill(Color.BLUE);
 
                     } catch (IOException e) {
-                        log.error("Failed to figure out processing state of file "+item,e);
+                        log.error("Failed to figure out processing state of file " + item, e);
                     }
                 }
             }
@@ -281,7 +281,7 @@ public class Controller {
                         oldFile.qualityProperty().unbindBidirectional(cmbQuality.valueProperty());
 
                         Bindings.unbindBidirectional(startDatePicker.textProperty(), oldFile.startDateProperty());
-                        Bindings.unbindBidirectional(endDatePicker.textProperty(),oldFile.endDateProperty());
+                        Bindings.unbindBidirectional(endDatePicker.textProperty(), oldFile.endDateProperty());
 
                         //save the old values
                         oldFile.preprocess();
@@ -335,81 +335,93 @@ public class Controller {
     }
 
     public void setupFolderWatcher() {
-        try {
-            WatchService service = getDataPath().getFileSystem().newWatchService();
-            getDataPath().register(service,
-                                   StandardWatchEventKinds.ENTRY_MODIFY,
-                                   StandardWatchEventKinds.ENTRY_CREATE,
-                                   StandardWatchEventKinds.ENTRY_DELETE);
-            new Thread() {
-                @Override
-                public void run() {
-                    while (true) {
-                        try {
-                            WatchKey key = service.take();
-                            ObservableList<VideoFileObject> items = tableView.getItems();
-                            for (WatchEvent<?> watchEvent : key.pollEvents()) {
-                                if (watchEvent.kind().equals(StandardWatchEventKinds.ENTRY_MODIFY)){
-                                    Path modifiedFile = getDataPath().resolve((Path) watchEvent.context());
-                                    String filename = modifiedFile.getFileName().toString();
-                                    if (filename.endsWith(".ts")){
-                                        for (VideoFileObject videoFileObject : items) {
-                                            if (videoFileObject.getFilename().equals(filename)) {
-                                                videoFileObject.setFilesize(Files.size(modifiedFile));
-                                                videoFileObject.setLastModified(Files.getLastModifiedTime(modifiedFile).toInstant());
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                                if (watchEvent.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)){
-                                    Path createdFile = getDataPath().resolve((Path) watchEvent.context());
-                                    String filename = createdFile.getFileName().toString();
 
-                                    if (filename.endsWith(".ts")) {
-                                        VideoFileObject videoFileObject = VideoFileObject.createFromTS(createdFile);
-                                        if (!items.contains(videoFileObject)) {
-                                            items.add(videoFileObject);
-                                            tableView.sort();
-                                        }
-                                    }
-                                }
-                                if (watchEvent.kind().equals(StandardWatchEventKinds.ENTRY_DELETE)){
-                                    Path deletedFile = getDataPath().resolve((Path) watchEvent.context());
-                                    String filename = deletedFile.getFileName().toString();
-                                    if (filename.endsWith(".ts")) {
-                                        for (int i = 0; i < items.size(); i++) {
-                                            VideoFileObject videoFileObject = items.get(i);
-                                            if (videoFileObject.getFilename().equals(
-                                                    filename)) {
-                                                items.remove(i);
-                                                Files.deleteIfExists(videoFileObject.getVhsFileMetadataFilePath());
-                                            }
+        Runnable folderWatcherRunnable = () -> {
+            try (WatchService service = getDataPath().getFileSystem().newWatchService()) {
+
+                getDataPath().register(service,
+                                       StandardWatchEventKinds.ENTRY_MODIFY,
+                                       StandardWatchEventKinds.ENTRY_CREATE,
+                                       StandardWatchEventKinds.ENTRY_DELETE);
+
+                while (true) {
+                    try {
+                        WatchKey key = service.take();
+                        ObservableList<VideoFileObject> items = tableView.getItems();
+                        for (WatchEvent<?> watchEvent : key.pollEvents()) {
+                            if (watchEvent.kind().equals(StandardWatchEventKinds.ENTRY_MODIFY)) {
+                                Path modifiedFile = getDataPath().resolve((Path) watchEvent.context());
+                                String filename = modifiedFile.getFileName().toString();
+                                if (filename.endsWith(".ts")) {
+                                    for (VideoFileObject videoFileObject : items) {
+                                        if (videoFileObject.getFilename().equals(filename)) {
+                                            videoFileObject.setFilesize(Files.size(modifiedFile));
+                                            videoFileObject.setLastModified(
+                                                    Files.getLastModifiedTime(modifiedFile).toInstant());
+                                            break;
                                         }
                                     }
                                 }
                             }
-                            boolean valid = key.reset();
-                            if (!valid) {
-                                break;
+                            if (watchEvent.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
+                                Path createdFile = getDataPath().resolve((Path) watchEvent.context());
+                                String filename = createdFile.getFileName().toString();
+
+                                if (filename.endsWith(".ts")) {
+                                    VideoFileObject videoFileObject = VideoFileObject.createFromTS(createdFile);
+                                    if (!items.contains(videoFileObject)) {
+                                        items.add(videoFileObject);
+                                        tableView.sort();
+                                    }
+                                }
                             }
-                        } catch (InterruptedException | IOException e) {
-                            Utils.errorDialog("Folder watcher for " + getDataPath() + " failed.", e);
+                            if (watchEvent.kind().equals(StandardWatchEventKinds.ENTRY_DELETE)) {
+                                Path deletedFile = getDataPath().resolve((Path) watchEvent.context());
+                                String filename = deletedFile.getFileName().toString();
+                                if (filename.endsWith(".ts")) {
+                                    for (int i = 0; i < items.size(); i++) {
+                                        VideoFileObject videoFileObject = items.get(i);
+                                        if (videoFileObject.getFilename().equals(
+                                                filename)) {
+                                            items.remove(i);
+                                            Files.deleteIfExists(videoFileObject.getVhsFileMetadataFilePath());
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        boolean valid = key.reset();
+                        if (!valid) {
+                            throw new RuntimeException(
+                                    "Folder watcher for " + getDataPath() + " failed.\nThe key is no longer valid");
+                        }
+                    } catch (InterruptedException | IOException e) {
+                        throw new RuntimeException("Folder watcher for " + getDataPath() + " failed.", e);
                     }
                 }
-            }.start();
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to set up folder watcher for " + getDataPath(), e);
+            }
 
-        } catch (IOException e) {
-            Utils.errorDialog("Failed to set up folder watcher for " + getDataPath(), e);
-        }
+        };
+
+        Thread newThread = new Thread(folderWatcherRunnable);
+        newThread.setDaemon(true);
+
+        newThread.setUncaughtExceptionHandler(
+                (Thread t, Throwable e) -> {
+                    Utils.errorDialog("Caught Exception " + e + " in thread " + t.toString(), e);
+                });
+        newThread.setName("Folder Watcher Thread");
+
+        newThread.start();
     }
 
     private StringConverter<Long> getConverter() {
         return new StringConverter<Long>() {
             @Override
             public String toString(Long object) {
-                if (object == null){
+                if (object == null) {
                     return "";
                 }
                 return dtf.format(Instant.ofEpochMilli(object));
@@ -417,7 +429,7 @@ public class Controller {
 
             @Override
             public Long fromString(String string) {
-                if (string == null || string.isEmpty()){
+                if (string == null || string.isEmpty()) {
                     return null;
                 }
                 return Instant.from(dtf.parse(string)).toEpochMilli();
@@ -451,7 +463,7 @@ public class Controller {
             Path newFilePath = Paths.get(DigividProcessor.localProperties);
             if (Files.exists(newFilePath)) {
                 List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties),
-                        Charset.defaultCharset());
+                                                        Charset.defaultCharset());
                 String metadataLine = lines.get(0) + " ";
                 List<String> localProperties = Arrays.asList(metadataLine.split(","));
                 txtManufacturer.setText(localProperties.get(0));
@@ -483,7 +495,7 @@ public class Controller {
             }
             tableView.setItems(videoFileObjects);
         } catch (IOException e) {
-            throw new RuntimeException("" + getDataPath().toAbsolutePath(),e);
+            throw new RuntimeException("" + getDataPath().toAbsolutePath(), e);
         }
 
 
@@ -510,54 +522,69 @@ public class Controller {
      * @param actionEvent The event that activated commit
      */
     public void commit(ActionEvent actionEvent) {
-        File file = thisVideoFileRow.getVideoFilePath().toFile();
-        boolean fileIsNotLocked = file.renameTo(file);
-        if (validGUIvalues(thisVideoFileRow, fileIsNotLocked)) {
-            String tmpMetadataFilename = thisVideoFileRow.getVideoFilePath().getFileName() + ".temporary";
-            Path tmpMetadataPath = thisVideoFileRow.getVideoFilePath().getParent().resolve(Paths.get(tmpMetadataFilename));
-            try {
-                if (Files.exists(tmpMetadataPath))
-                    Files.delete(tmpMetadataPath);
-            } catch (IOException e) {
-                Utils.errorDialog("IO exception happened when deleting the file in commit", e);
+        if (!isFileInUse()) {
+            if (validateValues(thisVideoFileRow)) {
+                thisVideoFileRow.commit();
             }
-            thisVideoFileRow.commit();
         }
     }
 
-    private boolean validGUIvalues(VideoFileObject thisVideoFileRow, boolean fileIsNotLocked) {
-        if (fileIsNotLocked) {
-            if (!ValidateVideoMetadata()) return false;
-          //  if (!setValidDate(thisVideoFileRow)) return false;
-            detailVHS.setVisible(false);
-            return true;
-        } else {
-            Utils.warningDialog("The file is currently locked by another program and cannot be altered.");
-            return false;
-        }
-    }
+    private boolean validateValues(VideoFileObject thisVideoFileRow) {
 
-    private boolean ValidateVideoMetadata() {
-        String txtProcessedManufacturerText = txtProcessedManufacturer.getText();
-        if (txtProcessedManufacturerText == null || (txtProcessedManufacturerText.trim().isEmpty())) {
+        String manufacturer = thisVideoFileRow.getManufacturer();
+        if (manufacturer == null || (manufacturer.trim().isEmpty())) {
             Utils.warningDialog("Manufacturer is not allowed to be empty");
             return false;
         }
-        if (txtProcessedModel.getText() == null || (txtProcessedModel.getText().trim().isEmpty())) {
+        String model = thisVideoFileRow.getModel();
+        if (model == null || (model.trim().isEmpty())) {
             Utils.warningDialog("Model field is not allowed to be empty");
             return false;
         }
 
-        if (txtProcessedSerial.getText() == null || (txtProcessedSerial.getText().trim().isEmpty())) {
+        String serial = thisVideoFileRow.getSerialNo();
+        if (serial == null || (serial.trim().isEmpty())) {
             Utils.warningDialog("Serial number is not allowed to be empty");
             return false;
         }
 
-        if (txtVhsLabel.getText() == null || (txtVhsLabel.getText().trim().isEmpty())) {
+        String label = thisVideoFileRow.getVhsLabel();
+        if (label == null || (label.trim().isEmpty())) {
             Utils.warningDialog("Video label is not allowed to be empty");
             return false;
         }
+
+        Long startDate = thisVideoFileRow.getStartDate();
+        if (startDate == null || startDate == 0L) {
+            Utils.warningDialog("Start date is not allowed to be empty");
+            return false;
+        }
+
+        Long endDate = thisVideoFileRow.getEndDate();
+        if (endDate == null || endDate == 0L) {
+            Utils.warningDialog("End date is not allowed to be empty");
+            return false;
+        }
+
+        if (startDate >= endDate) {
+            Utils.warningDialog("Negative Duration: \n " +
+                                "Start date: '" + startDatePicker.getText() + "'\n" +
+                                "End date:   '" + endDatePicker.getText() + "'");
+            return false;
+
+        }
+
         return true;
+    }
+
+    private boolean isFileInUse() {
+        File file = thisVideoFileRow.getVideoFilePath().toFile();
+        boolean couldRename = file.renameTo(file);
+        if (!couldRename) {
+            Utils.warningDialog("The file is currently locked by another program and cannot be altered.");
+            return true;
+        }
+        return false;
     }
 
     /**

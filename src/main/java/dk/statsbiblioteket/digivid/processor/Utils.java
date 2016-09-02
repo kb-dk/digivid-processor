@@ -60,9 +60,16 @@ public class Utils {
                              "Program generated a Fatal Error.'" +
                              description + "'. Close this " +
                              "dialog to terminate the application.");
-        Optional<ButtonType> result = alert.showAndWait();
 
-        rethrow(description,e);
+        Runnable showAndCrash = () -> {
+            Optional<ButtonType> result = alert.showAndWait();
+            rethrow(description, e);
+        };
+        if (Platform.isFxApplicationThread()) {
+            showAndCrash.run();
+        } else {
+            Platform.runLater(showAndCrash);
+        }
     }
 
     static public void warningDialog(String informationStr) {

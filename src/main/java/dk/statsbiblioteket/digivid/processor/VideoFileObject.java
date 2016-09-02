@@ -32,8 +32,8 @@ import java.util.List;
  */
 public class VideoFileObject {
 
-    private static final String COMMENTS = ".comments";
-    private static final String TEMPORARY = ".temporary";
+    public static final String COMMENTS = ".comments";
+    public static final String TEMPORARY = ".temporary";
     private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
     private final MonitoredProperty<Instant> lastModified = new MonitoredProperty<>(this, "lastModified", null);
     //These properties are in JSON
@@ -337,8 +337,22 @@ public class VideoFileObject {
     /**
      * This is the heart of the processing functionality.
      * It renames the file to correspond to the specified localProperties and writes a json-file
+     *
+     * Synchronized to lock commit and preprocess from race conditioning
      */
     public synchronized void commit() {
+        //Assume the caller have already validated that all the values are acceptable
+
+
+        String tmpMetadataFilename = getFilename() + VideoFileObject.TEMPORARY;
+        Path tmpMetadataPath = getVideoFilePath().resolveSibling(tmpMetadataFilename);
+        try {
+            if (Files.exists(tmpMetadataPath))
+                Files.delete(tmpMetadataPath);
+        } catch (IOException e) {
+            Utils.errorDialog("IO exception happened when deleting the temporary metadata file in commit", e);
+        }
+
         Path oldPath = getVideoFilePath();
 
         //Create filename to match metadata

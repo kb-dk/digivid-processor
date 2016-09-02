@@ -76,6 +76,7 @@ public class DigividProcessor extends Application {
         Scene scene = new Scene(rootLayout, screenBounds.getWidth(), screenBounds.getHeight());
         DigividProcessor.primaryStage.setScene(scene);
 
+        Platform.setImplicitExit(true);
         //Show the scene, blocks until closed
         DigividProcessor.primaryStage.show();
 
