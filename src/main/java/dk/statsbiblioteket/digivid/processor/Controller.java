@@ -535,6 +535,12 @@ public class Controller {
             return false;
         }
 
+        String channel = thisVideoFileRow.getChannel();
+        if (channel == null || (channel.trim().isEmpty())) {
+            Utils.warningDialog("A channel has to be specified");
+            return false;
+        }
+
         Long startDate = thisVideoFileRow.getStartDate();
         if (startDate == null || startDate == 0L) {
             Utils.warningDialog("Start date is not allowed to be empty");
