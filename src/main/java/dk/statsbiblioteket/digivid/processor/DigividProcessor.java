@@ -86,16 +86,9 @@ public class DigividProcessor extends Application {
     public void init() throws Exception {
         super.init();
         //Uncaught exceptions should become error dialogs
-        Thread.setDefaultUncaughtExceptionHandler(
-                (Thread t, Throwable e) -> {
-                    Platform.runLater(
-                            () -> {
-                                Utils.errorDialog("Caught Exception " + e + " in thread " + t.toString(), e);
-                            });
-                });
         Thread.currentThread().setUncaughtExceptionHandler(
                 (Thread t, Throwable e) -> {
-                    Utils.errorDialog("Caught Exception " + e + " in thread " + t.toString(), e);
+                    Utils.errorDialog("Exception in thread " + t.getName(), e);
                 });
     }
 

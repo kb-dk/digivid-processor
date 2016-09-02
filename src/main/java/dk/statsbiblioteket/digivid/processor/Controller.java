@@ -88,12 +88,21 @@ public class Controller {
     }
 
     @FXML
-    public void handleLocalProperties() {
-        writeLocalProperties();
+    public void handleLocalProperties() throws IOException {
+
+        Path newFilePath = Paths.get(DigividProcessor.localProperties);
+
+        Path parentDir = newFilePath.getParent();
+        if (!Files.exists(parentDir)) {
+            Files.createDirectories(parentDir);
+        }
+        String msg = String.format("%s,%s,%s", txtManufacturer.getText(), txtModel.getText(), txtSerial.getText());
+        Files.write(newFilePath, msg.getBytes("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+
     }
 
     @FXML
-    void initialize() throws FileNotFoundException {
+    void initialize() throws IOException {
         detailVHS.setVisible(false);
         checkConfigfile();
 
@@ -114,8 +123,7 @@ public class Controller {
         readLocalProperties();
     }
 
-    private void setupChannelButtons() {
-        try {
+    private void setupChannelButtons() throws IOException {
             List<List<String>> channels = Utils.getCSV(DigividProcessor.channelCSV);
             for (List<String> channel : channels) {
                 if (channel.size() > 4) {
@@ -126,9 +134,7 @@ public class Controller {
                         addChannelTextfield();
                 }
             }
-        } catch (IOException e) {
-            Utils.errorDialog("Caught exception while reading channels", e);
-        }
+
 
         //Bind changes to channelGroup to update the altChannel field
         for (Toggle toggle : channelGroup.getToggles()) {
@@ -206,17 +212,12 @@ public class Controller {
                     setStyle("");
                 } else {
                     setText(item);
-                    try {
-                        VideoFileObject videoFile = VideoFileObject.createFromTS(
-                                Paths.get(DigividProcessor.recordsDir, item));
-                        if (videoFile.isProcessed())
-                            setTextFill(Color.GREEN);
-                        else
-                            setTextFill(Color.BLUE);
+                    if (thisVideoFileRow.isProcessed())
+                        setTextFill(Color.GREEN);
+                    else
+                        setTextFill(Color.BLUE);
 
-                    } catch (IOException e) {
-                        log.error("Failed to figure out processing state of file " + item, e);
-                    }
+
                 }
             }
         });
@@ -303,8 +304,10 @@ public class Controller {
                                 }
                             }
                         }
-                        if (txtProcessedManufacturer.textProperty().getValue().isEmpty())
+                        if (txtProcessedManufacturer.textProperty().getValue().isEmpty()) {
                             txtProcessedManufacturer.textProperty().setValue(txtManufacturer.textProperty().getValue());
+                        }
+
                         altChannel.textProperty().bindBidirectional(newFile.channelProperty());
 
                         //bind it's properties
@@ -402,15 +405,14 @@ public class Controller {
             } catch (IOException e) {
                 throw new RuntimeException("Failed to set up folder watcher for " + getDataPath(), e);
             }
-
         };
 
         Thread newThread = new Thread(folderWatcherRunnable);
         newThread.setDaemon(true);
 
-        newThread.setUncaughtExceptionHandler(
+        newThread.setUncaughtExceptionHandler( //This catches all the RuntimeExceptions from above, so the user is warned
                 (Thread t, Throwable e) -> {
-                    Utils.errorDialog("Caught Exception " + e + " in thread " + t.toString(), e);
+                    Utils.errorDialog("Exception in thread " + t.getName(), e);
                 });
         newThread.setName("Folder Watcher Thread");
 
@@ -438,48 +440,26 @@ public class Controller {
     }
 
     /**
-     * Deletes the localProperties.csv file if it already exists and writes information about content of Manufacturer, Model
-     * and localProperties number to localProperties.csv
+     * Reads information from the meatadata.csv file and put it in the fields for Manufacturer, Model and Serialnumber
      */
-    private void writeLocalProperties() {
+    private void readLocalProperties() throws IOException {
         Path newFilePath = Paths.get(DigividProcessor.localProperties);
-        try {
+        if (Files.exists(newFilePath)) {
+            List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties),
+                                                    Charset.defaultCharset());
+            String metadataLine = lines.get(0) + " ";
+            List<String> localProperties = Arrays.asList(metadataLine.split(","));
+            txtManufacturer.setText(localProperties.get(0));
+            txtModel.setText(localProperties.get(1));
+            txtSerial.setText(localProperties.get(2).trim());
+        } else {
             Path parentDir = newFilePath.getParent();
             if (!Files.exists(parentDir))
                 Files.createDirectories(parentDir);
-            String msg = String.format("%s,%s,%s", txtManufacturer.getText(), txtModel.getText(), txtSerial.getText());
-            Files.write(newFilePath, msg.getBytes("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-        } catch (IOException ioe) {
-            log.error("Caught error while writing {}", DigividProcessor.localProperties, ioe);
-            Utils.errorDialog("Caught error while writing local properties\n\n", ioe);
+            String msg = ",,";
+            Files.write(newFilePath, msg.getBytes("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         }
-    }
 
-    /**
-     * Reads information from the meatadata.csv file and put it in the fields for Manufacturer, Model and Serialnumber
-     */
-    private void readLocalProperties() {
-        try {
-            Path newFilePath = Paths.get(DigividProcessor.localProperties);
-            if (Files.exists(newFilePath)) {
-                List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties),
-                                                        Charset.defaultCharset());
-                String metadataLine = lines.get(0) + " ";
-                List<String> localProperties = Arrays.asList(metadataLine.split(","));
-                txtManufacturer.setText(localProperties.get(0));
-                txtModel.setText(localProperties.get(1));
-                txtSerial.setText(localProperties.get(2).trim());
-            } else {
-                Path parentDir = newFilePath.getParent();
-                if (!Files.exists(parentDir))
-                    Files.createDirectories(parentDir);
-                String msg = ",,";
-                Files.write(newFilePath, msg.getBytes("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-            }
-        } catch (IOException e) {
-            log.warn("Error occured reading {}", DigividProcessor.localProperties);
-            Utils.errorDialog("Caught exception while reading channelfile\n\n", e);
-        }
     }
 
     /**
@@ -581,7 +561,7 @@ public class Controller {
         File file = thisVideoFileRow.getVideoFilePath().toFile();
         boolean couldRename = file.renameTo(file);
         if (!couldRename) {
-            Utils.warningDialog("The file is currently locked by another program and cannot be altered.");
+            Utils.warningDialog("The file '"+file+"' is currently locked by another program and cannot be committed.");
             return true;
         }
         return false;
@@ -596,8 +576,7 @@ public class Controller {
                     new File(DigividProcessor.recordsDir, thisVideoFileRow.getFilename()).getAbsolutePath());
             pb.start();
         } catch (IOException e) {
-            log.error("{} could not be played", thisVideoFileRow.getFilename(), e);
-            Utils.errorDialog("The file could not be played\n\n", e);
+            Utils.warningDialog("The file '"+thisVideoFileRow.getFilename()+"' could not be played", e);
         }
     }
 

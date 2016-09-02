@@ -1,11 +1,11 @@
 package dk.statsbiblioteket.digivid.processor;
 
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextBoundsType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,27 +43,20 @@ public class Utils {
         return d;
     }
 
-    private static void rethrow(String description, Throwable e) {
-        log.error("Fatal exception, closing down: '{}'", description, e);
-        throw new RuntimeException(e);
-
-//        Platform.exit();
-//        System.exit(-1);
-
-    }
-
 
     static public void errorDialog(String description, Throwable e) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setContentText(description +
-                             "Program generated a Fatal Error.'" +
-                             description + "'. Close this " +
-                             "dialog to terminate the application.");
-
         Runnable showAndCrash = () -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+
+            Text text = new Text("Program generated a Fatal Error:\n" +
+                                 description + ":\n"+e+"\n\nClose this " +
+                                 "dialog to terminate the application.");
+            //text.setWrappingWidth(100);
+            alert.getDialogPane().setContent(text);
             Optional<ButtonType> result = alert.showAndWait();
-            rethrow(description, e);
+            log.error("Fatal exception, closing down: '{}'", description, e);
+            Platform.exit();
         };
         if (Platform.isFxApplicationThread()) {
             showAndCrash.run();
@@ -72,12 +65,26 @@ public class Utils {
         }
     }
 
-    static public void warningDialog(String informationStr) {
+    static public void warningDialog(String description) {
+        warningDialog(description,null);
+    }
+
+    static public void warningDialog(String description, Throwable e) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Warning");
-        alert.setContentText(informationStr);
-        alert.showAndWait();
+        alert.setContentText(description);
+
+        Runnable showAndBlock = () -> {
+            Optional<ButtonType> result = alert.showAndWait();
+            log.warn("Warning user'{}'", description, e);
+        };
+        if (Platform.isFxApplicationThread()) {
+            showAndBlock.run();
+        } else {
+            Platform.runLater(showAndBlock);
+        }
     }
+
 
     public static List<List<String>> getCSV(String csvFile) throws IOException {
         List<List<String>> csvData = new ArrayList<>();
