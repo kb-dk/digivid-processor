@@ -349,6 +349,10 @@ public class VideoFileObject {
         try {
             if (!(Files.exists(newPath) && Files.isSameFile(oldPath, newPath))) {
                 Files.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
+
+                //Delete the existing metadata file, if it exists
+                Files.deleteIfExists(getVhsFileMetadataFilePath());
+
                 setFilename(newName);
                 //Update VideoFilePath to point to the moved file
                 setVideoFilePath(newPath);
