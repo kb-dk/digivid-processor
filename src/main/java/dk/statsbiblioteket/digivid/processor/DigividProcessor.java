@@ -23,7 +23,7 @@ import java.util.Properties;
 public class DigividProcessor extends Application {
 
     static public Stage primaryStage;
-    protected static String recordsDir;
+    public static Path recordsDir;
     protected static String channelCSV;
     protected static String player;
     protected static String localProperties;
@@ -45,7 +45,7 @@ public class DigividProcessor extends Application {
             throw new RuntimeException("Could not read properties file " + propertiesPath, e);
         }
 
-        recordsDir = properties.getProperty("digivid.processor.recordsdir");
+        recordsDir = Paths.get(properties.getProperty("digivid.processor.recordsdir"));
         channelCSV = properties.getProperty("digivid.processor.channels");
         player = properties.getProperty("digivid.processor.player");
         localProperties = properties.getProperty("digivid.processor.localVHSProperties");
@@ -66,7 +66,7 @@ public class DigividProcessor extends Application {
 
         //Setup the controller
         final Controller controller = rootLoader.getController();
-        controller.setDataPath(Paths.get(recordsDir));
+        controller.setDataPath(recordsDir);
         controller.setupFolderWatcher();
         controller.setupTableView();
         controller.loadFilenames();

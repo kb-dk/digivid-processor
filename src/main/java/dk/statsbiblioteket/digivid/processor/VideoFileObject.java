@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk7.Jdk7Module;
+import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ObservableList;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.slf4j.Logger;
@@ -17,14 +19,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Class which beside the properties about the videfile also has methods for renaming the videofile and
@@ -34,8 +33,9 @@ public class VideoFileObject {
 
     public static final String COMMENTS = ".comments";
     public static final String TEMPORARY = ".temporary";
-    private static Logger log = LoggerFactory.getLogger(VideoFileObject.class);
-    private final MonitoredProperty<Instant> lastModified = new MonitoredProperty<>(this, "lastModified", null);
+    private Logger log = LoggerFactory.getLogger(getClass());
+
+
     //These properties are in JSON
     private final MonitoredProperty<Long> filesize = new MonitoredProperty<>(this, "filesize", null);
     private final MonitoredProperty<String> filename = new MonitoredProperty<>(this, "filename", null);
@@ -50,88 +50,70 @@ public class VideoFileObject {
     private final MonitoredProperty<String> model = new MonitoredProperty<>(this, "model", null);
     private final MonitoredProperty<String> serialNo = new MonitoredProperty<>(this, "serialNo", null);
     private final MonitoredProperty<String> encoderName = new MonitoredProperty<>(this, "encoderName", null);
-    private final List<MonitoredProperty<?>> properties = Collections.unmodifiableList(Arrays.asList(filesize,filename,startDate,vhsLabel,comment,quality,quality,channel,endDate,checksum,manufacturer,model,serialNo,encoderName,lastModified));
-    //JSon ignored properties
-    private Path videoFilePath;
-    private Path vhsFileMetadataFilePath;
-    private Path tmpFileMetadataFilePath;
 
-    public static VideoFileObject createFromTS(Path path) throws IOException {
+    //This is used just for the display table
+    private final MonitoredProperty<Instant> lastModified = new MonitoredProperty<>(this, "lastModified", null);
 
-        Path vhsFileMetadataFilePath = path.getParent().resolve(path.getFileName().toString() + COMMENTS);
-        Path tmpMetadataPath = path.getParent().resolve(path.getFileName().toString() + TEMPORARY);
+    private final SimpleBooleanProperty dirty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty processed = new SimpleBooleanProperty(false);
 
-        VideoFileObject videoFileObject;
+    public static VideoFileObject create(Path tsFile) throws IOException {
+
+        Path vhsFileMetadataFilePath = tsFile.resolveSibling(tsFile.getFileName().toString() + COMMENTS);
+        Path tmpMetadataPath = tsFile.resolveSibling(tsFile.getFileName().toString() + TEMPORARY);
+
+        ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk7Module());
+
+        VideoFileObject obj;
         if (Files.exists(vhsFileMetadataFilePath)) {
-            videoFileObject = VideoFileObject.fromJson(vhsFileMetadataFilePath, true);
+            obj = mapper.readValue(vhsFileMetadataFilePath.toFile(), VideoFileObject.class);
         } else if (Files.exists(tmpMetadataPath)) {
-            videoFileObject = VideoFileObject.fromJson(tmpMetadataPath, false);
+            obj = mapper.readValue(tmpMetadataPath.toFile(), VideoFileObject.class);
         } else {
-            videoFileObject = new VideoFileObject();
+            obj = new VideoFileObject();
         }
 
-        videoFileObject.setVhsFileMetadataFilePath(vhsFileMetadataFilePath);
-        videoFileObject.setTmpFileMetadataFilePath(tmpMetadataPath);
-        videoFileObject.setVideoFilePath(path);
+        obj.setFilename(tsFile.getFileName().toString());
 
-        videoFileObject.setFilename(path.getFileName().toString());
+        obj.setFilesize(Files.size(tsFile));
+        obj.setLastModified(Files.getLastModifiedTime(tsFile).toInstant());
 
-        videoFileObject.setFilesize(Files.size(path));
-        videoFileObject.setLastModified(Files.getLastModifiedTime(path).toInstant());
+        try {
+            obj.setEncoderName(InetAddress.getLocalHost().getHostName());
+        } catch (UnknownHostException e) {
+            obj.setEncoderName("unknown");
+        }
 
-        return videoFileObject;
-    }
+        //Just loaded, not dirty
+        obj.markClean();
 
-    public static VideoFileObject fromJson(Path commentFile, boolean processed) throws IOException {
-        byte[] bytes = Files.readAllBytes(commentFile);
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new Jdk7Module());
-        VideoFileObject obj = mapper.readValue(new String(bytes,"UTF-8"), VideoFileObject.class);
-        obj.setVideoFilePath(commentFile.getParent().resolve(obj.getFilename()));
-        if (processed)
-            obj.setVhsFileMetadataFilePath(commentFile);
-        else
-            obj.setTmpFileMetadataFilePath(commentFile);
+        //as it is not dirty, it is processed if the comments file exists
+        obj.setProcessed(Files.exists(obj.getVhsFileMetadataFilePath()));
+
         return obj;
     }
 
     public String toJson() throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new Jdk7Module());
+        ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk7Module());
 
         //Object to JSON in String
-        String jsonInString = mapper.writeValueAsString(this);
-        return jsonInString;
+        return mapper.writeValueAsString(this);
     }
 
 
     @JsonIgnore
     public Path getVideoFilePath() {
-        return videoFilePath;
+        return DigividProcessor.recordsDir.resolve(getFilename());
     }
-
-    public void setVideoFilePath(Path videoFilePath) {
-        this.videoFilePath = (videoFilePath);
-    }
-
 
     @JsonIgnore
     public Path getVhsFileMetadataFilePath() {
-        return vhsFileMetadataFilePath;
-    }
-
-    public void setVhsFileMetadataFilePath(Path vhsFileMetadataFilePath) {
-        this.vhsFileMetadataFilePath = (vhsFileMetadataFilePath);
+        return DigividProcessor.recordsDir.resolve(getFilename()+COMMENTS);
     }
 
     @JsonIgnore
     public Path getTmpFileMetadataFilePath() {
-        return tmpFileMetadataFilePath;
-    }
-
-
-    public void setTmpFileMetadataFilePath(Path tmpFileMetadataFilePath) {
-        this.tmpFileMetadataFilePath = (this.tmpFileMetadataFilePath);
+        return DigividProcessor.recordsDir.resolve(getFilename()+TEMPORARY);
     }
 
 
@@ -146,6 +128,7 @@ public class VideoFileObject {
     public MonitoredProperty<String> filenameProperty() {
         return filename;
     }
+
 
     public Long getFilesize() {
         final long K = 1024;
@@ -167,6 +150,7 @@ public class VideoFileObject {
         return filesize;
     }
 
+
     public Long getStartDate() {
         return startDate.get();
     }
@@ -178,6 +162,7 @@ public class VideoFileObject {
     public MonitoredProperty<Long> startDateProperty() {
         return startDate;
     }
+
 
     public String getVhsLabel() {
         return vhsLabel.get();
@@ -191,6 +176,7 @@ public class VideoFileObject {
         return vhsLabel;
     }
 
+
     public String getComment() {
         return comment.get();
     }
@@ -202,6 +188,7 @@ public class VideoFileObject {
     public MonitoredProperty<String> commentProperty() {
         return comment;
     }
+
 
     public String getQuality() {
         return quality.get();
@@ -215,6 +202,7 @@ public class VideoFileObject {
         return quality;
     }
 
+
     public String getChannel() {
         return channel.get();
     }
@@ -226,6 +214,7 @@ public class VideoFileObject {
     public MonitoredProperty<String> channelProperty() {
         return channel;
     }
+
 
     public Long getEndDate() {
         return endDate.get();
@@ -239,6 +228,7 @@ public class VideoFileObject {
         return endDate;
     }
 
+
     public String getChecksum() {
         return checksum.get();
     }
@@ -250,6 +240,7 @@ public class VideoFileObject {
     public MonitoredProperty<String> checksumProperty() {
         return checksum;
     }
+
 
     public String getManufacturer() {
         return manufacturer.get();
@@ -263,6 +254,7 @@ public class VideoFileObject {
         return manufacturer;
     }
 
+
     public String getModel() {
         return model.get();
     }
@@ -274,6 +266,7 @@ public class VideoFileObject {
     public MonitoredProperty<String> modelProperty() {
         return model;
     }
+
 
     public String getSerialNo() {
         return serialNo.get();
@@ -287,6 +280,7 @@ public class VideoFileObject {
         return serialNo;
     }
 
+
     public String getEncoderName() {
         return encoderName.get();
     }
@@ -299,10 +293,29 @@ public class VideoFileObject {
         return encoderName;
     }
 
+
+    public SimpleBooleanProperty processedProperty() {
+        return processed;
+    }
+
+    public void setProcessed(boolean processed) {
+        this.processed.set(processed);
+
+        this.setFilename(this.getFilename());
+    }
+
     @JsonIgnore
     public Boolean isProcessed() {
-        return Files.exists(getVhsFileMetadataFilePath());
+        if (dirty.getValue()){ //if it is dirty, it is most certainly not processed
+            setProcessed(false);
+            return false;
+        }
+        if (Files.exists(getVhsFileMetadataFilePath())){
+            return true;
+        }
+        return processed.getValue();
     }
+
 
 
     @JsonIgnore
@@ -342,42 +355,28 @@ public class VideoFileObject {
     public synchronized void commit() {
         //Assume the caller have already validated that all the values are acceptable
 
-
-        String tmpMetadataFilename = getFilename() + VideoFileObject.TEMPORARY;
-        Path tmpMetadataPath = getVideoFilePath().resolveSibling(tmpMetadataFilename);
-        try {
-            if (Files.exists(tmpMetadataPath))
-                Files.delete(tmpMetadataPath);
-        } catch (IOException e) {
-            Utils.errorDialog("Exception when deleting the temporary metadata file", e);
-        }
-
         Path oldPath = getVideoFilePath();
 
         //Create filename to match metadata
         String newName = buildFilename();
         //This is the path to where the new file should be
-        Path newPath = oldPath.getParent().resolve(newName);
+        Path newPath = oldPath.resolveSibling(newName);
         //Move
         try {
-            if (getVhsFileMetadataFilePath() != null)
-                Files.deleteIfExists(getVhsFileMetadataFilePath());
-            if (getTmpFileMetadataFilePath() != null)
-                Files.deleteIfExists(getTmpFileMetadataFilePath());
+            //Delete the metadata files
+            //If it crashes during this commit, the metadata is lost... Just saying
+            Files.deleteIfExists(getVhsFileMetadataFilePath());
+            Files.deleteIfExists(getTmpFileMetadataFilePath());
+
             if (!(Files.exists(newPath) && Files.isSameFile(oldPath, newPath))) {
                 Files.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
 
-                //Delete the existing metadata file, if it exists
-                Files.deleteIfExists(getVhsFileMetadataFilePath());
-
-                setFilename(newName);
                 //Update VideoFilePath to point to the moved file
-                setVideoFilePath(newPath);
+                setFilename(newName);
             }
         } catch (IOException e) {
             Utils.errorDialog("Exception when renaming the data file", e);
         }
-
 
         //Checksum
         try (InputStream checksumInputStream = Files.newInputStream(newPath)) {
@@ -386,14 +385,7 @@ public class VideoFileObject {
             Utils.errorDialog("Exception when calculating data file checksum", e);
         }
 
-        //Encoder
-        try {
-            setEncoderName(InetAddress.getLocalHost().getHostName());
-        } catch (UnknownHostException e) {
-            setEncoderName("unknown");
-        }
-
-        //Make comments metadata
+        //Make json metadata
         String vhsFileMetadata = null;
         try {
             vhsFileMetadata = toJson();
@@ -402,15 +394,16 @@ public class VideoFileObject {
         }
 
         //Clean existing comments file
-        Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + COMMENTS);
-        writeFile(vhsFileMetadata, newVHSFileMetadataPath);
+        writeFile(vhsFileMetadata, getVhsFileMetadataFilePath());
 
-        Path oldTempFile = oldPath.getParent().resolve(oldPath.getFileName().toString() + TEMPORARY);
         try {
-            Files.deleteIfExists(oldTempFile);
+            Files.deleteIfExists(getTmpFileMetadataFilePath());
         } catch (IOException e) {
             Utils.errorDialog("Exception when deleting the old metadata file", e);
         }
+        setProcessed(true);//Inform watchers that this file is now processed
+
+        markClean();
     }
 
     private void writeFile(String contents, Path location) {
@@ -432,57 +425,30 @@ public class VideoFileObject {
      * This preprocesses the videofileobject .
      */
     public synchronized void preprocess() {
-        Path newPath = getVideoFilePath().getParent().resolve(Paths.get(getFilename()));
-        Path oldPath = getVideoFilePath();
+        if (dirty.getValue()) {//Only update temp file is anything actually changed
 
-        try {
-            if (getVhsFileMetadataFilePath() != null)
+            try { //Delete the comments file, if it exists
                 Files.deleteIfExists(getVhsFileMetadataFilePath());
-            if (getTmpFileMetadataFilePath() != null)
-                Files.deleteIfExists(getTmpFileMetadataFilePath());
-            if (!(Files.exists(newPath) && Files.isSameFile(oldPath, newPath))) {
-                Files.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
-            }
-        } catch (IOException e) {
-            Utils.errorDialog("IO exception happened when moving the file in commit", e);
-        }
-        //Encoder
-        try {
-            setEncoderName(InetAddress.getLocalHost().getHostName());
-        } catch (UnknownHostException e) {
-            setEncoderName("unknown");
-        }
-
-        if (isDirty()) {//Only update temp file is anything actually changed
-
-            Path oldTempFile = oldPath.getParent().resolve(oldPath.getFileName().toString() + TEMPORARY);
-            try {
-                Files.deleteIfExists(oldTempFile);
+                setProcessed(false); //No longer processed
             } catch (IOException e) {
-                Utils.errorDialog("IO exception happened when deleting old file", e);
+                Utils.errorDialog("Exception when resetting the processed state", e);
             }
 
-            String vhsFileMetadata = null;
+            String jsonMetadata = null;
             try {
-                vhsFileMetadata = toJson();
+                jsonMetadata = toJson();
             } catch (JsonProcessingException e) {
                 Utils.errorDialog("Exception when creating new metadata file", e);
             }
 
-            Path newVHSFileMetadataPath = newPath.getParent().resolve(newPath.getFileName().toString() + TEMPORARY);
-            writeFile(vhsFileMetadata, newVHSFileMetadataPath);
+            writeFile(jsonMetadata, getTmpFileMetadataFilePath());
             markClean();
         }
 
     }
 
-    @JsonIgnore
-    public boolean isDirty(){
-        return properties.stream().anyMatch(MonitoredProperty::isDirty);
-    }
-
-    public void markClean() {
-        properties.forEach(monitoredProperty -> monitoredProperty.setDirty(false));
+    private void markClean() {
+        dirty.setValue(false);
     }
 
     @Override
@@ -522,29 +488,15 @@ public class VideoFileObject {
 
     public class MonitoredProperty<T> extends SimpleObjectProperty<T> {
 
-        SimpleBooleanProperty dirty;
 
         public MonitoredProperty(Object bean, String name, T initValue) {
             super(bean, name, initValue);
-            dirty = new SimpleBooleanProperty(false);
 
             this.addListener((observable, oldValue, newValue) -> {
-                if (ObjectUtils.notEqual(oldValue, newValue)) { //If anything changes, mark the field as dirty
+                if (ObjectUtils.notEqual(oldValue, newValue)) { //If anything changes, mark the file as dirty
                     dirty.set(true);
                 }
             });
-        }
-
-        public MonitoredProperty(Object bean, String name) {
-            this(bean, name, null);
-        }
-
-        public boolean isDirty() {
-            return dirty.get();
-        }
-
-        public void setDirty(boolean newValue) {
-            dirty.set(newValue);
         }
     }
 }

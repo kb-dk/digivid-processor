@@ -3,13 +3,15 @@ package dk.statsbiblioteket.digivid.processor;
 import javafx.stage.Stage;
 import org.testfx.framework.junit.ApplicationTest;
 
+import java.nio.file.Paths;
+
 public class DigividProcessorTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) {
 
         DigividProcessor main = new DigividProcessor();
-        DigividProcessor.recordsDir = "src/test/data/sample";
+        DigividProcessor.recordsDir = Paths.get("src/test/data/sample");
         DigividProcessor.channelCSV = "src/main/config/channels.csv";
         DigividProcessor.player = "/usr/bin/vlc";
         DigividProcessor.localProperties = "src/main/config/localProperties.csv";

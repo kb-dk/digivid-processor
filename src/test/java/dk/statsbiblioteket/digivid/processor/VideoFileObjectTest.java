@@ -48,15 +48,17 @@ public class VideoFileObjectTest {
     @Test
     public void testCommit() throws IOException {
 
+        DigividProcessor.recordsDir = dir;
         //Create test file
-        Path testFile = dir.resolve("f1.ts");
+        Path testFile = DigividProcessor.recordsDir.resolve("f1.ts");
         if (!Files.exists(testFile)) {
             Files.createDirectories(dir);
             Files.createFile(testFile);
         }
 
+
         //Create videoFile videoFileObject and commit it, so it should rename
-        VideoFileObject videoFileObject = VideoFileObject.createFromTS(testFile);
+        VideoFileObject videoFileObject = VideoFileObject.create(testFile);
         videoFileObject.setStartDate(new GregorianCalendar(1993, 3, 17, 20, 05).getTime().getTime());
         videoFileObject.setEndDate(new GregorianCalendar(1993, 3, 17, 20, 55).getTime().getTime());
         videoFileObject.setChannel("dr5");
@@ -69,7 +71,7 @@ public class VideoFileObjectTest {
         assertTrue(Files.exists(commentsPath));
 
         //Create a new videoObject from the new path, to test that the metadata is read correctly
-        VideoFileObject reParsedVideoFileObject = VideoFileObject.createFromTS(tsPath);
+        VideoFileObject reParsedVideoFileObject = VideoFileObject.create(tsPath);
         assertEquals(videoFileObject.getStartDate(), reParsedVideoFileObject.getStartDate(), "Expected startDate to be saved");
 
         //Set new metadata on new reparsedVideoFileObject

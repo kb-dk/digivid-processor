@@ -98,7 +98,7 @@
                     <TableColumn id="lastmodifiedColumn" fx:id="lastmodifiedColumn" maxWidth="800.0" prefWidth="110.0"
                                  text="Last Modified">
                         <cellValueFactory>
-                            <PropertyValueFactory property="lastmodified"/>
+                            <PropertyValueFactory property="lastModified"/>
                         </cellValueFactory>
                     </TableColumn>
                 </columns>

@@ -13,7 +13,7 @@ public class ControllerTest {
     @BeforeMethod
     public void beforeEachMethod() throws Exception {
         main = new DigividProcessor();
-        DigividProcessor.recordsDir = "src/test/data/sample";
+        DigividProcessor.recordsDir = Paths.get("src/test/data/sample");
         DigividProcessor.channelCSV = "src/test/config/channels.csv";
         DigividProcessor.player = "/usr/bin/vlc";
         DigividProcessor.localProperties = "src/test/config/localProperties.csv";

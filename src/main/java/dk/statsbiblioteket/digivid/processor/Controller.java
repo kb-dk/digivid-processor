@@ -1,6 +1,7 @@
 package dk.statsbiblioteket.digivid.processor;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,12 +25,15 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Shows GUI and requests videofiles to be renamed and a JSON-file to be generated according to the GUI-users choices.
@@ -40,14 +44,19 @@ public class Controller {
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
 
     private static Logger log = LoggerFactory.getLogger(Controller.class);
+
+
     @FXML public TableView<VideoFileObject> tableView;
-    @FXML public GridPane channelGridPane;
     @FXML public TableColumn<VideoFileObject, Instant> lastmodifiedColumn;
     @FXML public TableColumn<VideoFileObject, Boolean> processedColumn;
     @FXML
     public TableColumn<VideoFileObject, String> filenameColumn;
     @FXML
     public TableColumn<VideoFileObject, Long> filesizeColumn;
+
+    @FXML public GridPane channelGridPane;
+
+
     @FXML public TextArea txtComment;
     @FXML public ComboBox<String> cmbQuality;
     @FXML
@@ -72,11 +81,10 @@ public class Controller {
     private VideoFileObject thisVideoFileRow;
 
     private static void checkConfigfile() throws FileNotFoundException {
-        Path recordsPath = Paths.get(DigividProcessor.recordsDir);
         Path channelsCSVPath = Paths.get(DigividProcessor.channelCSV);
         Path playerPath = Paths.get(DigividProcessor.player);
         Path localPropertiesPath = Paths.get(DigividProcessor.localProperties);
-        exists(recordsPath);
+        exists(DigividProcessor.recordsDir);
         exists(channelsCSVPath);
         exists(playerPath);
     }
@@ -114,13 +122,31 @@ public class Controller {
         endDatePicker.setDateTimeFormatter(dtf);
         endDatePicker.withLocale(Locale.GERMAN);
 
-        txtFilename.textProperty().addListener((ObservableValue<? extends String> observableValue, String oldValue, String newValue) ->
-        {
-            // expand the textfield
-                    txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(), newValue, 0.0D) + 20);
-                });
+        // expand the textfield dynamically
+        txtFilename.textProperty().addListener((ObservableValue<? extends String> observableValue, String oldValue, String newValue) -> txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(), newValue, 0.0D) + 20));
 
         readLocalProperties();
+
+        //TODO autosave interval should be configurable
+        enableAutoSaver(5000);
+
+    }
+
+    private void enableAutoSaver(long saveInterval) {
+        boolean isDaemon = true;
+        Timer timer = new Timer(isDaemon);
+        TimerTask saveDirtyFiles = new TimerTask() {
+
+            @Override
+            public void run() {
+                if (thisVideoFileRow != null){
+                    thisVideoFileRow.preprocess();
+                }
+            }
+        };
+
+        //TODO can they pile up?
+        timer.schedule(saveDirtyFiles, 0, saveInterval);
     }
 
     private void setupChannelButtons() throws IOException {
@@ -134,7 +160,6 @@ public class Controller {
                         addChannelTextfield();
                 }
             }
-
 
         //Bind changes to channelGroup to update the altChannel field
         for (Toggle toggle : channelGroup.getToggles()) {
@@ -199,23 +224,28 @@ public class Controller {
         });
         lastmodifiedColumn.setComparator(Instant::compareTo);
 
+
+
         /**
          * The filename is colored blue when it is not yet processed
          */
-        filenameColumn.setCellFactory(column -> new TableCell<VideoFileObject, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
+        filenameColumn.setCellFactory((TableColumn<VideoFileObject, String> column) -> new TableCell<VideoFileObject, String>() {
 
-                if (item == null || empty) {
+            @Override
+            protected void updateItem(String fileName, boolean empty) {
+                super.updateItem(fileName, empty);
+                if (fileName == null || empty) {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item);
-                    if (thisVideoFileRow.isProcessed())
+                    setText(fileName);
+                    VideoFileObject item = (VideoFileObject) getTableRow().getItem();
+                    if (item == null){ return; }
+                    if (item.isProcessed()) {
                         setTextFill(Color.GREEN);
-                    else
+                    } else {
                         setTextFill(Color.BLUE);
+                    }
                 }
             }
         });
@@ -228,7 +258,6 @@ public class Controller {
             @Override
             protected void updateItem(Boolean processed, boolean empty) {
                 super.updateItem(processed, empty);
-
                 if (processed == null || empty) {
                     setText(null);
                     setStyle("");
@@ -243,12 +272,10 @@ public class Controller {
             }
         });
 
-
         filesizeColumn.setCellFactory(column -> new TableCell<VideoFileObject, Long>() {
             @Override
             protected void updateItem(Long filesize, boolean empty) {
                 super.updateItem(filesize, empty);
-
                 if (filesize == null || empty) {
                     setText(null);
                     setStyle("");
@@ -262,6 +289,23 @@ public class Controller {
         ObservableList<TableColumn<VideoFileObject, ?>> sortOrder = tableView.getSortOrder();
         sortOrder.clear();
         sortOrder.addAll(processedColumn, lastmodifiedColumn);
+
+        //TODO refresh table view when just one field changes without 37 listeners
+
+        tableView.itemsProperty().addListener(
+                (observable, oldValue, newValue) -> {
+                    //Tableview refreshes when files are added or removed
+                    tableView.refresh();
+                });
+
+
+        //This listener causes the table to be refreshed whenever the processed value change.
+        //This is nessesary only because the colours will not update otherwise
+        ChangeListener<Boolean> processedTableRefresher = (observable1, oldValue, newValue) -> {
+            if (oldValue != newValue) {
+                tableView.refresh();
+            }
+        };
 
         tableView.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldFile, newFile) -> {
@@ -280,8 +324,9 @@ public class Controller {
                         oldFile.qualityProperty().unbindBidirectional(cmbQuality.valueProperty());
 
                         Bindings.unbindBidirectional(startDatePicker.textProperty(), oldFile.startDateProperty());
-                        Bindings.unbindBidirectional(endDatePicker.textProperty(),oldFile.endDateProperty());
+                        Bindings.unbindBidirectional(endDatePicker.textProperty(), oldFile.endDateProperty());
 
+                        oldFile.processedProperty().removeListener(processedTableRefresher);
                         //save the old values
                         oldFile.preprocess();
                     }
@@ -311,7 +356,9 @@ public class Controller {
                         txtProcessedManufacturer.textProperty().bindBidirectional(newFile.manufacturerProperty());
                         txtProcessedModel.textProperty().bindBidirectional(newFile.modelProperty());
                         txtProcessedSerial.textProperty().bindBidirectional(newFile.serialNoProperty());
+                        cmbQuality.valueProperty().bindBidirectional(newFile.qualityProperty());
 
+                        //Set the manufacturer, serial and model from default values, if not set already
                         if (txtProcessedManufacturer.textProperty().getValue() == null)
                             txtProcessedManufacturer.textProperty().setValue(txtManufacturer.textProperty().getValue());
                         if (txtProcessedModel.textProperty().getValue() == null)
@@ -319,16 +366,14 @@ public class Controller {
                         if (txtProcessedSerial.textProperty().getValue() == null)
                             txtProcessedSerial.textProperty().setValue(txtSerial.textProperty().getValue());
 
-                        //This one has to happen in inverse order
-                        newFile.qualityProperty().bindBidirectional(cmbQuality.valueProperty());
 
-                        Bindings.bindBidirectional(startDatePicker.textProperty(),
-                                                   newFile.startDateProperty(),
-                                                   getConverter());
+                        datePickerBindBidirectional(newFile.startDateProperty(), startDatePicker);
+                        datePickerBindBidirectional(newFile.endDateProperty(), endDatePicker);
 
-                        Bindings.bindBidirectional(endDatePicker.textProperty(),
-                                                   newFile.endDateProperty(),
-                                                   getConverter());
+                        newFile.processedProperty().addListener(processedTableRefresher);
+
+                        //Tableview refreshes when changing selection
+                        //tableView.refresh();
                     }
                 });
         tableView.setOnMouseClicked(mouseEvent -> {
@@ -336,6 +381,39 @@ public class Controller {
                 playCurrentFile();
             }
         });
+    }
+
+    private void datePickerBindBidirectional(VideoFileObject.MonitoredProperty<Long> dateProp, LocalDateTimeTextField picker) {
+
+        //for the DatePickers, the textProperty is subservient to the localDateTime property.
+        //So, we set the local date time property to what is in the file
+        //And then we hook the text property, which is automatically updated when the localDateTime
+        //property is updated, to reflect back into the file
+
+        Long date = dateProp.getValue();
+        if (date != null) {
+            picker.setLocalDateTime(
+                    LocalDateTime.ofInstant(Instant.ofEpochMilli(date), ZoneId.systemDefault()));
+        }
+        Bindings.bindBidirectional(picker.textProperty(),
+                                   dateProp,
+                                   new StringConverter<Long>() {
+                                       @Override
+                                       public String toString(Long object) {
+                                           if (object == null) {
+                                               return "";
+                                           }
+                                           return dtf.format(Instant.ofEpochMilli(object));
+                                       }
+
+                                       @Override
+                                       public Long fromString(String string) {
+                                           if (string == null || string.isEmpty()) {
+                                               return null;
+                                           }
+                                           return Instant.from(dtf.parse(string)).toEpochMilli();
+                                       }
+                                   });
     }
 
     public void setupFolderWatcher() {
@@ -372,7 +450,7 @@ public class Controller {
                                 String filename = createdFile.getFileName().toString();
 
                                 if (filename.endsWith(".ts")) {
-                                    VideoFileObject videoFileObject = VideoFileObject.createFromTS(createdFile);
+                                    VideoFileObject videoFileObject = VideoFileObject.create(createdFile);
                                     if (!items.contains(videoFileObject)) {
                                         items.add(videoFileObject);
                                         tableView.sort();
@@ -388,7 +466,10 @@ public class Controller {
                                         if (videoFileObject.getFilename().equals(
                                                 filename)) {
                                             items.remove(i);
-                                            Files.deleteIfExists(videoFileObject.getVhsFileMetadataFilePath());
+                                            Path vhsFileMetadataFilePath = videoFileObject.getVhsFileMetadataFilePath();
+                                            Files.deleteIfExists(vhsFileMetadataFilePath);
+                                            Path tmpFileMetadataFilePath = videoFileObject.getTmpFileMetadataFilePath();
+                                            Files.deleteIfExists(tmpFileMetadataFilePath);
                                         }
                                     }
                                 }
@@ -420,26 +501,6 @@ public class Controller {
         newThread.start();
     }
 
-    private StringConverter<Long> getConverter() {
-        return new StringConverter<Long>() {
-            @Override
-            public String toString(Long object) {
-                if (object == null) {
-                    return "";
-                }
-                return dtf.format(Instant.ofEpochMilli(object));
-            }
-
-            @Override
-            public Long fromString(String string) {
-                if (string == null || string.isEmpty()) {
-                    return null;
-                }
-                return Instant.from(dtf.parse(string)).toEpochMilli();
-            }
-        };
-    }
-
     /**
      * Reads information from the meatadata.csv file and put it in the fields for Manufacturer, Model and Serialnumber
      */
@@ -466,19 +527,16 @@ public class Controller {
     /**
      * The tableview displays an overview of ts-files
      */
-    protected void loadFilenames() {
+    protected void loadFilenames() throws IOException {
         ObservableList<VideoFileObject> videoFileObjects = FXCollections.observableList(new ArrayList<>());
 
         //Initial setup of files in table
         try (DirectoryStream<Path> tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts")) {
             for (Path tsFile : tsFiles) {
-                videoFileObjects.add(VideoFileObject.createFromTS(tsFile));
+                videoFileObjects.add(VideoFileObject.create(tsFile));
             }
             tableView.setItems(videoFileObjects);
-        } catch (IOException e) {
-            throw new RuntimeException("" + getDataPath().toAbsolutePath(), e);
         }
-
 
         tableView.sort();
         SortedList<VideoFileObject> sortedVideoFileList = new SortedList<>(videoFileObjects);
@@ -580,7 +638,7 @@ public class Controller {
     public void playCurrentFile() {
         try {
             ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player,
-                    new File(DigividProcessor.recordsDir, thisVideoFileRow.getFilename()).getAbsolutePath());
+                    DigividProcessor.recordsDir.resolve(thisVideoFileRow.getFilename()).toFile().getAbsolutePath());
             pb.start();
         } catch (IOException e) {
             Utils.warningDialog("The file '"+thisVideoFileRow.getFilename()+"' could not be played", e);

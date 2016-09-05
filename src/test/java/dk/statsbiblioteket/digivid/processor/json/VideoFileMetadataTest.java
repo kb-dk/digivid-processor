@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.digivid.processor.json;
 
+import dk.statsbiblioteket.digivid.processor.DigividProcessor;
 import dk.statsbiblioteket.digivid.processor.VideoFileObject;
 import org.testng.annotations.Test;
 
@@ -16,8 +17,12 @@ public class VideoFileMetadataTest {
     @Test
     public void testToJson() throws Exception {
 
+
         Path transportStreamFile = new File(Thread.currentThread().getContextClassLoader().getResource("empty.ts").getFile()).toPath();
-        VideoFileObject videoFileObject = VideoFileObject.createFromTS(transportStreamFile);
+        DigividProcessor.recordsDir = transportStreamFile.getParent();
+
+
+        VideoFileObject videoFileObject = VideoFileObject.create(transportStreamFile);
         videoFileObject.setStartDate(new GregorianCalendar(1992, 01, 23, 18, 00).getTime().getTime());
         videoFileObject.setEndDate(new GregorianCalendar(1992, 01, 23, 21, 30).getTime().getTime());
         videoFileObject.setChannel("tv2");
