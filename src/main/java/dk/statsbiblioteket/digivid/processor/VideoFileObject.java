@@ -358,31 +358,32 @@ public class VideoFileObject {
     public synchronized void commit() {
         //Assume the caller have already validated that all the values are acceptable
 
-        Path oldPath = getVideoFilePath();
+        Path oldVideoFilePath = getVideoFilePath();
+        Path oldTmpFileMetadataFilePath = getTmpFileMetadataFilePath();
+        Path oldVhsFileMetadataFilePath = getVhsFileMetadataFilePath();
+
 
         //Create filename to match metadata
         String newName = buildFilename();
         //This is the path to where the new file should be
-        Path newPath = oldPath.resolveSibling(newName);
-        //Move
-        try {
-            //Delete the metadata files
-            //If it crashes during this commit, the metadata is lost... Just saying
-            Files.deleteIfExists(getVhsFileMetadataFilePath());
-            Files.deleteIfExists(getTmpFileMetadataFilePath());
+        Path newVideoFilePath = oldVideoFilePath.resolveSibling(newName);
 
-            if (!(Files.exists(newPath) && Files.isSameFile(oldPath, newPath))) {
-                Files.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
+        try { //Move
+            boolean exists = Files.exists(newVideoFilePath);
+            boolean sameFile = exists && Files.isSameFile(oldVideoFilePath, newVideoFilePath);
+            if (!exists || !sameFile) {
 
                 //Update VideoFilePath to point to the moved file
                 setFilename(newName);
+                //And then move. This order ensures that the folderwatcher does not get confused
+                Files.move(oldVideoFilePath, newVideoFilePath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
             Utils.errorDialog("Exception when renaming the data file", e);
         }
 
         //Checksum
-        try (InputStream checksumInputStream = Files.newInputStream(newPath)) {
+        try (InputStream checksumInputStream = Files.newInputStream(newVideoFilePath)) {
             setChecksum(DigestUtils.md5Hex(checksumInputStream));
         } catch (IOException e) {
             Utils.errorDialog("Exception when calculating data file checksum", e);
@@ -396,13 +397,17 @@ public class VideoFileObject {
             Utils.errorDialog("Exception when creating new metadata file", e);
         }
 
-        //Clean existing comments file
+        //(re)create comments file
         writeFile(vhsFileMetadata, getVhsFileMetadataFilePath());
 
         try {
             Files.deleteIfExists(getTmpFileMetadataFilePath());
+            Files.deleteIfExists(oldTmpFileMetadataFilePath);
+            if (Files.exists(oldVhsFileMetadataFilePath) && !Files.isSameFile(getVhsFileMetadataFilePath(),oldVhsFileMetadataFilePath)) { //Only delete old comments file, if it is not the current comments file
+                Files.delete(oldVhsFileMetadataFilePath);
+            }
         } catch (IOException e) {
-            Utils.errorDialog("Exception when deleting the old metadata file", e);
+            Utils.errorDialog("Exception when deleting the old metadata files", e);
         }
         setProcessed(true);//Inform watchers that this file is now processed
 
