@@ -43,7 +43,7 @@ public class Controller {
     public static final String CHECKMARK = Character.toString((char) 10003);
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
 
-    private static Logger log = LoggerFactory.getLogger(Controller.class);
+    private Logger log = LoggerFactory.getLogger(getClass());
 
 
     @FXML public TableView<VideoFileObject> tableView;
@@ -80,15 +80,6 @@ public class Controller {
     private TextField altChannel;
     private VideoFileObject thisVideoFileRow;
 
-    private static void checkConfigfile() throws FileNotFoundException {
-        Path channelsCSVPath = Paths.get(DigividProcessor.channelCSV);
-        Path playerPath = Paths.get(DigividProcessor.player);
-        Path localPropertiesPath = Paths.get(DigividProcessor.localProperties);
-        exists(DigividProcessor.recordsDir);
-        exists(channelsCSVPath);
-        exists(playerPath);
-    }
-
     private static void exists(Path recordsPath) throws FileNotFoundException {
         if (!Files.exists(recordsPath)) {
             throw new FileNotFoundException("File " + recordsPath + " is not found");
@@ -98,21 +89,21 @@ public class Controller {
     @FXML
     public void handleLocalProperties() throws IOException {
 
-        Path newFilePath = Paths.get(DigividProcessor.localProperties);
-
-        Path parentDir = newFilePath.getParent();
+        Path parentDir = DigividProcessor.localProperties.getParent();
         if (!Files.exists(parentDir)) {
             Files.createDirectories(parentDir);
         }
         String msg = String.format("%s,%s,%s", txtManufacturer.getText(), txtModel.getText(), txtSerial.getText());
-        Files.write(newFilePath, msg.getBytes("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+        Files.write(DigividProcessor.localProperties, msg.getBytes("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
 
     }
 
     @FXML
     void initialize() throws IOException {
         detailVHS.setVisible(false);
-        checkConfigfile();
+        exists(DigividProcessor.recordsDir);
+        exists(DigividProcessor.channelCSV);
+        exists(DigividProcessor.player);
 
         setupChannelButtons();
 
@@ -128,13 +119,12 @@ public class Controller {
         readLocalProperties();
 
         //TODO autosave interval should be configurable
-        enableAutoSaver(5000);
+        enableAutoSaver(DigividProcessor.autoSaveInterval);
 
     }
 
-    private void enableAutoSaver(long saveInterval) {
-        boolean isDaemon = true;
-        Timer timer = new Timer(isDaemon);
+    private void enableAutoSaver(int saveInterval) {
+        Timer timer = new Timer(true); //True for daemon process
         TimerTask saveDirtyFiles = new TimerTask() {
 
             @Override
@@ -145,8 +135,8 @@ public class Controller {
             }
         };
 
-        //TODO can they pile up?
-        timer.schedule(saveDirtyFiles, 0, saveInterval);
+        //This is fixed delay
+        timer.schedule(saveDirtyFiles, saveInterval, saveInterval);
     }
 
     private void setupChannelButtons() throws IOException {
@@ -511,10 +501,9 @@ public class Controller {
      * Reads information from the meatadata.csv file and put it in the fields for Manufacturer, Model and Serialnumber
      */
     private void readLocalProperties() throws IOException {
-        Path newFilePath = Paths.get(DigividProcessor.localProperties);
+        Path newFilePath = DigividProcessor.localProperties;
         if (Files.exists(newFilePath)) {
-            List<String> lines = Files.readAllLines(Paths.get(DigividProcessor.localProperties),
-                                                    Charset.defaultCharset());
+            List<String> lines = Files.readAllLines(DigividProcessor.localProperties, Charset.defaultCharset());
             String metadataLine = lines.get(0) + " ";
             List<String> localProperties = Arrays.asList(metadataLine.split(","));
             txtManufacturer.setText(localProperties.get(0));
@@ -643,7 +632,7 @@ public class Controller {
      */
     public void playCurrentFile() {
         try {
-            ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player,
+            ProcessBuilder pb = new ProcessBuilder(DigividProcessor.player.toFile().getAbsolutePath(),
                     DigividProcessor.recordsDir.resolve(thisVideoFileRow.getFilename()).toFile().getAbsolutePath());
             pb.start();
         } catch (IOException e) {

@@ -14,9 +14,9 @@ public class ControllerTest {
     public void beforeEachMethod() throws Exception {
         main = new DigividProcessor();
         DigividProcessor.recordsDir = Paths.get("src/test/data/sample");
-        DigividProcessor.channelCSV = "src/test/config/channels.csv";
-        DigividProcessor.player = "/usr/bin/vlc";
-        DigividProcessor.localProperties = "src/test/config/localProperties.csv";
+        DigividProcessor.channelCSV = Paths.get("src/test/config/channels.csv");
+        DigividProcessor.player = Paths.get("/usr/bin/vlc");
+        DigividProcessor.localProperties = Paths.get("src/test/config/localProperties.csv");
     }
 
     @AfterMethod
@@ -26,7 +26,7 @@ public class ControllerTest {
 
     @Test
     public void testHandleLocalProperties() throws Exception {
-        Path newFilePath = Paths.get(DigividProcessor.localProperties);
+        Path newFilePath = DigividProcessor.localProperties;
     }
 
     @Test

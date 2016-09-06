@@ -12,9 +12,9 @@ public class DigividProcessorTest extends ApplicationTest {
 
         DigividProcessor main = new DigividProcessor();
         DigividProcessor.recordsDir = Paths.get("src/test/data/sample");
-        DigividProcessor.channelCSV = "src/main/config/channels.csv";
-        DigividProcessor.player = "/usr/bin/vlc";
-        DigividProcessor.localProperties = "src/main/config/localProperties.csv";
+        DigividProcessor.channelCSV = Paths.get("src/main/config/channels.csv");
+        DigividProcessor.player = Paths.get("/usr/bin/vlc");
+        DigividProcessor.localProperties = Paths.get("src/main/config/localProperties.csv");
 
         try {
             main.start(stage);

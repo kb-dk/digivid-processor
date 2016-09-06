@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,9 +87,9 @@ public class Utils {
     }
 
 
-    public static List<List<String>> getCSV(String csvFile) throws IOException {
+    public static List<List<String>> getCSV(Path csvFile) throws IOException {
         List<List<String>> csvData = new ArrayList<>();
-        List<String> lines = Files.readAllLines(Paths.get(csvFile), StandardCharsets.UTF_8);
+        List<String> lines = Files.readAllLines(csvFile, StandardCharsets.UTF_8);
         for (String line : lines) {
             String[] splitted = line.split(",");
             List<String> dataLine = new ArrayList<>(splitted.length);

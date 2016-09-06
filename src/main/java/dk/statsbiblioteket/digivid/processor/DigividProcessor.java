@@ -22,12 +22,13 @@ import java.util.Properties;
  */
 public class DigividProcessor extends Application {
 
-    static public Stage primaryStage;
-    public static Path recordsDir;
-    protected static String channelCSV;
-    protected static String player;
-    protected static String localProperties;
     private static Logger log = LoggerFactory.getLogger(DigividProcessor.class);
+    public static Stage primaryStage;
+    public static Path recordsDir;
+    public static Path channelCSV;
+    public static Path player;
+    public static Path localProperties;
+    public static int autoSaveInterval;
 
     public static void main(String[] args) {
         String propertiesLocation = System.getProperty("digivid.config");
@@ -46,9 +47,10 @@ public class DigividProcessor extends Application {
         }
 
         recordsDir = Paths.get(properties.getProperty("digivid.processor.recordsdir"));
-        channelCSV = properties.getProperty("digivid.processor.channels");
-        player = properties.getProperty("digivid.processor.player");
-        localProperties = properties.getProperty("digivid.processor.localVHSProperties");
+        channelCSV = Paths.get(properties.getProperty("digivid.processor.channels"));
+        player = Paths.get(properties.getProperty("digivid.processor.player"));
+        localProperties = Paths.get(properties.getProperty("digivid.processor.localVHSProperties"));
+        autoSaveInterval = Integer.parseInt(properties.getProperty("digivid.autoSaveIntervalMS","5000"));
         launch(args);
     }
 
