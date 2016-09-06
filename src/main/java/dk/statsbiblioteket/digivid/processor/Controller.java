@@ -154,12 +154,37 @@ public class Controller {
     private void setupChannelButtons() throws IOException {
             List<List<String>> channels = Utils.getCSV(DigividProcessor.channelCSV);
             for (List<String> channel : channels) {
-                if (channel.size() > 4) {
-                    if (channel.get(5).equals("Radiobutton")) {
-                        addChannelButton(channel.get(0), channel.get(1), channel.get(2), Integer.parseInt(channel.get(3)),
-                                         Integer.parseInt(channel.get(4)));
-                    } else if (channel.get(5).equals("TextField"))
-                        addChannelTextfield();
+                if (channel.size() > 5) {
+                    String channelName = channel.get(0);
+                    String displayName = channel.get(1);
+                    String colour = channel.get(2);
+                    int rowIndex = Integer.parseInt(channel.get(3));
+                    int columnIndex = Integer.parseInt(channel.get(4));
+                    String type = channel.get(5);
+
+                    Control thing = null;
+                    if (type.equals("Radiobutton")) {
+                        RadioButton rb1 = new RadioButton();
+                        thing = rb1;
+                        rb1.setText(displayName);
+                        rb1.setUserData(new Channel(channelName, displayName, colour));
+                        rb1.setStyle("-fx-background-color:" + colour);
+                        rb1.setToggleGroup(channelGroup);
+                    } else if (type.equals("TextField")) {
+                        if (altChannel != null){
+                            Utils.errorDialog("Error setting up channel buttons. More than one channel of type TextField",null);
+                        }
+                        altChannel = new TextField();
+                        thing = altChannel;
+                        altChannel.setId("altChannel");
+                    }
+                    if (thing != null) { //stuff common for the button and textfield
+                        thing.setPrefWidth(150.0);
+                        channelGridPane.getChildren().add(thing);
+                        GridPane.setRowIndex(thing, rowIndex);
+                        GridPane.setColumnIndex(thing, columnIndex);
+                    }
+
                 }
             }
 
@@ -171,28 +196,20 @@ public class Controller {
                 }
             });
         }
-    }
+        //Bind changes to altChannel to select correct button
+        altChannel.textProperty().addListener((observable, oldChannelName, newChannelName) -> {
+            for (Node channelNode : channelGridPane.getChildren()) {
+                if (channelNode instanceof RadioButton) {
+                    Channel buttonChannel = (Channel) channelNode.getUserData();
+                    if (buttonChannel.getChannelName().equals(newChannelName)) {
+                        ((RadioButton) channelNode).setSelected(true);
+                    } else {
+                        ((RadioButton) channelNode).setSelected(false);
+                    }
+                }
+            }
 
-    private void addChannelButton(String channelName, String displayName, String color, int row, int column) {
-        Channel ch1 = new Channel(channelName, displayName, color);
-        RadioButton rb1 = new RadioButton();
-        rb1.setText(ch1.displayName);
-        rb1.setUserData(ch1);
-        rb1.setStyle("-fx-background-color:" + ch1.colour);
-        rb1.setToggleGroup(channelGroup);
-        rb1.setPrefWidth(150.0);
-        channelGridPane.getChildren().add(rb1);
-        GridPane.setColumnIndex(rb1, column);
-        GridPane.setRowIndex(rb1, row);
-    }
-
-    private void addChannelTextfield() {
-        altChannel = new TextField();
-        altChannel.setId("altChannel");
-        altChannel.setPrefWidth(150.0);
-        channelGridPane.getChildren().add(altChannel);
-        GridPane.setRowIndex(altChannel, 4);
-        GridPane.setColumnIndex(altChannel, 0);
+        });
     }
 
 
@@ -337,18 +354,7 @@ public class Controller {
                         thisVideoFileRow = newFile;
                         detailVHS.setVisible(true);
 
-                        //Initialise the channel Fields when a new file is loaded
-                        String currentChannel = newFile.getChannel();
-                        for (Node channelNode : channelGridPane.getChildren()) {
-                            if (channelNode instanceof RadioButton) {
-                                Channel buttonChannel = (Channel) channelNode.getUserData();
-                                if (buttonChannel.getChannelName().equals(currentChannel)) {
-                                    ((RadioButton) channelNode).setSelected(true);
-                                } else {
-                                    ((RadioButton) channelNode).setSelected(false);
-                                }
-                            }
-                        }
+                        //ChannelButtons are slaved to altChannel, so it is enough to link this
                         altChannel.textProperty().bindBidirectional(newFile.channelProperty());
 
                         //bind it's properties
