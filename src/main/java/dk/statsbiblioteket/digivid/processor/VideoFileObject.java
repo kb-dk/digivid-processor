@@ -83,6 +83,9 @@ public class VideoFileObject {
         } catch (UnknownHostException e) {
             obj.setEncoderName("unknown");
         }
+        if (obj.getComment() == null){
+            obj.setComment("");
+        }
 
         //Just loaded, not dirty
         obj.markClean();
