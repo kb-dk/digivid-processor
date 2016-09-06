@@ -356,7 +356,13 @@ public class Controller {
                         txtProcessedManufacturer.textProperty().bindBidirectional(newFile.manufacturerProperty());
                         txtProcessedModel.textProperty().bindBidirectional(newFile.modelProperty());
                         txtProcessedSerial.textProperty().bindBidirectional(newFile.serialNoProperty());
-                        cmbQuality.valueProperty().bindBidirectional(newFile.qualityProperty());
+
+                        if (newFile.getQuality() != null) {//Set value from file, if any
+                            cmbQuality.setValue(newFile.getQuality());
+                        }
+                        //Then bind so that cmbQuality value wins over file value
+                        //This way, the default value from cmbQuality is only overwritten if explicit value is set
+                        newFile.qualityProperty().bindBidirectional(cmbQuality.valueProperty());
 
                         //Set the manufacturer, serial and model from default values, if not set already
                         if (txtProcessedManufacturer.textProperty().getValue() == null)
