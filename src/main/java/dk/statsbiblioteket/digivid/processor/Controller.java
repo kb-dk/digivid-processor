@@ -130,7 +130,6 @@ public class Controller {
 
         readLocalProperties();
 
-        //TODO autosave interval should be configurable
         enableAutoSaver(DigividProcessor.autoSaveInterval);
 
     }
@@ -308,8 +307,6 @@ public class Controller {
         ObservableList<TableColumn<VideoFileObject, ?>> sortOrder = tableView.getSortOrder();
         sortOrder.clear();
         sortOrder.addAll(processedColumn, lastmodifiedColumn);
-
-        //TODO refresh table view when just one field changes without 37 listeners
 
         tableView.itemsProperty().addListener(
                 (observable, oldValue, newValue) -> {
