@@ -14,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.util.Callback;
 import javafx.util.StringConverter;
 import jfxtras.scene.control.LocalDateTimeTextField;
 import org.slf4j.Logger;
@@ -41,7 +42,8 @@ import java.util.TimerTask;
 public class Controller {
 
     public static final String CHECKMARK = Character.toString((char) 10003);
-    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
+    private static final String dateTimePattern = "yy-MM-dd HH:mm";
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern(dateTimePattern).withZone(ZoneId.systemDefault());
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -107,11 +109,21 @@ public class Controller {
 
         setupChannelButtons();
 
+        Callback<Throwable, Void> parseErrorDialogs = param -> {
+            //callback that displays warnings if the datepickers cannot parse the user input
+            Utils.warningDialog(
+                    "Attempt to parse date according the the format '" + dateTimePattern + "' failed with:\n" +
+                    param.getMessage() + "\nResetting value", param);
+            return null;
+        };
+
         startDatePicker.setDateTimeFormatter(dtf);
         startDatePicker.withLocale(Locale.GERMAN); //This makes it use 24h days.
+        startDatePicker.setParseErrorCallback(parseErrorDialogs);
 
         endDatePicker.setDateTimeFormatter(dtf);
         endDatePicker.withLocale(Locale.GERMAN);
+        endDatePicker.setParseErrorCallback(parseErrorDialogs);
 
         // expand the textfield dynamically
         txtFilename.textProperty().addListener((ObservableValue<? extends String> observableValue, String oldValue, String newValue) -> txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(), newValue, 0.0D) + 20));
