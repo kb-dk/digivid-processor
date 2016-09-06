@@ -134,15 +134,7 @@ public class VideoFileObject {
 
 
     public Long getFilesize() {
-        final long K = 1024;
-        long size;
-        try {
-            size = getVideoFilePath().toFile().length() / K;
-        } catch (Exception e) {
-            size = 0L;
-        }
-        setFilesize(size);
-        return size;
+        return filesize.get();
     }
 
     public void setFilesize(Long filesize) {
@@ -372,12 +364,14 @@ public class VideoFileObject {
             boolean exists = Files.exists(newVideoFilePath);
             boolean sameFile = exists && Files.isSameFile(oldVideoFilePath, newVideoFilePath);
             if (!exists || !sameFile) {
-
                 //Update VideoFilePath to point to the moved file
                 setFilename(newName);
                 //And then move. This order ensures that the folderwatcher does not get confused
                 Files.move(oldVideoFilePath, newVideoFilePath, StandardCopyOption.REPLACE_EXISTING);
             }
+            //Now, the getVideoFilePath should point to the correct file, whatever it is
+            setFilesize(Files.size(getVideoFilePath()));
+            setLastModified(Files.getLastModifiedTime(getVideoFilePath()).toInstant());
         } catch (IOException e) {
             Utils.errorDialog("Exception when renaming the data file", e);
         }

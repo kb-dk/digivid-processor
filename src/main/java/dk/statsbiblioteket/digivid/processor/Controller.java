@@ -465,9 +465,17 @@ public class Controller {
 
                                 if (filename.endsWith(".ts")) {
                                     VideoFileObject videoFileObject = VideoFileObject.create(createdFile);
-                                    if (!items.contains(videoFileObject)) {
+                                    if (!items.contains(videoFileObject)) { //not there, just add
                                         items.add(videoFileObject);
                                         tableView.sort();
+                                    } else { //update instead
+                                        for (VideoFileObject item : items) {
+                                            if (item.getFilename().equals(filename)) {
+                                                item.setFilesize(Files.size(createdFile));
+                                                item.setLastModified(
+                                                        Files.getLastModifiedTime(createdFile).toInstant());
+                                            }
+                                        }
                                     }
                                 }
                             }
