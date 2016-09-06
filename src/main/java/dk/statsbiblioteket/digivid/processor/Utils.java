@@ -47,6 +47,7 @@ public class Utils {
 
     static public void errorDialog(String description, Throwable e) {
         Runnable showAndCrash = () -> {
+            log.error("Fatal exception, closing down: '{}'", description, e);
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
 
@@ -56,7 +57,6 @@ public class Utils {
             //text.setWrappingWidth(100);
             alert.getDialogPane().setContent(text);
             Optional<ButtonType> result = alert.showAndWait();
-            log.error("Fatal exception, closing down: '{}'", description, e);
             Platform.exit();
         };
         if (Platform.isFxApplicationThread()) {
@@ -71,18 +71,20 @@ public class Utils {
     }
 
     static public void warningDialog(String description, Throwable e) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Warning");
-        alert.setContentText(description);
+        Runnable showAndReturn = () -> {
+            log.warn("User warned: '{}'", description, e);
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Warning");
 
-        Runnable showAndBlock = () -> {
+            Text text = new Text(description);
+            alert.getDialogPane().setContent(text);
             Optional<ButtonType> result = alert.showAndWait();
-            log.warn("Warning user'{}'", description, e);
+
         };
         if (Platform.isFxApplicationThread()) {
-            showAndBlock.run();
+            showAndReturn.run();
         } else {
-            Platform.runLater(showAndBlock);
+            Platform.runLater(showAndReturn);
         }
     }
 
