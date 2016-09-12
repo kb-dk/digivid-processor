@@ -29,12 +29,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * Shows GUI and requests videofiles to be renamed and a JSON-file to be generated according to the GUI-users choices.
@@ -44,10 +39,6 @@ public class Controller {
     public static final String CHECKMARK = Character.toString((char) 10003);
     private static final String dateTimePattern = "yy-MM-dd HH:mm";
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern(dateTimePattern).withZone(ZoneId.systemDefault());
-
-    private Logger log = LoggerFactory.getLogger(getClass());
-
-
     @FXML public TableView<VideoFileObject> tableView;
     @FXML public TableColumn<VideoFileObject, Instant> lastmodifiedColumn;
     @FXML public TableColumn<VideoFileObject, Boolean> processedColumn;
@@ -55,10 +46,7 @@ public class Controller {
     public TableColumn<VideoFileObject, String> filenameColumn;
     @FXML
     public TableColumn<VideoFileObject, Long> filesizeColumn;
-
     @FXML public GridPane channelGridPane;
-
-
     @FXML public TextArea txtComment;
     @FXML public ComboBox<String> cmbQuality;
     @FXML
@@ -77,7 +65,7 @@ public class Controller {
     @FXML public LocalDateTimeTextField endDatePicker;
     @FXML public ToggleGroup channelGroup;
     @FXML public javafx.scene.layout.AnchorPane detailVHS;
-
+    private Logger log = LoggerFactory.getLogger(getClass());
     private Path dataPath;
     private TextField altChannel;
     private VideoFileObject thisVideoFileRow;
@@ -551,7 +539,8 @@ public class Controller {
         //Initial setup of files in table
         try (DirectoryStream<Path> tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts")) {
             for (Path tsFile : tsFiles) {
-                videoFileObjects.add(VideoFileObject.create(tsFile));
+                if (!tsFile.getFileName().startsWith("temp"))
+                    videoFileObjects.add(VideoFileObject.create(tsFile));
             }
             tableView.setItems(videoFileObjects);
         }
