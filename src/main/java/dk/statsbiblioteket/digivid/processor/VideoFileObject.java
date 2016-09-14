@@ -2,12 +2,11 @@ package dk.statsbiblioteket.digivid.processor;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk7.Jdk7Module;
-import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableList;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.slf4j.Logger;
@@ -23,7 +22,6 @@ import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Arrays;
 
 /**
  * Class which beside the properties about the videfile also has methods for renaming the videofile and
@@ -33,9 +31,6 @@ public class VideoFileObject {
 
     public static final String COMMENTS = ".comments";
     public static final String TEMPORARY = ".temporary";
-    private Logger log = LoggerFactory.getLogger(getClass());
-
-
     //These properties are in JSON
     private final MonitoredProperty<Long> filesize = new MonitoredProperty<>(this, "filesize", null);
     private final MonitoredProperty<String> filename = new MonitoredProperty<>(this, "filename", null);
@@ -50,12 +45,11 @@ public class VideoFileObject {
     private final MonitoredProperty<String> model = new MonitoredProperty<>(this, "model", null);
     private final MonitoredProperty<String> serialNo = new MonitoredProperty<>(this, "serialNo", null);
     private final MonitoredProperty<String> encoderName = new MonitoredProperty<>(this, "encoderName", null);
-
     //This is used just for the display table
     private final MonitoredProperty<Instant> lastModified = new MonitoredProperty<>(this, "lastModified", null);
-
     private final SimpleBooleanProperty dirty = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty processed = new SimpleBooleanProperty(false);
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     public static VideoFileObject create(Path tsFile) throws IOException {
 
@@ -64,6 +58,7 @@ public class VideoFileObject {
 
         ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk7Module());
 
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         VideoFileObject obj;
         if (Files.exists(vhsFileMetadataFilePath)) {
             obj = mapper.readValue(vhsFileMetadataFilePath.toFile(), VideoFileObject.class);
