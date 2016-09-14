@@ -91,11 +91,15 @@ public class Controller {
     @FXML
     void initialize() throws IOException {
         detailVHS.setVisible(false);
-        exists(DigividProcessor.recordsDir);
-        exists(DigividProcessor.channelCSV);
-        exists(DigividProcessor.player);
+        try {
+            exists(DigividProcessor.recordsDir);
+            exists(DigividProcessor.channelCSV);
+            exists(DigividProcessor.player);
 
-        setupChannelButtons();
+            setupChannelButtons();
+        } catch (Exception e) {
+            Utils.errorDialog("Report the following error to the administratior: ", e);
+        }
 
         Callback<Throwable, Void> parseErrorDialogs = param -> {
             //callback that displays warnings if the datepickers cannot parse the user input
