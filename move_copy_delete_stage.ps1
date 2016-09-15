@@ -25,7 +25,7 @@ function CopyCompareWren {
 	# Kopierer filen fra source til destination
 	Write-Output "Kopierer $Source$Filename til $Destination$Filename$tempExt"
 	Add-Content $LogFile "$(Get-Date -format HH:mm:ss.fff) [info] Copying $Source$Filename to $Destination$Filename$tempExt" 
-	Copy-Item $Source$Filename $Destination$Filename$tempExt -ErrorAction SilentlyContinue –errorvariable copyerror
+	Copy-Item $Source$Filename $Destination$Filename$tempExt -ErrorAction SilentlyContinue ï¿½errorvariable copyerror
 	if ($copyerror -ne $null) {
 		Add-Content $LogFile "$(Get-Date -format HH:mm:ss.fff) [ERROR] $copyerror"
 		Write-Output "Der opstod en kopieringsfejl."
@@ -47,7 +47,7 @@ function CopyCompareWren {
 	if ($Rename) {
 		Write-Output "Rename $Destination$Filename$tempExt til $Destination$Filename"
 		Add-Content $LogFile "$(Get-Date -format HH:mm:ss.fff) [info] Renaming $Destination$Filename$tempExt to $Destination$Filename" 
-		Rename-Item $Destination$Filename$tempExt $Destination$Filename -ErrorAction SilentlyContinue –errorvariable renameerror
+		Rename-Item $Destination$Filename$tempExt $Destination$Filename -ErrorAction SilentlyContinue ï¿½errorvariable renameerror
 		if ($renameerror -ne $null) {
 			Add-Content $LogFile "$(Get-Date -format HH:mm:ss.fff) [ERROR] $renameerror"
 			Write-Output "Der opstod en renamefejl."
@@ -56,7 +56,7 @@ function CopyCompareWren {
 		Add-Content $LogFile "$(Get-Date -format HH:mm:ss.fff) [info] Done"
 	}
 	
-	#Hvis filen skal flyttes, så skal source slettes
+	#Hvis filen skal flyttes, sï¿½ skal source slettes
 	if ($Move) {
 		#DeleteFile $Source $Filename $LogFile
         Remove-Item $Source$Filename -ErrorAction Stop -ErrorVariable $deleteError
@@ -71,10 +71,10 @@ function CopyCompareWren {
 function DeleteFile {
 	param([string]$Source, [string]$Filename, [string]$LogFile)
 
-	#Sletter den ønskede fil
+	#Sletter den ï¿½nskede fil
 		Write-Output "Sletter $Source$Filename"
 		Add-Content $LogFile "$(Get-Date -format HH:mm:ss.fff) [info] Deleting $Source$Filename" 
-		Remove-Item $Source$Filename -ErrorAction SilentlyContinue –errorvariable removeerror
+		Remove-Item $Source$Filename -ErrorAction SilentlyContinue ï¿½errorvariable removeerror
 		if ($removeerror -ne $null) {
 			Add-Content $LogFile "$(Get-Date -format HH:mm:ss.fff) [ERROR] $removeerror"
 			Write-Output "Der opstod en slettefejl."
@@ -82,37 +82,38 @@ function DeleteFile {
 		}
 		Add-Content $LogFile "$(Get-Date -format HH:mm:ss.fff) [info] Done"
 }
-# Stopper Digivid processor, hvis det kører
+# Stopper Digivid processor, hvis det kï¿½rer
 #Stop-Process -Name java -Force 
 
-# Flytter alle comments-filer med tilhørende filer til windir2
+# Flytter alle comments-filer med tilhï¿½rende filer til windir2
+# Important: always, always, always move commentsFile first!
 foreach ($commentsFile in get-childitem -path $windir1 -filter *$commentsFileExt) {
 	$transportstreamFile=(Get-ChildItem $windir1$commentsFile).BaseName
 	$LogFile="move$(Get-Date -Format yyyyMMdd).log"
 	
-	CopyCompareWren $windir1 $windir2 $transportstreamFile $windir1$LogFile -move
 	CopyCompareWren $windir1 $windir2 $commentsFile $windir1$LogFile -move
+	CopyCompareWren $windir1 $windir2 $transportstreamFile $windir1$LogFile -move
 }
 
-#Kopierer alle comments-filer med tilhørende transportstream-filer til SAMBAshare
+#Kopierer alle comments-filer med tilhï¿½rende transportstream-filer til SAMBAshare
 foreach ($commentsFile in get-childitem -path $windir2 -filter *$commentsFileExt) {
 	$transportstreamFile=(Get-ChildItem $windir2$commentsFile).BaseName
 	$LogFile="copy$(Get-Date -Format yyyyMMdd).log"
 	
-	# Hvis der ikke er en tilsvarende fil med doneFileExt, så skal filerne kopieres
+	# Hvis der ikke er en tilsvarende fil med doneFileExt, sï¿½ skal filerne kopieres
 	If (Test-Path $windir2$transportstreamFile$doneFileExt){
 		Add-Content $windir2$LogFile "$(Get-Date -format HH:mm:ss.fff) [info] $windir2$transportstreamFile$doneFileExt exists. Next, please!"
 	} else {
 		CopyCompareWren $windir2 $SAMBAshare $transportstreamFile $windir2$LogFile
 		CopyCompareWren $windir2 $SAMBAshare $commentsFile $windir2$LogFile -rename
 		
-		# Lav en fil som markør for veludført kopiering af både comments-filen og transportstram-filen med extention som defineret i doneFileExt
+		# Lav en fil som markï¿½r for veludfï¿½rt kopiering af bï¿½de comments-filen og transportstram-filen med extention som defineret i doneFileExt
 		Add-Content $windir2$transportstreamFile$doneFileExt "$(Get-Date -format HH:mm:ss.fff) [info] $windir2$transportstreamFile and $windir2$commentsFile Done"
 	}
 }
 
-#Sletter alle comments-filer med tilhørende transportstream-filer og donefilext ældre end retainDays dage fra windir2
-#dato for sidste ændring i donefile
+#Sletter alle comments-filer med tilhï¿½rende transportstream-filer og donefilext ï¿½ldre end retainDays dage fra windir2
+#dato for sidste ï¿½ndring i donefile
 foreach ($doneFile in (get-childitem -path $windir2 -filter *$doneFileExt | where-object {$_.LastWriteTime -lt (get-date).AddDays(-$retainDays)})) {
 	$transportstreamFile=(Get-ChildItem $windir2$doneFile).BaseName
 	$LogFile="cleanup$(Get-Date -Format yyyyMMdd).log"
