@@ -31,6 +31,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static java.nio.file.StandardWatchEventKinds.*;
+
 /**
  * Shows GUI and requests videofiles to be renamed and a JSON-file to be generated according to the GUI-users choices.
  */
@@ -118,7 +120,8 @@ public class Controller {
         endDatePicker.setParseErrorCallback(parseErrorDialogs);
 
         // expand the textfield dynamically
-        txtFilename.textProperty().addListener((ObservableValue<? extends String> observableValue, String oldValue, String newValue) -> txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(), newValue, 0.0D) + 20));
+        txtFilename.textProperty().addListener((ObservableValue<? extends String> observableValue, String oldValue, String newValue) ->
+                txtFilename.setPrefWidth(Utils.computeTextWidth(txtFilename.getFont(), newValue, 0.0D) + 20));
 
         readLocalProperties();
 
@@ -237,7 +240,7 @@ public class Controller {
 
 
         /**
-         * The filename is colored blue when it is not yet processed
+         * The filename is colored greeen when it is processed - otherwise blue.
          */
         filenameColumn.setCellFactory((TableColumn<VideoFileObject, String> column) -> new TableCell<VideoFileObject, String>() {
 
@@ -256,6 +259,7 @@ public class Controller {
                     } else {
                         setTextFill(Color.BLUE);
                     }
+
                 }
             }
         });
@@ -281,6 +285,7 @@ public class Controller {
                 }
             }
         });
+
 
         filesizeColumn.setCellFactory(column -> new TableCell<VideoFileObject, Long>() {
             @Override
