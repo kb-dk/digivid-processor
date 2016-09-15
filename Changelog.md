@@ -1,3 +1,20 @@
+Version 1.3
+===========
+Always move comments file first (ugly hack)!
+Error check happens around reading the config files
+It is now possible to read old JSON files
+The temporary Colossus files are ignored
+Warnings and error messages displayed correctly 
+Configurable autosaveinterval
+Fixed so that an error in commit does NOT cause you to lose all metadata
+The recordsdir must exist
+Fixed the processed issue
+Should fix the double file bug
+Fix for the datetimepicker skin crash
+Made datetime picker use 24h
+Monitored properties and jackson for serializatoin
+Focus fixed
+
 Version 1.2
 ===========
 Temporary files do no longer get shown in the video file list

@@ -8,9 +8,9 @@ target
 .settings
 *.ts.temporary
 *.csv
+*.iml
 src/main/config/localVHS.properties
 src/test/config/localVHS.properties
-src/test/data/emptyData/*.ts
-src/test/data/emptyData/*.ts.*
+src/test/data/emptyData/*
 
 
