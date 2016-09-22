@@ -1,1 +1,1 @@
-java -Dsun.awt.disablegrab=true -Ddigivid.config=config/digivid-processor.properties -jar digivid-processor-${project.version}-jfx.jar
+java -Dsun.awt.disablegrab=true -Ddigivid.config=%userprofile%\AppData\Roaming\digivid-processor\digivid-processor.properties -jar digivid-processor-${project.version}-jfx.jar
