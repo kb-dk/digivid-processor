@@ -1,3 +1,6 @@
+Version 1.4
+===========
+Changed to make a windows specific version
 Version 1.3
 ===========
 Always move comments file first (ugly hack)!
