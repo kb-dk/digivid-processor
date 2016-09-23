@@ -11,7 +11,7 @@
 
     <groupId>dk.statsbiblioteket.digivid</groupId>
     <artifactId>digivid-processor</artifactId>
-    <version>1.4</version>
+    <version>1.4-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
