@@ -104,9 +104,9 @@ foreach ($commentsFile in get-childitem -path $windir2 -filter *$commentsFileExt
 	If (Test-Path $windir2$transportstreamFile$doneFileExt){
 		Add-Content $windir2$LogFile "$(Get-Date -format HH:mm:ss.fff) [info] $windir2$transportstreamFile$doneFileExt exists. Next, please!"
 	} else {
-		CopyCompareWren $windir2 $SAMBAshare $transportstreamFile $windir2$LogFile
 		CopyCompareWren $windir2 $SAMBAshare $commentsFile $windir2$LogFile -rename
-		
+		CopyCompareWren $windir2 $SAMBAshare $transportstreamFile $windir2$LogFile
+
 		# Lav en fil som mark�r for veludf�rt kopiering af b�de comments-filen og transportstram-filen med extention som defineret i doneFileExt
 		Add-Content $windir2$transportstreamFile$doneFileExt "$(Get-Date -format HH:mm:ss.fff) [info] $windir2$transportstreamFile and $windir2$commentsFile Done"
 	}
