@@ -1,3 +1,7 @@
+Version 2.3
+===========
+Changed path to digivid-processor.properties and removed config/windows
+
 Version 2.2
 ===========
 Changed value of digivid.processor.recordsdir
