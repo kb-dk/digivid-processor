@@ -1,6 +1,12 @@
+Version 2.2
+===========
+Changed value of digivid.processor.recordsdir
+Always move comments file first (ugly hack)!
+
 Version 1.4
 ===========
 Changed to make a windows specific version
+
 Version 1.3
 ===========
 Always move comments file first (ugly hack)!
