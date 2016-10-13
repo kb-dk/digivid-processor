@@ -548,7 +548,7 @@ public class Controller {
         //Initial setup of files in table
         try (DirectoryStream<Path> tsFiles = Files.newDirectoryStream(getDataPath(), "*.ts")) {
             for (Path tsFile : tsFiles) {
-                if (!tsFile.getFileName().startsWith("temp"))
+                if (!tsFile.getFileName().toString().startsWith("temp"))
                     videoFileObjects.add(VideoFileObject.create(tsFile));
             }
             tableView.setItems(videoFileObjects);
