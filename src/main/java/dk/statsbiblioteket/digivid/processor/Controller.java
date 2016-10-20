@@ -442,7 +442,7 @@ public class Controller {
                             if (watchEvent.kind().equals(StandardWatchEventKinds.ENTRY_MODIFY)) {
                                 Path modifiedFile = getDataPath().resolve((Path) watchEvent.context());
                                 String filename = modifiedFile.getFileName().toString();
-                                if (filename.endsWith(".ts")) {
+                                if (filename.endsWith(".ts") && (!filename.startsWith("temp"))) {
                                     for (VideoFileObject videoFileObject : items) {
                                         if (videoFileObject.getFilename().equals(filename)) {
                                             videoFileObject.setFilesize(Files.size(modifiedFile));
@@ -457,7 +457,7 @@ public class Controller {
                                 Path createdFile = getDataPath().resolve((Path) watchEvent.context());
                                 String filename = createdFile.getFileName().toString();
 
-                                if (filename.endsWith(".ts")) {
+                                if (filename.endsWith(".ts") && (!filename.startsWith("temp"))) {
                                     VideoFileObject videoFileObject = VideoFileObject.create(createdFile);
                                     if (!items.contains(videoFileObject)) { //not there, just add
                                         items.add(videoFileObject);
@@ -476,7 +476,7 @@ public class Controller {
                             if (watchEvent.kind().equals(StandardWatchEventKinds.ENTRY_DELETE)) {
                                 Path deletedFile = getDataPath().resolve((Path) watchEvent.context());
                                 String filename = deletedFile.getFileName().toString();
-                                if (filename.endsWith(".ts")) {
+                                if (filename.endsWith(".ts") && (!filename.startsWith("temp"))) {
                                     for (int i = 0; i < items.size(); i++) {
                                         VideoFileObject videoFileObject = items.get(i);
                                         if (videoFileObject.getFilename().equals(
