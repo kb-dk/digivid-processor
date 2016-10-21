@@ -1,3 +1,7 @@
+Version 2.4
+===========
+Files that start with "temp" are not shown in the GUI
+
 Version 2.3
 ===========
 Changed path to digivid-processor.properties and removed config/windows
