@@ -1,3 +1,7 @@
+Version 2.6
+===========
+Files that starts with "temp" do not get shown
+
 Version 2.4
 ===========
 Files that start with "temp" are not shown in the GUI
