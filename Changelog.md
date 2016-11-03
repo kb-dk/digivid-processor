@@ -1,3 +1,7 @@
+Version 2.7
+===========
+Dateformat changed from yy-MM-dd to yyyy-MM-dd
+
 Version 2.6
 ===========
 Files that starts with "temp" do not get shown
