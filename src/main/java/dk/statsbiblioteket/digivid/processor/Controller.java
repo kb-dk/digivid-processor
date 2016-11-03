@@ -39,7 +39,7 @@ import static java.nio.file.StandardWatchEventKinds.*;
 public class Controller {
 
     public static final String CHECKMARK = Character.toString((char) 10003);
-    private static final String dateTimePattern = "yy-MM-dd HH:mm";
+    private static final String dateTimePattern = "yyyy-MM-dd HH:mm";
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern(dateTimePattern).withZone(ZoneId.systemDefault());
     @FXML public TableView<VideoFileObject> tableView;
     @FXML public TableColumn<VideoFileObject, Instant> lastmodifiedColumn;
