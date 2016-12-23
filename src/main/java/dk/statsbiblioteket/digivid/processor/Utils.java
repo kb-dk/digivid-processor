@@ -66,6 +66,17 @@ public class Utils {
         }
     }
 
+    static public String correctPath(String path) {
+        String correct_path = path;
+        if (System.getenv("PROFILE") != null) {
+            correct_path = path.replaceFirst("\\%USERPROFILE\\%", System.getenv("USERPROFILE"));
+        }
+        else {
+            correct_path = path.replaceFirst("\\%USERPROFILE\\%", "");
+        }
+        return correct_path;
+    }
+
     static public void warningDialog(String description) {
         warningDialog(description,null);
     }
