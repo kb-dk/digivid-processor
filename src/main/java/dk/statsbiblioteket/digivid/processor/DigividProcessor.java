@@ -46,11 +46,11 @@ public class DigividProcessor extends Application {
             throw new RuntimeException("Could not read properties file " + propertiesPath, e);
         }
 
-        recordsDir = Paths.get(properties.getProperty("digivid.processor.recordsdir"));
-        channelCSV = Paths.get(properties.getProperty("digivid.processor.channels"));
-        player = Paths.get(properties.getProperty("digivid.processor.player"));
-        localProperties = Paths.get(properties.getProperty("digivid.processor.localVHSProperties"));
-        autoSaveInterval = Integer.parseInt(properties.getProperty("digivid.autoSaveIntervalMS","5000"));
+        recordsDir = Paths.get(Utils.correctPath(properties.getProperty("digivid.processor.recordsdir")));
+        channelCSV = Paths.get(Utils.correctPath(properties.getProperty("digivid.processor.channels")));
+        player = Paths.get(Utils.correctPath(properties.getProperty("digivid.processor.player")));
+        localProperties = Paths.get(Utils.correctPath(properties.getProperty("digivid.processor.localVHSProperties")));
+        autoSaveInterval = Integer.parseInt(properties.getProperty("digivid.autoSaveIntervalMS", "5000"));
         launch(args);
     }
 

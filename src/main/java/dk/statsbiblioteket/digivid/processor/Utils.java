@@ -67,12 +67,12 @@ public class Utils {
     }
 
     static public String correctPath(String path) {
-        String correct_path = path;
-        if (System.getenv("PROFILE") != null) {
-            correct_path = path.replaceFirst("\\%USERPROFILE\\%", System.getenv("USERPROFILE"));
+        String correct_path;
+        if (System.getenv("USERNAME") != null) {
+            correct_path = path.replaceFirst("\\%USERNAME\\%", System.getenv("USERNAME"));
         }
         else {
-            correct_path = path.replaceFirst("\\%USERPROFILE\\%", "");
+            correct_path = path.replaceFirst("\\%USERNAME\\%", "");
         }
         return correct_path;
     }
