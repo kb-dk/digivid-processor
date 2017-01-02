@@ -1,3 +1,7 @@
+Version 2.8
+===========
+Added method that parses username alias instead of a strict path
+
 Version 2.7
 ===========
 Dateformat changed from yy-MM-dd to yyyy-MM-dd
