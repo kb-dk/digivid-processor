@@ -327,7 +327,7 @@ public class VideoFileObject {
      * @return The new filename
      */
     private String buildFilename() {
-        DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd-HH.mm.ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss");
         return String.format("%s_digivid_%s-%s_%s-%s.ts",
                 getChannel(),
                 getStartDate() / 1000L,
