@@ -1,3 +1,7 @@
+Version 2.9
+===========
+Changed the year to be determined from week based to day based
+
 Version 2.8
 ===========
 Added method that parses username alias instead of a strict path
